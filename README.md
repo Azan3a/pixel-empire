@@ -12,17 +12,41 @@ After the initial setup (<2 minutes) you'll have a working full-stack app using:
 
 ## Get started
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+If you just cloned this codebase and didn't use `bun create convex`, run:
 
 ```
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 If you're reading this README on GitHub and want to use this template, run:
 
 ```
-npm create convex@latest -- -t nextjs-convexauth
+bun create convex@latest -- -t nextjs-convexauth
+```
+
+After creating the project, install the Convex Auth dependencies:
+
+```
+bun install @convex-dev/auth @auth/core@0.37.0
+```
+
+Then, configure Convex Auth by running:
+
+```
+npx @convex-dev/auth
+```
+
+Follow the prompts to:
+
+- Set the SITE_URL (e.g., http://localhost:3000)
+- Configure private and public keys
+- Update the tsconfig.json if needed
+
+Finally, start the development server:
+
+```
+bun run dev
 ```
 
 ## Learn more
