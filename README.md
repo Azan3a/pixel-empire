@@ -1,84 +1,105 @@
-# Welcome to your Convex + Next.js + Convex Auth app
+# Pixel Empire
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+A real-time multiplayer pixel art business simulator built with **Next.js**, **Convex**, **PixiJS**, and **Bun**.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+Players join a shared persistent world to gather resources, trade with others, sell on a global market, and climb the wealth leaderboard. The MVP focuses on a core loop of resource collection → trading → progression, with real-time player movement and proximity interactions.
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Convex Auth](https://labs.convex.dev/auth) for authentication
+Long-term vision: an open-ended economy with player-run businesses, hiring, roles, and empire-building — think Stardew Valley co-op meets Virtonomics, with a retro pixel aesthetic.
 
-## Get started
+## Tech Stack
 
-If you just cloned this codebase and didn't use `bun create convex`, run:
+- **Next.js** – Frontend framework and optimized hosting
+- **Convex** – Real-time backend, database, server functions, and authentication
+- **PixiJS** – GPU-accelerated 2D rendering for smooth pixel art sprites and animations
+- **Tailwind CSS** – Rapid UI styling
+- **Bun** – Fast runtime and package manager
+- **Convex Auth** – Secure user authentication (already configured)
 
-```
+## Quick Start
+
+If you cloned this repo:
+
+```bash
 bun install
 bun run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+This starts the Next.js dev server at `http://localhost:3000` and the Convex dev backend.
 
-```
-bun create convex@latest -- -t nextjs-convexauth
-```
+## Project Setup Notes
 
-After creating the project, install the Convex Auth dependencies:
+### Convex Backend
 
-```
-bun install @convex-dev/auth @auth/core@0.37.0
-```
+Your Convex functions, schema, and auth config live in the `/convex` folder.
 
-Then, configure Convex Auth by running:
+- To push schema or functions: `npx convex dev`
+- To deploy to production: `npx convex deploy`
 
-```
-npx @convex-dev/auth
-```
+### Adding PixiJS (if not already installed)
 
-Follow the prompts to:
-
-- Set the SITE_URL (e.g., http://localhost:3000)
-- Configure private and public keys
-- Update the tsconfig.json if needed
-
-Finally, start the development server:
-
-```
-bun run dev
+```bash
+bun add pixi.js @pixi/react
 ```
 
-## Add Shadcn UI components
+PixiJS is used in the main game canvas for rendering the top-down world, player avatars, and resource nodes.
 
-To add Shadcn UI components to your project, run the following commands:
+### Optional: Shadcn UI Components
+
+If you want pre-built accessible UI components (buttons, modals, etc.):
 
 ```bash
 bunx --bun shadcn@latest init
+bunx --bun shadcn@latest add --all   # or add individual components
 ```
 
-Then, to add all available components, run:
+### Environment Variables
 
-```bash
-bunx --bun shadcn@latest add --all
+Convex Auth requires a few env vars (set via the Convex dashboard or locally):
+
+- `NEXT_PUBLIC_CONVEX_URL` – your deployed Convex URL
+- `SITE_URL` – e.g., http://localhost:3000 during dev
+
+These are prompted and configured when you run `npx @convex-dev/auth configure`.
+
+## Folder Structure Highlights
+
+```
+/convex          # Convex schema, queries, mutations, server functions
+/app             # Next.js pages and layout
+/components      # React components (game canvas, HUD panels, UI)
+/public/assets   # Pixel art sprites, tilesets, etc.
+/lib             # Shared utilities
 ```
 
-## Learn more
+## Development Tips
 
-To learn more about developing your project with Convex, check out:
+- Real-time player sync and world state use Convex reactive queries.
+- Game logic (collecting resources, market transactions) is server-authoritative via Convex mutations.
+- Map rendering: PixiJS viewport in the main game screen component.
+- Auth flow: players are auto-created on first login with default avatar and starting balance.
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-- [Convex Auth docs](https://labs.convex.dev/auth) for documentation on the Convex Auth library.
+## MVP Features (Current)
 
-## Configuring other authentication methods
+- Authenticated login
+- Shared top-down pixel art world with real-time player movement
+- Resource nodes (Wood, Stone, Ore)
+- Inventory and money system
+- Global market with simple dynamic pricing
+- Leaderboard ranked by net worth
 
-To configure different authentication methods, see [Configuration](https://labs.convex.dev/auth/config) in the Convex Auth docs.
+Planned next: proximity chat, direct player-to-player trading, upgrades shop.
 
-## Join the community
+## Resources & Learning
 
-Join thousands of developers building full-stack apps with Convex:
+- [Convex Docs](https://docs.convex.dev/)
+- [Convex Auth](https://labs.convex.dev/auth)
+- [Stack by Convex – Multiplayer Game Examples](https://stack.convex.dev/)
+- [PixiJS Docs](https://pixijs.com/)
+- [Next.js Docs](https://nextjs.org/docs)
 
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+## Community
+
+- Join the [Convex Discord](https://convex.dev/community) for real-time help
+- Report issues or contribute on GitHub
+
+Happy building your pixel empire! 🚀
