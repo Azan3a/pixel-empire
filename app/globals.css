@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  @apply w-0 h-0;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

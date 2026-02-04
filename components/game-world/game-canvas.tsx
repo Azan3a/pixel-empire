@@ -5,9 +5,8 @@ import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { GameUI } from "@/components/game-ui";
-import { Player } from "@/types/player";
-import { WorldNode } from "@/types/world_node";
+import Player from "@/types/player";
+import WorldNode from "@/types/world_node";
 
 // Extend PixiJS classes
 extend({ Container, Graphics, Sprite, Text });
@@ -15,8 +14,9 @@ extend({ Container, Graphics, Sprite, Text });
 const MAP_SIZE = 2000;
 const TILE_SIZE = 50;
 
-export default function GamePage() {
+export function GameCanvas() {
   const [me, setMe] = useState<Player | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const otherPlayers =
     (useQuery(api.players.getAlivePlayers) as Player[]) || [];
   const resources = (useQuery(api.world.getResources) as WorldNode[]) || [];
@@ -79,11 +79,17 @@ export default function GamePage() {
         moved = true;
       }
 
-      // Clamp to map
-      localPos.current.x = Math.max(0, Math.min(MAP_SIZE, localPos.current.x));
-      localPos.current.y = Math.max(0, Math.min(MAP_SIZE, localPos.current.y));
-
       if (moved) {
+        // Clamp to map
+        localPos.current.x = Math.max(
+          0,
+          Math.min(MAP_SIZE, localPos.current.x),
+        );
+        localPos.current.y = Math.max(
+          0,
+          Math.min(MAP_SIZE, localPos.current.y),
+        );
+
         setRenderPos({ x: localPos.current.x, y: localPos.current.y });
 
         // Sync to server every 100ms
@@ -133,8 +139,8 @@ export default function GamePage() {
 
   if (!me)
     return (
-      <div className="flex h-screen items-center justify-center">
-        Loading world...
+      <div className="flex h-full items-center justify-center bg-[#eef2f3]">
+        <div className="text-xl font-bold text-gray-400">Loading world...</div>
       </div>
     );
 
@@ -147,11 +153,11 @@ export default function GamePage() {
   const camY = viewportHeight / 2 - renderPos.y;
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#fafafa]">
-      <Application
-        background="#eef2f3"
-        resizeTo={typeof window !== "undefined" ? window : undefined}
-      >
+    <div
+      ref={containerRef}
+      className="h-full w-full overflow-hidden bg-[#fafafa]"
+    >
+      <Application background="#eef2f3" resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
           {/* Grid */}
           <pixiGraphics draw={drawGrid} />
@@ -193,13 +199,11 @@ export default function GamePage() {
               text={`${me.name} (You)`}
               anchor={0.5}
               y={-35}
-              style={{ fontSize: 14, fontWeight: "bold", fill: 0x000000 }}
+              style={{ fontSize: 12, fontWeight: "bold", fill: 0x000000 }}
             />
           </pixiContainer>
         </pixiContainer>
       </Application>
-
-      <GameUI />
     </div>
   );
 }
