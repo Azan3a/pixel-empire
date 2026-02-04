@@ -11,7 +11,9 @@
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as myFunctions from "../myFunctions.js";
+import type * as players from "../players.js";
 import type * as users from "../users.js";
+import type * as world from "../world.js";
 
 import type {
   ApiFromModules,
@@ -23,7 +25,9 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
   myFunctions: typeof myFunctions;
+  players: typeof players;
   users: typeof users;
+  world: typeof world;
 }>;
 
 /**
