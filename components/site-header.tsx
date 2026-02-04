@@ -1,38 +1,49 @@
 "use client";
 
-import { SidebarIcon, Coins } from "lucide-react";
+import { Coins, Trophy } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UserAvatar } from "@/components/user-avatar";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useSidebar } from "@/components/ui/sidebar";
 
 export function SiteHeader() {
-  const { toggleSidebar } = useSidebar();
   const player = useQuery(api.players.getPlayerInfo);
 
+  if (!player) return null;
+
   return (
-    <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 flex w-full items-center border-b shadow-sm">
-      <div className="flex h-(--header-height) w-full items-center gap-2 px-4 text-sm font-medium">
-        <Button
-          className="h-8 w-8"
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-        >
-          <SidebarIcon />
-        </Button>
-        <Separator orientation="vertical" className="mx-2 h-4" />
-
-        <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700">
-          <Coins className="h-4 w-4" />
-          <span className="font-bold">${player?.gold ?? 0}</span>
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1 pr-3 h-12 bg-background/95 backdrop-blur-md border rounded-full shadow-2xl">
+      <div className="flex items-center gap-2 pl-2">
+        <UserAvatar size="sm" />
+        <div className="flex flex-col pr-2">
+          <span className="text-[10px] font-bold text-muted-foreground leading-none">
+            RANK
+          </span>
+          <span className="text-xs font-black leading-none">
+            #{player.rank} / {player.total}
+          </span>
         </div>
+      </div>
 
-        <div className="ml-auto flex items-center gap-3 pr-2">
-          <UserAvatar />
+      <Separator orientation="vertical" className="h-6" />
+
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700">
+        <Coins className="h-3.5 w-3.5" />
+        <span className="font-extrabold text-sm tabular-nums">
+          ${player.gold.toLocaleString()}
+        </span>
+      </div>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      <div className="flex items-center gap-2 px-3">
+        <div className="hidden sm:flex flex-col items-end">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase leading-none">
+            Net Worth
+          </span>
+          <span className="text-xs font-bold leading-none">{player.name}</span>
         </div>
+        <Trophy className="h-4 w-4 text-amber-500" />
       </div>
     </header>
   );

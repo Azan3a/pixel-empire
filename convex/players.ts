@@ -104,11 +104,17 @@ export const getPlayerInfo = query({
 
     if (!player) return null;
 
+    // Calculate rank
+    const allPlayers = await ctx.db.query("players").collect();
+    const sorted = allPlayers.sort((a, b) => b.gold - a.gold);
+    const rank = sorted.findIndex((p) => p._id === player._id) + 1;
+    const total = allPlayers.length;
+
     const inventory = await ctx.db
       .query("inventory")
       .withIndex("by_player", (q) => q.eq("playerId", player._id))
       .collect();
 
-    return { ...player, inventory };
+    return { ...player, inventory, rank, total };
   },
 });

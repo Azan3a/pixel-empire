@@ -102,34 +102,70 @@ export function GameCanvas() {
     return () => clearInterval(interval);
   }, [updatePos]);
 
-  const drawPlayer = useCallback((g: Graphics, color: number) => {
-    g.clear();
-    g.setFillStyle({ color });
-    g.circle(0, 0, 20);
-    g.fill();
-  }, []);
+  const drawPlayer = useCallback(
+    (g: Graphics, color: number, isMe: boolean) => {
+      g.clear();
+      // Shadow
+      g.setFillStyle({ color: 0x000000, alpha: 0.1 });
+      g.ellipse(2, 22, 15, 6);
+      g.fill();
+
+      // Body
+      g.setFillStyle({ color });
+      g.circle(0, 0, 22);
+      g.fill();
+
+      // Border
+      g.setStrokeStyle({
+        color: isMe ? 0xffffff : 0x000000,
+        width: 3,
+        alpha: isMe ? 0.8 : 0.2,
+      });
+      g.circle(0, 0, 22);
+      g.stroke();
+    },
+    [],
+  );
 
   const drawResource = useCallback(
     (g: Graphics, type: string, health: number) => {
       g.clear();
-      let color = 0x00ff00; // tree
-      if (type === "rock") color = 0x888888;
-      if (type === "ore_deposit") color = 0xffd700;
+      let color = 0x22c55e; // tree emerald
+      if (type === "rock") color = 0x94a3b8; // stone slate
+      if (type === "ore_deposit") color = 0xeab308; // ore amber
 
-      g.setFillStyle({ color, alpha: health > 0 ? 1 : 0.2 });
+      const alpha = health > 0 ? 1 : 0.15;
+      g.setFillStyle({ color, alpha });
+
       if (type === "tree") {
-        g.moveTo(0, -25).lineTo(20, 10).lineTo(-20, 10).closePath();
+        // Simple pine shape
+        g.moveTo(0, -35).lineTo(25, 5).lineTo(-25, 5).closePath();
+        g.fill();
+        g.rect(-6, 5, 12, 15);
+        g.fill();
       } else {
-        g.rect(-15, -15, 30, 30);
+        // Blobby rock or crystal
+        g.moveTo(-15, -15)
+          .lineTo(15, -20)
+          .lineTo(20, 10)
+          .lineTo(-5, 20)
+          .lineTo(-20, 5)
+          .closePath();
+        g.fill();
       }
-      g.fill();
     },
     [],
   );
 
   const drawGrid = useCallback((g: Graphics) => {
     g.clear();
-    g.setStrokeStyle({ color: 0xeeeeee, width: 1 });
+    // Subtle background
+    g.setFillStyle({ color: 0xf8fafc });
+    g.rect(0, 0, MAP_SIZE, MAP_SIZE);
+    g.fill();
+
+    // Subtle lines
+    g.setStrokeStyle({ color: 0xe2e8f0, width: 1 });
     for (let i = 0; i <= MAP_SIZE; i += TILE_SIZE) {
       g.moveTo(i, 0).lineTo(i, MAP_SIZE);
       g.moveTo(0, i).lineTo(MAP_SIZE, i);
@@ -139,8 +175,13 @@ export function GameCanvas() {
 
   if (!me)
     return (
-      <div className="flex h-full items-center justify-center bg-[#eef2f3]">
-        <div className="text-xl font-bold text-gray-400">Loading world...</div>
+      <div className="flex h-full items-center justify-center bg-zinc-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
+          <div className="text-xl font-bold text-emerald-500 tracking-widest uppercase animate-pulse">
+            Initializing World...
+          </div>
+        </div>
       </div>
     );
 
@@ -182,24 +223,42 @@ export function GameCanvas() {
             .filter((p) => p._id !== me._id)
             .map((p) => (
               <pixiContainer key={p._id} x={p.x} y={p.y}>
-                <pixiGraphics draw={(g) => drawPlayer(g, 0x0000ff)} />
+                <pixiGraphics draw={(g) => drawPlayer(g, 0xef4444, false)} />
                 <pixiText
                   text={p.name}
+                  x={0}
+                  y={-45}
                   anchor={0.5}
-                  y={-35}
-                  style={{ fontSize: 14, fill: 0x333333 }}
+                  style={{
+                    fill: "#333333",
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    dropShadow: true,
+                    dropShadowBlur: 2,
+                    dropShadowColor: "#ffffff",
+                    dropShadowDistance: 0,
+                  }}
                 />
               </pixiContainer>
             ))}
 
           {/* Local Player */}
           <pixiContainer x={renderPos.x} y={renderPos.y}>
-            <pixiGraphics draw={(g) => drawPlayer(g, 0xff0000)} />
+            <pixiGraphics draw={(g) => drawPlayer(g, 0x10b981, true)} />
             <pixiText
-              text={`${me.name} (You)`}
+              text={me.name}
+              x={0}
+              y={-45}
               anchor={0.5}
-              y={-35}
-              style={{ fontSize: 12, fontWeight: "bold", fill: 0x000000 }}
+              style={{
+                fill: "#059669",
+                fontSize: 14,
+                fontWeight: "900",
+                dropShadow: true,
+                dropShadowBlur: 4,
+                dropShadowColor: "#ffffff",
+                dropShadowDistance: 0,
+              }}
             />
           </pixiContainer>
         </pixiContainer>
