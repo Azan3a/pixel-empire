@@ -35,7 +35,7 @@ export function BottomPanel() {
   return (
     <div
       className={cn(
-        "pointer-events-auto w-full max-w-5xl mx-auto rounded-t-xl bg-background/95 backdrop-blur-md border border-b-0 shadow-2xl transition-all duration-300",
+        "pointer-events-auto w-full mx-auto rounded-t-xl bg-background/95 backdrop-blur-md border border-b-0 shadow-2xl transition-all duration-300",
         isExpanded ? "h-64" : "h-12",
       )}
     >
