@@ -49,6 +49,20 @@ Finally, start the development server:
 bun run dev
 ```
 
+## Add Shadcn UI components
+
+To add Shadcn UI components to your project, run the following commands:
+
+```bash
+bunx --bun shadcn@latest init
+```
+
+Then, to add all available components, run:
+
+```bash
+bunx --bun shadcn@latest add --all
+```
+
 ## Learn more
 
 To learn more about developing your project with Convex, check out:
