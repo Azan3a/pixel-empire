@@ -1,5 +1,5 @@
-import { SiteHeader } from "@/components/site-header";
-import { BottomPanel } from "@/components/game-world/bottom-panel";
+import { SiteHeader } from "@/components/game/header";
+import { BottomPanel } from "@/components/game/bottom-panel";
 
 export default function Layout({
   children,

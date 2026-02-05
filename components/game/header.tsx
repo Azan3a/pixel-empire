@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins, Trophy } from "lucide-react";
+import { Coins } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UserAvatar } from "@/components/user-avatar";
