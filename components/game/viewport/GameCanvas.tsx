@@ -3,12 +3,9 @@
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useEffect, useState, useRef } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
 import { Player } from "@/types/player";
-import { WorldNode } from "@/types/world_node";
-import { Building } from "@/types/building";
+import { usePlayer } from "@/hooks/use-player";
+import { useWorld } from "@/hooks/use-world";
 
 // Components
 import { WorldGrid } from "./world/WorldGrid";
@@ -26,15 +23,19 @@ const TILE_SIZE = 50;
 export function GameCanvas() {
   const [me, setMe] = useState<Player | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const otherPlayers =
-    (useQuery(api.players.getAlivePlayers) as Player[]) || [];
-  const resources = (useQuery(api.world.getResources) as WorldNode[]) || [];
-  const buildings = (useQuery(api.world.getBuildings) as Building[]) || [];
-  const initPlayer = useMutation(api.players.getOrCreatePlayer);
-  const updatePos = useMutation(api.players.updatePosition);
-  const collect = useMutation(api.world.collectResource);
-  const collectProduction = useMutation(api.world.collectProduction);
-  const seed = useMutation(api.world.seedResources);
+
+  const {
+    alivePlayers: otherPlayers,
+    initPlayer,
+    updatePosition: updatePos,
+  } = usePlayer();
+  const {
+    resources,
+    buildings,
+    collectResource: collect,
+    collectProduction,
+    seedResources: seed,
+  } = useWorld();
 
   const [renderPos, setRenderPos] = useState({ x: 400, y: 300 });
   const localPos = useRef({ x: 400, y: 300 });
@@ -138,13 +139,7 @@ export function GameCanvas() {
             <ResourceNode
               key={res._id}
               resource={res}
-              onCollect={(nodeId) => {
-                collect({ nodeId }).then((res) => {
-                  if (res && "error" in res && res.error) {
-                    toast.error(res.error as string);
-                  }
-                });
-              }}
+              onCollect={(nodeId) => collect(nodeId)}
             />
           ))}
 
@@ -154,20 +149,9 @@ export function GameCanvas() {
               key={b._id}
               building={b}
               isOwner={b.playerId === me._id}
-              onCollectProduction={(buildingId) => {
-                collectProduction({ buildingId }).then((res) => {
-                  if (res && "error" in res && res.error) {
-                    toast.error(res.error as string);
-                  } else if (
-                    res &&
-                    "amount" in res &&
-                    typeof res.amount === "number" &&
-                    res.amount > 0
-                  ) {
-                    toast.success(`Collected ${res.amount} ${res.item}`);
-                  }
-                });
-              }}
+              onCollectProduction={(buildingId) =>
+                collectProduction(buildingId)
+              }
             />
           ))}
 

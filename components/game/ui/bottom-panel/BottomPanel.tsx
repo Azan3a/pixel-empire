@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { usePlayer } from "@/hooks/use-player";
 import {
   Package,
   Store,
@@ -24,8 +23,7 @@ export function BottomPanel() {
   const [activeTab, setActiveTab] = useState("inventory");
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const playerInfo = useQuery(api.players.getPlayerInfo);
-  const leaderboard = useQuery(api.players.getLeaderboard) || [];
+  const { playerInfo, leaderboard } = usePlayer();
 
   const tabs = [
     { id: "inventory", label: "Inventory", icon: Package },

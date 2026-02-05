@@ -1,8 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
+import { useWorld } from "@/hooks/use-world";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 
@@ -36,29 +34,13 @@ const BUILDINGS = [
   },
 ];
 
-interface BuildResponse {
-  success: boolean;
-  buildingId?: string;
-  error?: string;
-}
-
 const getOffset = () => Math.random() * 100 - 50;
 
 export function BuildTab({ playerGold, playerX, playerY }: BuildTabProps) {
-  const placeBuilding = useMutation(api.world.placeBuilding);
+  const { placeBuilding } = useWorld();
 
   const handleBuild = (b: (typeof BUILDINGS)[0]) => {
-    placeBuilding({
-      type: b.id,
-      x: playerX + getOffset(),
-      y: playerY + getOffset(),
-    }).then((res: BuildResponse) => {
-      if (res && "error" in res && res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(`Started building ${b.name}!`);
-      }
-    });
+    placeBuilding(b.id, playerX + getOffset(), playerY + getOffset());
   };
 
   return (

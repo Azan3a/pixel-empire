@@ -1,8 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
+import { useMarket } from "@/hooks/use-market";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 
@@ -21,20 +19,11 @@ const MARKET_ITEMS = [
   { name: "ore", price: 25, emoji: "⬟" },
 ];
 
-interface MarketResponse {
-  success: boolean;
-  error?: string;
-}
-
 export function MarketTab({ inventory }: MarketTabProps) {
-  const sellResource = useMutation(api.world.sellResource);
+  const { sellResource } = useMarket();
 
   const handleSell = (itemName: string) => {
-    sellResource({ item: itemName, amount: 1 }).then((res: MarketResponse) => {
-      if (res && "error" in res && res.error) {
-        toast.error(res.error);
-      }
-    });
+    sellResource(itemName, 1);
   };
 
   return (

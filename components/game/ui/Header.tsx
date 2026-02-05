@@ -1,13 +1,12 @@
 "use client";
 
 import { Coins } from "lucide-react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { usePlayer } from "@/hooks/use-player";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
 
 export function SiteHeader() {
-  const player = useQuery(api.players.getPlayerInfo);
+  const { playerInfo: player } = usePlayer();
 
   if (!player) return null;
 
