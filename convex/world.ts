@@ -44,7 +44,9 @@ export const placeBuilding = mutation({
     const cost = costs[args.type];
     if (cost === undefined) throw new Error("Invalid building type");
 
-    if (player.gold < cost) throw new Error("Insufficient gold");
+    if (player.gold < cost) {
+      return { success: false, error: "Insufficient gold" };
+    }
 
     // Deduct gold
     await ctx.db.patch(player._id, { gold: player.gold - cost });
@@ -59,7 +61,7 @@ export const placeBuilding = mutation({
       lastProducedAt: Date.now(),
     });
 
-    return buildingId;
+    return { success: true, buildingId };
   },
 });
 
@@ -84,7 +86,7 @@ export const collectProduction = mutation({
     const elapsed = now - building.lastProducedAt;
     const minutes = Math.floor(elapsed / 60000);
 
-    if (minutes < 1) return { amount: 0, message: "Too early to collect" };
+    if (minutes < 1) return { success: false, error: "Too early to collect" };
 
     const itemMap: Record<string, string> = {
       lumber_mill: "wood",
@@ -112,7 +114,7 @@ export const collectProduction = mutation({
       });
     }
 
-    return { item, amount };
+    return { success: true, item, amount };
   },
 });
 
@@ -130,7 +132,7 @@ export const collectResource = mutation({
 
     const node = await ctx.db.get(args.nodeId);
     if (!node || (node.respawnAt && node.respawnAt > Date.now())) {
-      throw new Error("Resource not available");
+      return { success: false, error: "Resource not available" };
     }
 
     // Proximity check (simplified: must be within 50 units)
@@ -138,7 +140,7 @@ export const collectResource = mutation({
       Math.pow(player.x - node.x, 2) + Math.pow(player.y - node.y, 2),
     );
     if (dist > 60) {
-      throw new Error("Too far from resource");
+      return { success: false, error: "Too far from resource" };
     }
 
     // Decrease health or collect immediately
@@ -204,13 +206,15 @@ export const sellResource = mutation({
       .unique();
 
     if (!invItem || invItem.quantity < args.amount) {
-      throw new Error("Not enough items");
+      return { success: false, error: "Not enough items" };
     }
 
     await ctx.db.patch(invItem._id, {
       quantity: invItem.quantity - args.amount,
     });
     await ctx.db.patch(player._id, { gold: player.gold + price * args.amount });
+
+    return { success: true };
   },
 });
 

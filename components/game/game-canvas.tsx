@@ -5,6 +5,7 @@ import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import { Player } from "@/types/player";
 import { WorldNode } from "@/types/world_node";
 import { Building } from "@/types/building";
@@ -146,7 +147,13 @@ export function GameCanvas() {
             <ResourceNode
               key={res._id}
               resource={res}
-              onCollect={(nodeId) => collect({ nodeId })}
+              onCollect={(nodeId) => {
+                collect({ nodeId }).then((res) => {
+                  if (res && "error" in res && res.error) {
+                    toast.error(res.error as string);
+                  }
+                });
+              }}
             />
           ))}
 
@@ -158,8 +165,15 @@ export function GameCanvas() {
               isOwner={b.playerId === me._id}
               onCollectProduction={(buildingId) => {
                 collectProduction({ buildingId }).then((res) => {
-                  if (res && res.amount > 0) {
-                    console.log(`Collected ${res.amount} ${res.item}`);
+                  if (res && "error" in res && res.error) {
+                    toast.error(res.error as string);
+                  } else if (
+                    res &&
+                    "amount" in res &&
+                    typeof res.amount === "number" &&
+                    res.amount > 0
+                  ) {
+                    toast.success(`Collected ${res.amount} ${res.item}`);
                   }
                 });
               }}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import {
   Package,
   Store,
@@ -158,6 +159,12 @@ export function BottomPanel() {
                           type: b.id,
                           x: (playerInfo.x || 0) + (Math.random() * 100 - 50),
                           y: (playerInfo.y || 0) + (Math.random() * 100 - 50),
+                        }).then((res) => {
+                          if (res && "error" in res && res.error) {
+                            toast.error(res.error as string);
+                          } else {
+                            toast.success(`Started building ${b.name}!`);
+                          }
                         });
                       }}
                       disabled={playerInfo.gold < b.cost}
@@ -196,7 +203,13 @@ export function BottomPanel() {
                       variant="outline"
                       className="h-7 text-[10px] bg-white"
                       onClick={() =>
-                        sellResource({ item: item.name, amount: 1 })
+                        sellResource({ item: item.name, amount: 1 }).then(
+                          (res) => {
+                            if (res && "error" in res && res.error) {
+                              toast.error(res.error as string);
+                            }
+                          },
+                        )
                       }
                       disabled={
                         (playerInfo.inventory?.find(
