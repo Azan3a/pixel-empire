@@ -1,7 +1,9 @@
+import { Id } from "@/convex/_generated/dataModel";
+
 export type Player = {
-  _id: string;
+  _id: Id<"players">;
   _creationTime: number;
-  userId: string;
+  userId: Id<"users">;
   name: string;
   x: number;
   y: number;

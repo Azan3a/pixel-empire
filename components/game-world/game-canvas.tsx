@@ -5,8 +5,9 @@ import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import Player from "@/types/player";
-import WorldNode from "@/types/world_node";
+import { Player } from "@/types/player";
+import { WorldNode } from "@/types/world_node";
+import { Building } from "@/types/building";
 
 // Extend PixiJS classes
 extend({ Container, Graphics, Sprite, Text });
@@ -20,9 +21,11 @@ export function GameCanvas() {
   const otherPlayers =
     (useQuery(api.players.getAlivePlayers) as Player[]) || [];
   const resources = (useQuery(api.world.getResources) as WorldNode[]) || [];
+  const buildings = (useQuery(api.world.getBuildings) as Building[]) || [];
   const initPlayer = useMutation(api.players.getOrCreatePlayer);
   const updatePos = useMutation(api.players.updatePosition);
   const collect = useMutation(api.world.collectResource);
+  const collectProduction = useMutation(api.world.collectProduction);
   const seed = useMutation(api.world.seedResources);
 
   const [renderPos, setRenderPos] = useState({ x: 400, y: 300 });
@@ -157,6 +160,29 @@ export function GameCanvas() {
     [],
   );
 
+  const drawBuilding = useCallback((g: Graphics, type: string) => {
+    g.clear();
+    let color = 0x3b82f6; // Default blue
+    if (type === "lumber_mill") color = 0x78350f;
+    if (type === "stone_mason") color = 0x475569;
+    if (type === "smelter") color = 0xd97706;
+
+    // Base
+    g.setFillStyle({ color, alpha: 0.9 });
+    g.rect(-30, -30, 60, 60);
+    g.fill();
+
+    // Roof or details
+    g.setFillStyle({ color: 0x000000, alpha: 0.2 });
+    g.moveTo(-30, -30).lineTo(0, -50).lineTo(30, -30).closePath();
+    g.fill();
+
+    // Border
+    g.setStrokeStyle({ color: 0xffffff, width: 2, alpha: 0.3 });
+    g.rect(-30, -30, 60, 60);
+    g.stroke();
+  }, []);
+
   const drawGrid = useCallback((g: Graphics) => {
     g.clear();
     // Subtle background
@@ -218,6 +244,46 @@ export function GameCanvas() {
             </pixiContainer>
           ))}
 
+          {/* Buildings */}
+          {buildings.map((b) => (
+            <pixiContainer
+              key={b._id}
+              x={b.x}
+              y={b.y}
+              eventMode="static"
+              onClick={() => {
+                if (b.playerId === me._id) {
+                  collectProduction({ buildingId: b._id }).then((res) => {
+                    if (res && res.amount > 0) {
+                      console.log(`Collected ${res.amount} ${res.item}`);
+                    }
+                  });
+                }
+              }}
+            >
+              <pixiGraphics draw={(g) => drawBuilding(g, b.type)} />
+              <pixiText
+                text={`${b.ownerName}'s ${b.type
+                  .split("_")
+                  .map((w) => w[0].toUpperCase() + w.slice(1))
+                  .join(" ")}`}
+                x={0}
+                y={45}
+                anchor={0.5}
+                style={{
+                  fill: "#4b5563",
+                  fontSize: 10,
+                  fontWeight: "bold",
+                  dropShadow: {
+                    blur: 2,
+                    color: "#ffffff",
+                    distance: 0,
+                  },
+                }}
+              />
+            </pixiContainer>
+          ))}
+
           {/* Other Players */}
           {otherPlayers
             .filter((p) => p._id !== me._id)
@@ -233,10 +299,11 @@ export function GameCanvas() {
                     fill: "#333333",
                     fontSize: 14,
                     fontWeight: "bold",
-                    dropShadow: true,
-                    dropShadowBlur: 2,
-                    dropShadowColor: "#ffffff",
-                    dropShadowDistance: 0,
+                    dropShadow: {
+                      blur: 2,
+                      color: "#ffffff",
+                      distance: 0,
+                    },
                   }}
                 />
               </pixiContainer>
@@ -254,10 +321,11 @@ export function GameCanvas() {
                 fill: "#059669",
                 fontSize: 14,
                 fontWeight: "900",
-                dropShadow: true,
-                dropShadowBlur: 4,
-                dropShadowColor: "#ffffff",
-                dropShadowDistance: 0,
+                dropShadow: {
+                  blur: 4,
+                  color: "#ffffff",
+                  distance: 0,
+                },
               }}
             />
           </pixiContainer>

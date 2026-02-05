@@ -31,6 +31,15 @@ export default defineSchema({
     respawnAt: v.optional(v.number()), // Unix timestamp or null if active
   }).index("by_location", ["x", "y"]),
 
+  buildings: defineTable({
+    playerId: v.id("players"),
+    type: v.string(), // "lumber_mill", "stone_mason", "smelter"
+    x: v.number(),
+    y: v.number(),
+    level: v.number(),
+    lastProducedAt: v.number(),
+  }).index("by_player", ["playerId"]),
+
   numbers: defineTable({
     value: v.number(),
   }),

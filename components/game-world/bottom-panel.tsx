@@ -10,6 +10,7 @@ import {
   MessageSquare,
   ChevronUp,
   ChevronDown,
+  Hammer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,9 +23,11 @@ export function BottomPanel() {
   const playerInfo = useQuery(api.players.getPlayerInfo);
   const leaderboard = useQuery(api.players.getLeaderboard) || [];
   const sellResource = useMutation(api.world.sellResource);
+  const placeBuilding = useMutation(api.world.placeBuilding);
 
   const tabs = [
     { id: "inventory", label: "Inventory", icon: Package },
+    { id: "build", label: "Build", icon: Hammer },
     { id: "market", label: "Global Market", icon: Store },
     { id: "rankings", label: "Rankings", icon: BarChart3 },
     { id: "chat", label: "Chat/Log", icon: MessageSquare },
@@ -108,6 +111,61 @@ export function BottomPanel() {
                     Your pack is empty...
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "build" && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    id: "lumber_mill",
+                    name: "Lumber Mill",
+                    cost: 200,
+                    emoji: "🪵",
+                    desc: "Produces Wood",
+                  },
+                  {
+                    id: "stone_mason",
+                    name: "Stone Mason",
+                    cost: 500,
+                    emoji: "🪨",
+                    desc: "Produces Stone",
+                  },
+                  {
+                    id: "smelter",
+                    name: "Smelter",
+                    cost: 1200,
+                    emoji: "⬟",
+                    desc: "Produces Ore",
+                  },
+                ].map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex flex-col p-3 rounded-lg border bg-blue-50/20 border-blue-100"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">{b.emoji}</span>
+                      <span className="font-bold text-xs">{b.name}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      {b.desc}
+                    </p>
+                    <Button
+                      size="sm"
+                      className="h-7 text-[10px] bg-blue-600 hover:bg-blue-700"
+                      onClick={() => {
+                        placeBuilding({
+                          type: b.id,
+                          x: (playerInfo.x || 0) + (Math.random() * 100 - 50),
+                          y: (playerInfo.y || 0) + (Math.random() * 100 - 50),
+                        });
+                      }}
+                      disabled={playerInfo.gold < b.cost}
+                    >
+                      Build (${b.cost})
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
 

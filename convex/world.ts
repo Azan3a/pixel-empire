@@ -9,6 +9,113 @@ export const getResources = query({
   },
 });
 
+export const getBuildings = query({
+  args: {},
+  handler: async (ctx) => {
+    const buildings = await ctx.db.query("buildings").collect();
+    // Join with player names
+    return await Promise.all(
+      buildings.map(async (b) => {
+        const player = await ctx.db.get(b.playerId);
+        return { ...b, ownerName: player?.name || "Unknown" };
+      }),
+    );
+  },
+});
+
+export const placeBuilding = mutation({
+  args: { type: v.string(), x: v.number(), y: v.number() },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!player) throw new Error("Player not found");
+
+    const costs: Record<string, number> = {
+      lumber_mill: 200,
+      stone_mason: 500,
+      smelter: 1200,
+    };
+
+    const cost = costs[args.type];
+    if (cost === undefined) throw new Error("Invalid building type");
+
+    if (player.gold < cost) throw new Error("Insufficient gold");
+
+    // Deduct gold
+    await ctx.db.patch(player._id, { gold: player.gold - cost });
+
+    // Place building
+    const buildingId = await ctx.db.insert("buildings", {
+      playerId: player._id,
+      type: args.type,
+      x: args.x,
+      y: args.y,
+      level: 1,
+      lastProducedAt: Date.now(),
+    });
+
+    return buildingId;
+  },
+});
+
+export const collectProduction = mutation({
+  args: { buildingId: v.id("buildings") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!player) throw new Error("Player not found");
+
+    const building = await ctx.db.get(args.buildingId);
+    if (!building || building.playerId !== player._id) {
+      throw new Error("Building not found or not yours");
+    }
+
+    const now = Date.now();
+    const elapsed = now - building.lastProducedAt;
+    const minutes = Math.floor(elapsed / 60000);
+
+    if (minutes < 1) return { amount: 0, message: "Too early to collect" };
+
+    const itemMap: Record<string, string> = {
+      lumber_mill: "wood",
+      stone_mason: "stone",
+      smelter: "ore",
+    };
+    const item = itemMap[building.type];
+    const amount = minutes * building.level;
+
+    await ctx.db.patch(building._id, { lastProducedAt: now });
+
+    const invItem = await ctx.db
+      .query("inventory")
+      .withIndex("by_player", (q) => q.eq("playerId", player._id))
+      .filter((q) => q.eq(q.field("item"), item))
+      .unique();
+
+    if (invItem) {
+      await ctx.db.patch(invItem._id, { quantity: invItem.quantity + amount });
+    } else {
+      await ctx.db.insert("inventory", {
+        playerId: player._id,
+        item,
+        quantity: amount,
+      });
+    }
+
+    return { item, amount };
+  },
+});
+
 export const collectResource = mutation({
   args: { nodeId: v.id("world_nodes") },
   handler: async (ctx, args) => {

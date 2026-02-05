@@ -1,5 +1,7 @@
+import { Id } from "@/convex/_generated/dataModel";
+
 export type WorldNode = {
-  _id: string;
+  _id: Id<"world_nodes">;
   _creationTime: number;
   type: "tree" | "rock" | "ore_deposit";
   x: number;
