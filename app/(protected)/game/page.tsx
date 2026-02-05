@@ -1,6 +1,6 @@
 "use client";
 
-import { GameCanvas } from "@/components/game/game-canvas";
+import { GameCanvas } from "@/components/game/viewport/GameCanvas";
 
 export default function GamePage() {
   return (

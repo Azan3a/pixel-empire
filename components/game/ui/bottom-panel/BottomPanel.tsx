@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { InventoryTab } from "./inventory";
-import { BuildTab } from "./build";
-import { MarketTab } from "./market";
-import { RankingsTab } from "./rankings";
-import { ChatTab } from "./chat";
+import { InventoryTab } from "./InventoryTab";
+import { BuildTab } from "./BuildTab";
+import { MarketTab } from "./MarketTab";
+import { RankingsTab } from "./RankingsTab";
+import { ChatTab } from "./ChatTab";
 
 export function BottomPanel() {
   const [activeTab, setActiveTab] = useState("inventory");

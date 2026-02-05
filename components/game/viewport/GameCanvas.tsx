@@ -11,11 +11,11 @@ import { WorldNode } from "@/types/world_node";
 import { Building } from "@/types/building";
 
 // Components
-import { WorldGrid } from "./world/world-grid";
-import { ResourceNode } from "./world/resource-node";
-import { BuildingNode } from "./world/building-node";
-import { PlayerCharacter } from "./world/player-character";
-import Loading from "./loading";
+import { WorldGrid } from "./world/WorldGrid";
+import { ResourceNode } from "./world/ResourceNode";
+import { BuildingNode } from "./world/BuildingNode";
+import { PlayerCharacter } from "./world/PlayerCharacter";
+import Loading from "../ui/Loading";
 
 // Extend PixiJS classes
 extend({ Container, Graphics, Sprite, Text });
