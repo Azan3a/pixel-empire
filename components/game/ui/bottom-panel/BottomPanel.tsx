@@ -10,6 +10,7 @@ import {
   ChevronUp,
   ChevronDown,
   Hammer,
+  HelpCircle,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,14 @@ import { BuildTab } from "./BuildTab";
 import { MarketTab } from "./MarketTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export function BottomPanel() {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -65,16 +74,50 @@ export function BottomPanel() {
             ))}
           </TabsList>
 
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:bg-muted rounded"
-          >
-            {isExpanded ? (
-              <ChevronDown className="size-4" />
-            ) : (
-              <ChevronUp className="size-4" />
-            )}
-          </button>
+          <div className="flex">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant={"ghost"} size={"icon-sm"}>
+                  <HelpCircle className="size-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent showCloseButton={false}>
+                <DialogHeader>
+                  <DialogTitle>Controls</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-2 text-[10px]">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Move</span>
+                    <span className="font-bold">WASD / Arrows</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Gather</span>
+                    <span className="font-bold">Mouse Click</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">North</span>
+                    <span className="font-bold">N Key</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Toggle UI</span>
+                    <span className="font-bold">I | M | L</span>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button
+              onClick={() => setIsExpanded(!isExpanded)}
+              variant={"ghost"}
+              size={"icon-sm"}
+            >
+              {isExpanded ? (
+                <ChevronDown className="size-4" />
+              ) : (
+                <ChevronUp className="size-4" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Content Area */}
@@ -99,27 +142,9 @@ export function BottomPanel() {
               <ChatTab playerName={playerInfo.name} />
             </div>
 
-            <div className="hidden lg:block w-64 border-l pl-6">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
-                Controls
-              </h4>
-              <div className="grid gap-2 text-[10px]">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Move</span>
-                  <span className="font-bold">WASD / Arrows</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Gather</span>
-                  <span className="font-bold">Mouse Click</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">North</span>
-                  <span className="font-bold">N Key</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Toggle UI</span>
-                  <span className="font-bold">I | M | L</span>
-                </div>
+            <div className="hidden lg:block w-96 border-l pl-6">
+              <div className="w-full h-42 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">
+                Mini-Map Placeholder
               </div>
             </div>
           </div>
