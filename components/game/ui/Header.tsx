@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { usePlayer } from "@/hooks/use-player";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
@@ -27,9 +27,9 @@ export function SiteHeader() {
       <Separator orientation="vertical" className="h-6" />
 
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700">
-        <Coins className="h-3.5 w-3.5" />
+        <DollarSign className="h-3.5 w-3.5" />
         <span className="font-extrabold text-sm tabular-nums">
-          ${player.gold.toLocaleString()}
+          ${player.cash.toLocaleString()}
         </span>
       </div>
     </header>

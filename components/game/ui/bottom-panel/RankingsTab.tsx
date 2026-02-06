@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface PlayerRank {
   _id: string;
   name: string;
-  gold: number;
+  cash: number;
 }
 
 interface RankingsTabProps {
@@ -41,7 +41,9 @@ export function RankingsTab({
                   {p.name} {p._id === currentPlayerId && "(You)"}
                 </span>
               </div>
-              <span className="font-black">${p.gold}</span>
+              <span className="font-black">
+                ${(p.cash || 0).toLocaleString()}
+              </span>
             </div>
           ))}
         </div>

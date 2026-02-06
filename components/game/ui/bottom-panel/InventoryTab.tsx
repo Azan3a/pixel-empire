@@ -12,6 +12,19 @@ interface InventoryTabProps {
 }
 
 export function InventoryTab({ inventory }: InventoryTabProps) {
+  const getItemIcon = (name: string) => {
+    switch (name) {
+      case "supplies":
+        return "📦";
+      case "wood":
+        return "🪵";
+      case "stone":
+        return "🪨";
+      default:
+        return "🥡";
+    }
+  };
+
   return (
     <TabsContent value="inventory" className="mt-0">
       <div className="flex flex-wrap gap-4">
@@ -20,9 +33,7 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
             key={item.item}
             className="flex flex-col items-center justify-center p-3 w-24 rounded-lg border bg-card/50"
           >
-            <span className="text-2xl mb-1">
-              {item.item === "wood" ? "🪵" : item.item === "stone" ? "🪨" : "⬟"}
-            </span>
+            <span className="text-2xl mb-1">{getItemIcon(item.item)}</span>
             <span className="text-[10px] font-bold uppercase opacity-50">
               {item.item}
             </span>

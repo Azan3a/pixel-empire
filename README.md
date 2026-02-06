@@ -1,105 +1,64 @@
 # Pixel Empire
 
-A real-time multiplayer pixel art business simulator built with **Next.js**, **Convex**, **PixiJS**, and **Bun**.
+A modern multiplayer business simulator built with **Next.js**, **Convex**, **PixiJS**, and **Bun**. Inspired by the high-stakes economic gameplay of GTA Online, but rendered in a persistent retro pixel world.
 
-Players join a shared persistent world to gather resources, trade with others, sell on a global market, and climb the wealth leaderboard. The MVP focuses on a core loop of resource collection → trading → progression, with real-time player movement and proximity interactions.
+Players enter a living city grid where every square foot is a potential asset. From humble beginnings working entry-level jobs to becoming a real estate mogul, the goal is simple: build an empire that dominates the leaderboard.
 
-Long-term vision: an open-ended economy with player-run businesses, hiring, roles, and empire-building — think Stardew Valley co-op meets Virtonomics, with a retro pixel aesthetic.
+**Core Loop:** Working Jobs → Saving Cash → Buying Property → Building an Empire.
 
-## Tech Stack
+## ���️ Vision
 
-- **Next.js** – Frontend framework and optimized hosting
-- **Convex** – Real-time backend, database, server functions, and authentication
-- **PixiJS** – GPU-accelerated 2D rendering for smooth pixel art sprites and animations
-- **Tailwind CSS** – Rapid UI styling
-- **Bun** – Fast runtime and package manager
-- **Convex Auth** – Secure user authentication (already configured)
+The long-term vision for Pixel Empire is a fully player-driven economy. We aim to support complex city-wide systems including player-run businesses, corporate hiring, specialized job roles, and a dynamic real estate market where every building serves a purpose in the global economy.
 
-## Quick Start
+## ��� MVP Features
 
-If you cloned this repo:
+- **Real-time City Grid:** Smooth, top-down movement with server-side collision detection.
+- **Jobs System:** Interactive locations across the map where players can earn their first bit of capital.
+- **Real Estate Ownership:** Purchase Commercial and Residential properties that generate passive income.
+- **Wealth Leaderboard:** A global ranking system based on liquid cash and total asset valuation.
+- **Persistent World:** Your location and assets are saved in real-time via Convex.
+
+## ���️ Tech Stack
+
+- **Next.js** – Frontend framework and optimized rendering.
+- **Convex** – Real-time backend, database, and server-side game logic.
+- **PixiJS** – GPU-accelerated 2D rendering for the city grid and player avatars.
+- **Bun** – High-performance runtime and package manager.
+- **Tailwind CSS** – Modern UI styling for game panels and HUDs.
+
+## ��� Quick Start
+
+If you've cloned this repository:
 
 ```bash
 bun install
 bun run dev
 ```
 
-This starts the Next.js dev server at `http://localhost:3000` and the Convex dev backend.
+This will start the Next.js development server at `http://localhost:3000` and the Convex background sync service.
 
-## Project Setup Notes
-
-### Convex Backend
-
-Your Convex functions, schema, and auth config live in the `/convex` folder.
-
-- To push schema or functions: `npx convex dev`
-- To deploy to production: `npx convex deploy`
-
-### Adding PixiJS (if not already installed)
-
-```bash
-bun add pixi.js @pixi/react
-```
-
-PixiJS is used in the main game canvas for rendering the top-down world, player avatars, and resource nodes.
-
-### Optional: Shadcn UI Components
-
-If you want pre-built accessible UI components (buttons, modals, etc.):
-
-```bash
-bunx --bun shadcn@latest init
-bunx --bun shadcn@latest add --all   # or add individual components
-```
-
-### Environment Variables
-
-Convex Auth requires a few env vars (set via the Convex dashboard or locally):
-
-- `NEXT_PUBLIC_CONVEX_URL` – your deployed Convex URL
-- `SITE_URL` – e.g., http://localhost:3000 during dev
-
-These are prompted and configured when you run `npx @convex-dev/auth configure`.
-
-## Folder Structure Highlights
+## ��� Project Structure
 
 ```
-/convex          # Convex schema, queries, mutations, server functions
-/app             # Next.js pages and layout
-/components      # React components (game canvas, HUD panels, UI)
-/public/assets   # Pixel art sprites, tilesets, etc.
-/lib             # Shared utilities
+/convex          # Server-authoritative logic (jobs, property, movement)
+/app             # Next.js routes and app layout
+/components      # Game HUD, panels, and UI components
+/components/game # PixiJS canvas and world rendering logic
+/types           # Shared TypeScript interfaces for players and property
+/public          # Sprites, tilesets, and static assets
 ```
 
-## Development Tips
+## ��� Development Roadmap
 
-- Real-time player sync and world state use Convex reactive queries.
-- Game logic (collecting resources, market transactions) is server-authoritative via Convex mutations.
-- Map rendering: PixiJS viewport in the main game screen component.
-- Auth flow: players are auto-created on first login with default avatar and starting balance.
+- [x] Persistent player movement and sync.
+- [x] Basic Job system (Manual labor).
+- [x] Property acquisition (Residential/Commercial).
+- [ ] Industrial properties and supply chain mechanics.
+- [ ] Player-to-player hiring and payroll systems.
+- [ ] Proximity-based trading and interaction.
 
-## MVP Features (Current)
+## ��� Resources
 
-- Authenticated login
-- Shared top-down pixel art world with real-time player movement
-- Resource nodes (Wood, Stone, Ore)
-- Inventory and money system
-- Global market with simple dynamic pricing
-- Leaderboard ranked by net worth
-
-Planned next: proximity chat, direct player-to-player trading, upgrades shop.
-
-## Resources & Learning
-
-- [Convex Docs](https://docs.convex.dev/)
-- [Convex Auth](https://labs.convex.dev/auth)
-- [Stack by Convex – Multiplayer Game Examples](https://stack.convex.dev/)
-- [PixiJS Docs](https://pixijs.com/)
-- [Next.js Docs](https://nextjs.org/docs)
-
-## Community
-
-- Join the [Convex Discord](https://convex.dev/community) for real-time help
-- Report issues or contribute on GitHub
-
-Happy building your pixel empire! 🚀
+- [Convex Documentation](https://docs.convex.dev/)
+- [PixiJS API Reference](https://pixijs.download/release/docs/index.html)
+- [Next.js Documentation](https://nextjs.org/docs)

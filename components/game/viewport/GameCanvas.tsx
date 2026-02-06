@@ -6,11 +6,11 @@ import { useEffect, useState, useRef } from "react";
 import { Player } from "@/types/player";
 import { usePlayer } from "@/hooks/use-player";
 import { useWorld } from "@/hooks/use-world";
+import { Property } from "@/types/property";
 
 // Components
 import { WorldGrid } from "./world/WorldGrid";
-import { ResourceNode } from "./world/ResourceNode";
-import { BuildingNode } from "./world/BuildingNode";
+import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import Loading from "../ui/Loading";
 
@@ -29,18 +29,18 @@ export function GameCanvas() {
     initPlayer,
     updatePosition: updatePos,
   } = usePlayer();
-  const {
-    resources,
-    buildings,
-    collectResource: collect,
-    collectProduction,
-    seedResources: seed,
-  } = useWorld();
+  const { properties, initCity, buyProperty } = useWorld();
 
   const [renderPos, setRenderPos] = useState({ x: 400, y: 300 });
   const localPos = useRef({ x: 400, y: 300 });
   const keys = useRef<Record<string, boolean>>({});
   const lastSync = useRef(0);
+  // Keep track of properties ref for collision inside interval
+  const propertiesRef = useRef<Property[]>([]);
+
+  useEffect(() => {
+    propertiesRef.current = properties;
+  }, [properties]);
 
   // Initialize player
   useEffect(() => {
@@ -51,9 +51,19 @@ export function GameCanvas() {
         setRenderPos({ x: p.x, y: p.y });
       }
     });
-    // Seed world if empty
-    seed();
-  }, [initPlayer, seed]);
+  }, [initPlayer]);
+
+  // Init City if needed
+  useEffect(() => {
+    if (properties.length === 0) {
+      // Debounce or just call it, backend usually handles idempotency or we check once
+      const timer = setTimeout(() => {
+        // double check after a small delay to ensure data loaded
+        if (properties.length === 0) initCity();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [properties, initCity]);
 
   // Input handling
   useEffect(() => {
@@ -72,42 +82,50 @@ export function GameCanvas() {
   // Movement loop
   useEffect(() => {
     const interval = setInterval(() => {
-      let moved = false;
       const speed = 5;
-      if (keys.current["w"] || keys.current["arrowup"]) {
-        localPos.current.y -= speed;
-        moved = true;
-      }
-      if (keys.current["s"] || keys.current["arrowdown"]) {
-        localPos.current.y += speed;
-        moved = true;
-      }
-      if (keys.current["a"] || keys.current["arrowleft"]) {
-        localPos.current.x -= speed;
-        moved = true;
-      }
-      if (keys.current["d"] || keys.current["arrowright"]) {
-        localPos.current.x += speed;
-        moved = true;
-      }
+      let dx = 0;
+      let dy = 0;
 
-      if (moved) {
-        // Clamp to map
-        localPos.current.x = Math.max(
-          0,
-          Math.min(MAP_SIZE, localPos.current.x),
-        );
-        localPos.current.y = Math.max(
-          0,
-          Math.min(MAP_SIZE, localPos.current.y),
-        );
+      if (keys.current["w"] || keys.current["arrowup"]) dy -= speed;
+      if (keys.current["s"] || keys.current["arrowdown"]) dy += speed;
+      if (keys.current["a"] || keys.current["arrowleft"]) dx -= speed;
+      if (keys.current["d"] || keys.current["arrowright"]) dx += speed;
 
-        setRenderPos({ x: localPos.current.x, y: localPos.current.y });
+      if (dx !== 0 || dy !== 0) {
+        const newX = localPos.current.x + dx;
+        const newY = localPos.current.y + dy;
 
-        // Sync to server every 100ms
-        if (Date.now() - lastSync.current > 100) {
-          updatePos({ x: localPos.current.x, y: localPos.current.y });
-          lastSync.current = Date.now();
+        // Collision Check (Player ~22px radius, use AABB approx 40x40)
+        let collides = false;
+        const pSize = 40;
+        const pX = newX - pSize / 2;
+        const pY = newY - pSize / 2;
+
+        for (const prop of propertiesRef.current) {
+          // Check intersection AABB
+          if (
+            pX < prop.x + prop.width &&
+            pX + pSize > prop.x &&
+            pY < prop.y + prop.height &&
+            pY + pSize > prop.y
+          ) {
+            collides = true;
+            break;
+          }
+        }
+
+        if (!collides) {
+          // Clamp to map
+          localPos.current.x = Math.max(0, Math.min(MAP_SIZE, newX));
+          localPos.current.y = Math.max(0, Math.min(MAP_SIZE, newY));
+
+          setRenderPos({ x: localPos.current.x, y: localPos.current.y });
+
+          // Sync to server every 100ms
+          if (Date.now() - lastSync.current > 100) {
+            updatePos({ x: localPos.current.x, y: localPos.current.y });
+            lastSync.current = Date.now();
+          }
         }
       }
     }, 16);
@@ -127,31 +145,20 @@ export function GameCanvas() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden bg-[#fafafa]"
+      className="h-full w-full overflow-hidden bg-[#2c2c2c]"
     >
-      <Application background="#eef2f3" resizeTo={containerRef}>
+      <Application background="#2c2c2c" resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
           {/* Grid */}
           <WorldGrid mapSize={MAP_SIZE} tileSize={TILE_SIZE} />
 
-          {/* Resources */}
-          {resources.map((res) => (
-            <ResourceNode
-              key={res._id}
-              resource={res}
-              onCollect={(nodeId) => collect(nodeId)}
-            />
-          ))}
-
-          {/* Buildings */}
-          {buildings.map((b) => (
-            <BuildingNode
-              key={b._id}
-              building={b}
-              isOwner={b.playerId === me._id}
-              onCollectProduction={(buildingId) =>
-                collectProduction(buildingId)
-              }
+          {/* Properties */}
+          {properties.map((p) => (
+            <PropertyNode
+              key={p._id}
+              property={p}
+              isOwner={p.ownerId === me._id}
+              onInteract={(id) => buyProperty(id)}
             />
           ))}
 

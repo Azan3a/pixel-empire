@@ -4,19 +4,17 @@ import { useState } from "react";
 import { usePlayer } from "@/hooks/use-player";
 import {
   Package,
-  Store,
   BarChart3,
   MessageSquare,
   ChevronUp,
   ChevronDown,
-  Hammer,
   HelpCircle,
+  Briefcase,
 } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { InventoryTab } from "./InventoryTab";
-import { BuildTab } from "./BuildTab";
-import { MarketTab } from "./MarketTab";
+import { JobsTab } from "./JobsTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
 import {
@@ -36,8 +34,7 @@ export function BottomPanel() {
 
   const tabs = [
     { id: "inventory", label: "Inventory", icon: Package },
-    { id: "build", label: "Build", icon: Hammer },
-    { id: "market", label: "Global Market", icon: Store },
+    { id: "jobs", label: "Jobs", icon: Briefcase },
     { id: "rankings", label: "Rankings", icon: BarChart3 },
     { id: "chat", label: "Chat/Log", icon: MessageSquare },
   ];
@@ -48,7 +45,7 @@ export function BottomPanel() {
     <div
       className={cn(
         "pointer-events-auto w-full mx-auto rounded-t-xl bg-background/95 backdrop-blur-md border border-b-0 shadow-2xl transition-all duration-300",
-        isExpanded ? "h-64" : "h-12",
+        isExpanded ? "h-80" : "h-12",
       )}
     >
       <Tabs
@@ -61,12 +58,12 @@ export function BottomPanel() {
       >
         {/* Tab Header */}
         <div className="flex items-center justify-between px-4 h-12 border-b">
-          <TabsList variant="line" className="bg-transparent gap-0">
+          <TabsList className="bg-transparent gap-0 p-0 h-12">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider data-[state=active]:text-emerald-600 data-[state=active]:after:bg-emerald-600  rounded-none border-none"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3 h-full gap-2 text-xs font-bold uppercase tracking-wider"
               >
                 <tab.icon className="size-3.5" />
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -74,33 +71,33 @@ export function BottomPanel() {
             ))}
           </TabsList>
 
-          <div className="flex">
+          <div className="flex items-center gap-1">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant={"ghost"} size={"icon-sm"}>
+                <Button variant={"ghost"} size={"icon"} className="h-8 w-8">
                   <HelpCircle className="size-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent showCloseButton={false}>
+              <DialogContent showCloseButton={true}>
                 <DialogHeader>
                   <DialogTitle>Controls</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-2 text-[10px]">
-                  <div className="flex justify-between">
+                <div className="grid gap-2 text-sm">
+                  <div className="flex justify-between border-b pb-1">
                     <span className="text-muted-foreground">Move</span>
-                    <span className="font-bold">WASD / Arrows</span>
+                    <span className="font-bold font-mono">WASD / Arrows</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between border-b pb-1">
                     <span className="text-muted-foreground">Gather</span>
-                    <span className="font-bold">Mouse Click</span>
+                    <span className="font-bold font-mono">Mouse Click</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">North</span>
-                    <span className="font-bold">N Key</span>
+                  <div className="flex justify-between border-b pb-1">
+                    <span className="text-muted-foreground">Auto-Center</span>
+                    <span className="font-bold font-mono">N Key</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Toggle UI</span>
-                    <span className="font-bold">I | M | L</span>
+                  <div className="flex justify-between border-b pb-1">
+                    <span className="text-muted-foreground">Tabs</span>
+                    <span className="font-bold font-mono">I | J | R | L</span>
                   </div>
                 </div>
               </DialogContent>
@@ -109,7 +106,8 @@ export function BottomPanel() {
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
               variant={"ghost"}
-              size={"icon-sm"}
+              size={"icon"}
+              className="h-8 w-8"
             >
               {isExpanded ? (
                 <ChevronDown className="size-4" />
@@ -122,29 +120,32 @@ export function BottomPanel() {
 
         {/* Content Area */}
         {isExpanded && (
-          <div className="p-4 flex gap-6 h-48 overflow-hidden">
-            <div className="flex-1 min-w-0">
-              <InventoryTab inventory={playerInfo.inventory} />
+          <div className="flex-1 p-4 overflow-hidden flex gap-4">
+            <div className="flex-1 h-full min-w-0 overflow-y-auto pr-1">
+              <TabsContent value="inventory" className="mt-0 h-full">
+                <InventoryTab inventory={playerInfo.inventory} />
+              </TabsContent>
 
-              <BuildTab
-                playerGold={playerInfo.gold}
-                playerX={playerInfo.x}
-                playerY={playerInfo.y}
-              />
+              <TabsContent value="jobs" className="mt-0 h-full">
+                <JobsTab />
+              </TabsContent>
 
-              <MarketTab inventory={playerInfo.inventory} />
+              <TabsContent value="rankings" className="mt-0 h-full">
+                <RankingsTab
+                  leaderboard={leaderboard}
+                  currentPlayerId={playerInfo._id}
+                />
+              </TabsContent>
 
-              <RankingsTab
-                leaderboard={leaderboard}
-                currentPlayerId={playerInfo._id}
-              />
-
-              <ChatTab playerName={playerInfo.name} />
+              <TabsContent value="chat" className="mt-0 h-full">
+                <ChatTab playerName={playerInfo.name} />
+              </TabsContent>
             </div>
 
-            <div className="hidden lg:block w-96 border-l pl-6">
-              <div className="w-full h-42 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">
-                Mini-Map Placeholder
+            {/* Context/Info Side Panel (e.g. selected item details, minimap, etc) */}
+            <div className="hidden lg:block w-72 border-l pl-4">
+              <div className="w-full h-full bg-muted/20 rounded-md border border-dashed flex items-center justify-center text-xs text-muted-foreground">
+                Context / Mini-Map Area
               </div>
             </div>
           </div>

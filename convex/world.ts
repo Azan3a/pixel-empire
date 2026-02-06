@@ -2,190 +2,52 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-export const getResources = query({
+export const initCity = mutation({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("world_nodes").collect();
-  },
-});
+    // Only init if empty
+    const existing = await ctx.db.query("properties").first();
+    if (existing) return;
 
-export const getBuildings = query({
-  args: {},
-  handler: async (ctx) => {
-    const buildings = await ctx.db.query("buildings").collect();
-    // Join with player names
-    return await Promise.all(
-      buildings.map(async (b) => {
-        const player = await ctx.db.get(b.playerId);
-        return { ...b, ownerName: player?.name || "Unknown" };
-      }),
-    );
-  },
-});
+    // Create a 5x5 grid of properties
+    const types = [
+      { name: "Empty Lot", price: 1000, income: 10, type: "residential" },
+      { name: "Corner Store", price: 5000, income: 100, type: "commercial" },
+      { name: "Workshop", price: 10000, income: 250, type: "industrial" },
+    ];
 
-export const placeBuilding = mutation({
-  args: { type: v.string(), x: v.number(), y: v.number() },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-
-    const player = await ctx.db
-      .query("players")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
-    if (!player) throw new Error("Player not found");
-
-    const costs: Record<string, number> = {
-      lumber_mill: 200,
-      stone_mason: 500,
-      smelter: 1200,
-    };
-
-    const cost = costs[args.type];
-    if (cost === undefined) throw new Error("Invalid building type");
-
-    if (player.gold < cost) {
-      return { success: false, error: "Insufficient gold" };
-    }
-
-    // Deduct gold
-    await ctx.db.patch(player._id, { gold: player.gold - cost });
-
-    // Place building
-    const buildingId = await ctx.db.insert("buildings", {
-      playerId: player._id,
-      type: args.type,
-      x: args.x,
-      y: args.y,
-      level: 1,
-      lastProducedAt: Date.now(),
-    });
-
-    return { success: true, buildingId };
-  },
-});
-
-export const collectProduction = mutation({
-  args: { buildingId: v.id("buildings") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-
-    const player = await ctx.db
-      .query("players")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
-    if (!player) throw new Error("Player not found");
-
-    const building = await ctx.db.get(args.buildingId);
-    if (!building || building.playerId !== player._id) {
-      throw new Error("Building not found or not yours");
-    }
-
-    const now = Date.now();
-    const elapsed = now - building.lastProducedAt;
-    const minutes = Math.floor(elapsed / 60000);
-
-    if (minutes < 1) return { success: false, error: "Too early to collect" };
-
-    const itemMap: Record<string, string> = {
-      lumber_mill: "wood",
-      stone_mason: "stone",
-      smelter: "ore",
-    };
-    const item = itemMap[building.type];
-    const amount = minutes * building.level;
-
-    await ctx.db.patch(building._id, { lastProducedAt: now });
-
-    const invItem = await ctx.db
-      .query("inventory")
-      .withIndex("by_player", (q) => q.eq("playerId", player._id))
-      .filter((q) => q.eq(q.field("item"), item))
-      .unique();
-
-    if (invItem) {
-      await ctx.db.patch(invItem._id, { quantity: invItem.quantity + amount });
-    } else {
-      await ctx.db.insert("inventory", {
-        playerId: player._id,
-        item,
-        quantity: amount,
-      });
-    }
-
-    return { success: true, item, amount };
-  },
-});
-
-export const collectResource = mutation({
-  args: { nodeId: v.id("world_nodes") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-
-    const player = await ctx.db
-      .query("players")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
-    if (!player) throw new Error("Player not found");
-
-    const node = await ctx.db.get(args.nodeId);
-    if (!node || (node.respawnAt && node.respawnAt > Date.now())) {
-      return { success: false, error: "Resource not available" };
-    }
-
-    // Proximity check (simplified: must be within 50 units)
-    const dist = Math.sqrt(
-      Math.pow(player.x - node.x, 2) + Math.pow(player.y - node.y, 2),
-    );
-    if (dist > 60) {
-      return { success: false, error: "Too far from resource" };
-    }
-
-    // Decrease health or collect immediately
-    const newHealth = node.health - 1;
-    if (newHealth <= 0) {
-      // Node depleted
-      await ctx.db.patch(args.nodeId, {
-        health: 0,
-        respawnAt: Date.now() + 30000, // Respawn in 30 seconds
-      });
-
-      // Add to inventory
-      const itemMap: Record<string, string> = {
-        tree: "wood",
-        rock: "stone",
-        ore_deposit: "ore",
-      };
-      const item = itemMap[node.type] || "wood";
-
-      const invItem = await ctx.db
-        .query("inventory")
-        .withIndex("by_player", (q) => q.eq("playerId", player._id))
-        .filter((q) => q.eq(q.field("item"), item))
-        .unique();
-
-      if (invItem) {
-        await ctx.db.patch(invItem._id, { quantity: invItem.quantity + 1 });
-      } else {
-        await ctx.db.insert("inventory", {
-          playerId: player._id,
-          item,
-          quantity: 1,
+    for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < 5; y++) {
+        const randType = types[Math.floor(Math.random() * types.length)];
+        // Grid spacing: 150 units apart. Size 100. Gap 50.
+        // x=0 -> pos 50. range 50-150. next x=1 -> pos 200. range 200-300. Gap 150-200.
+        // Center of first gap is 175.
+        await ctx.db.insert("properties", {
+          name: `${randType.name} ${x}${y}`,
+          price: randType.price,
+          income: randType.income,
+          type: randType.type,
+          x: x * 150 + 50,
+          y: y * 150 + 50,
+          width: 100,
+          height: 100,
+          ownerId: undefined,
         });
       }
-
-      return { success: true, depleted: true };
-    } else {
-      await ctx.db.patch(args.nodeId, { health: newHealth });
-      return { success: true, depleted: false };
     }
   },
 });
 
-export const sellResource = mutation({
-  args: { item: v.string(), amount: v.number() },
+export const getProperties = query({
+  args: {},
+  handler: async (ctx) => {
+    const props = await ctx.db.query("properties").collect();
+    return props;
+  },
+});
+
+export const buyProperty = mutation({
+  args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
@@ -196,44 +58,36 @@ export const sellResource = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
-    const prices: Record<string, number> = { wood: 5, stone: 10, ore: 25 };
-    const price = prices[args.item] || 0;
+    const prop = await ctx.db.get(args.propertyId);
+    if (!prop) throw new Error("Property not found");
+    if (prop.ownerId) throw new Error("Property already owned");
 
-    const invItem = await ctx.db
-      .query("inventory")
-      .withIndex("by_player", (q) => q.eq("playerId", player._id))
-      .filter((q) => q.eq(q.field("item"), args.item))
-      .unique();
-
-    if (!invItem || invItem.quantity < args.amount) {
-      return { success: false, error: "Not enough items" };
+    const cost = prop.price;
+    if (player.cash < cost) {
+      throw new Error("Insufficient cash");
     }
 
-    await ctx.db.patch(invItem._id, {
-      quantity: invItem.quantity - args.amount,
-    });
-    await ctx.db.patch(player._id, { gold: player.gold + price * args.amount });
-
-    return { success: true };
+    // Process transaction
+    await ctx.db.patch(player._id, { cash: player.cash - cost });
+    await ctx.db.patch(prop._id, { ownerId: player._id });
   },
 });
 
-export const seedResources = mutation({
+export const workJob = mutation({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db.query("world_nodes").first();
-    if (existing) return "Already seeded";
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
 
-    const types = ["tree", "rock", "ore_deposit"];
-    for (let i = 0; i < 50; i++) {
-      const type = types[Math.floor(Math.random() * types.length)];
-      await ctx.db.insert("world_nodes", {
-        type,
-        x: Math.random() * 2000,
-        y: Math.random() * 2000,
-        health: type === "tree" ? 3 : 5,
-        respawnAt: undefined,
-      });
-    }
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!player) throw new Error("Player not found");
+
+    const wage = 50;
+    await ctx.db.patch(player._id, { cash: player.cash + wage });
+
+    return { earned: wage, newBalance: player.cash + wage };
   },
 });

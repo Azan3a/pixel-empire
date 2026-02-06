@@ -1,145 +1,185 @@
 "use client";
 
 import * as React from "react";
-import { Package, Store, BarChart3 } from "lucide-react";
+import {
+  BookOpen,
+  Bot,
+  Command,
+  Frame,
+  LifeBuoy,
+  Map,
+  PieChart,
+  Send,
+  Settings2,
+  SquareTerminal,
+} from "lucide-react";
 
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-
+import { NavMain } from "@/components/sidebar/nav-main";
+import { NavProjects } from "@/components/sidebar/nav-projects";
+import { NavSecondary } from "@/components/sidebar/nav-secondary";
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  navMain: [
+    {
+      title: "Playground",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        {
+          title: "History",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Settings",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Models",
+      url: "#",
+      icon: Bot,
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Documentation",
+      url: "#",
+      icon: BookOpen,
+      items: [
+        {
+          title: "Introduction",
+          url: "#",
+        },
+        {
+          title: "Get Started",
+          url: "#",
+        },
+        {
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings2,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Support",
+      url: "#",
+      icon: LifeBuoy,
+    },
+    {
+      title: "Feedback",
+      url: "#",
+      icon: Send,
+    },
+  ],
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
+    },
+  ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const playerInfo = useQuery(api.players.getPlayerInfo);
-  const leaderboard = useQuery(api.players.getLeaderboard) || [];
-  const sellResource = useMutation(api.world.sellResource);
-
   return (
-    <Sidebar
-      className="top-(--header-height) h-[calc(100svh-var(--header-height)-1rem)]!"
-      variant="floating"
-      {...props}
-    >
+    <Sidebar variant="inset" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <a href="#">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <Command className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Acme Inc</span>
+                  <span className="truncate text-xs">Enterprise</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
-        {/* Inventory Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
-            <Package className="size-3.5" />
-            Inventory
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="grid gap-1 px-2">
-              {playerInfo?.inventory?.map(
-                (item: { item: string; quantity: number }) => (
-                  <div
-                    key={item.item}
-                    className="flex items-center justify-between text-sm px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors"
-                  >
-                    <span className="capitalize text-muted-foreground font-medium">
-                      {item.item}
-                    </span>
-                    <span className="font-bold tabular-nums">
-                      {item.quantity}
-                    </span>
-                  </div>
-                ),
-              )}
-              {(!playerInfo?.inventory ||
-                playerInfo.inventory.length === 0) && (
-                <div className="text-[10px] text-center text-muted-foreground py-4 italic">
-                  No items collected
-                </div>
-              )}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Global Market Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
-            <Store className="size-3.5" />
-            Global Market
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="grid gap-2 px-2">
-              {[
-                { name: "wood", price: 5 },
-                { name: "stone", price: 10 },
-                { name: "ore", price: 25 },
-              ].map((item) => (
-                <div
-                  key={item.name}
-                  className="flex flex-col gap-1 p-2 rounded-lg border bg-card/50 shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold capitalize">
-                      {item.name}
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-bold tracking-tight">
-                      ${item.price} EA
-                    </span>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-[10px] border border-dashed border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                    onClick={() => sellResource({ item: item.name, amount: 1 })}
-                    disabled={
-                      (playerInfo?.inventory?.find(
-                        (i: { item: string; quantity: number }) =>
-                          i.item === item.name,
-                      )?.quantity || 0) <= 0
-                    }
-                  >
-                    Sell Unit
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Wealth Leaderboard */}
-        <SidebarGroup className="mt-auto border-t">
-          <SidebarGroupLabel className="flex items-center gap-2">
-            <BarChart3 className="size-3.5 text-blue-500" />
-            Wealthy Rankings
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <ScrollArea className="h-40 px-1">
-              <div className="grid gap-0.5">
-                {leaderboard.slice(0, 10).map((p, idx) => (
-                  <div
-                    key={p._id}
-                    className="flex items-center justify-between text-[11px] px-2 py-1 rounded hover:bg-muted/50"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground tabular-nums w-4">
-                        #{idx + 1}
-                      </span>
-                      <span
-                        className={`truncate w-20 ${p._id === playerInfo?._id ? "font-bold text-emerald-600" : ""}`}
-                      >
-                        {p.name}
-                      </span>
-                    </div>
-                    <span className="font-bold tabular-nums text-gray-900">
-                      ${p.gold}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
+        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }

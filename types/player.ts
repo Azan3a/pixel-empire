@@ -1,6 +1,6 @@
 import { Id } from "@/convex/_generated/dataModel";
 
-export type Player = {
+export interface Player {
   _id: Id<"players">;
   _creationTime: number;
   userId: Id<"users">;
@@ -8,6 +8,8 @@ export type Player = {
   x: number;
   y: number;
   gold: number;
+  cash: number;
+  jobTitle: string;
   avatar: string;
   lastSeen: number;
-};
+}

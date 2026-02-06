@@ -16,7 +16,6 @@ export const getOrCreatePlayer = mutation({
       .unique();
 
     if (existingPlayer) {
-      // Update last seen
       await ctx.db.patch(existingPlayer._id, { lastSeen: Date.now() });
       return existingPlayer;
     }
@@ -29,17 +28,19 @@ export const getOrCreatePlayer = mutation({
     const playerId = await ctx.db.insert("players", {
       userId,
       name: playerName,
-      x: 400, // Default spawn
-      y: 300,
-      gold: 500, // Starting money
+      x: 175,
+      y: 175,
+      cash: 1000,
+      jobTitle: "Unemployed",
       avatar,
       lastSeen: Date.now(),
     });
 
-    // Initialize inventory for new player
-    await ctx.db.insert("inventory", { playerId, item: "wood", quantity: 0 });
-    await ctx.db.insert("inventory", { playerId, item: "stone", quantity: 0 });
-    await ctx.db.insert("inventory", { playerId, item: "ore", quantity: 0 });
+    await ctx.db.insert("inventory", {
+      playerId,
+      item: "supplies",
+      quantity: 5,
+    });
 
     return await ctx.db.get(playerId);
   },
@@ -58,8 +59,6 @@ export const updatePosition = mutation({
 
     if (!player) throw new Error("Player not found");
 
-    // Basic server-side validation (e.g., prevent jumping too far)
-    // For now, just trust the client for movement but we could add speed checks here
     await ctx.db.patch(player._id, {
       x: args.x,
       y: args.y,
@@ -71,18 +70,14 @@ export const updatePosition = mutation({
 export const getLeaderboard = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("players")
-      .order("desc")
-      // In a real app we'd index by gold, but for MVP scanning is fine if small
-      .take(10);
+    const players = await ctx.db.query("players").collect();
+    return players.sort((a, b) => b.cash - a.cash).slice(0, 10);
   },
 });
 
 export const getAlivePlayers = query({
   args: {},
   handler: async (ctx) => {
-    // Only return players active in the last 10 seconds
     const threshold = Date.now() - 10000;
     return await ctx.db
       .query("players")
@@ -104,9 +99,8 @@ export const getPlayerInfo = query({
 
     if (!player) return null;
 
-    // Calculate rank
     const allPlayers = await ctx.db.query("players").collect();
-    const sorted = allPlayers.sort((a, b) => b.gold - a.gold);
+    const sorted = allPlayers.sort((a, b) => b.cash - a.cash);
     const rank = sorted.findIndex((p) => p._id === player._id) + 1;
     const total = allPlayers.length;
 

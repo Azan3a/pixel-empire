@@ -12,13 +12,13 @@ export function WorldGrid({ mapSize, tileSize }: WorldGridProps) {
   const drawGrid = useCallback(
     (g: Graphics) => {
       g.clear();
-      // Subtle background
-      g.setFillStyle({ color: 0xf8fafc });
+      // Asphalt background (Dark Gray)
       g.rect(0, 0, mapSize, mapSize);
-      g.fill();
+      g.fill({ color: 0x2c2c2c });
 
-      // Subtle lines
-      g.setStrokeStyle({ color: 0xe2e8f0, width: 1 });
+      // Faint lines - simulating road markings or parking lots
+      g.setStrokeStyle({ color: 0xffffff, width: 1, alpha: 0.1 });
+
       for (let i = 0; i <= mapSize; i += tileSize) {
         g.moveTo(i, 0).lineTo(i, mapSize);
         g.moveTo(0, i).lineTo(mapSize, i);
