@@ -8,14 +8,13 @@ import { toast } from "sonner";
 
 export function useFood() {
   const buyFoodMutation = useMutation(api.food.buyFood);
+  const consumeFoodMutation = useMutation(api.food.consumeFood);
 
   const buyFood = async (foodType: FoodType) => {
     try {
       const res = await buyFoodMutation({ foodType });
       if (res) {
-        toast.success(
-          `${res.emoji} Ate ${res.food}! +${res.hungerRestored} hunger`,
-        );
+        toast.success(`${res.emoji} Bought ${res.food}!`);
       }
       return { success: true };
     } catch (e: unknown) {
@@ -25,5 +24,21 @@ export function useFood() {
     }
   };
 
-  return { buyFood };
+  const consumeFood = async (foodType: FoodType) => {
+    try {
+      const res = await consumeFoodMutation({ foodType });
+      if (res) {
+        toast.success(
+          `${res.emoji} Ate ${res.food}! +${res.hungerRestored} hunger`,
+        );
+      }
+      return { success: true };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to eat food";
+      toast.error(msg);
+      return { success: false, error: msg };
+    }
+  };
+
+  return { buyFood, consumeFood };
 }

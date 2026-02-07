@@ -3,6 +3,7 @@ const CONTROLS = [
   { action: "Interact", key: "F" },
   { action: "Toggle Menu", key: "Tab" },
   { action: "Inventory", key: "I" },
+  { action: "Shop", key: "B" },
   { action: "Jobs", key: "J" },
   { action: "Rankings", key: "R" },
   { action: "Chat / Log", key: "L" },

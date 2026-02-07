@@ -119,6 +119,7 @@ pixel-empire/
 │   │       └── menu/
 │   │           ├── GameMenu.tsx
 │   │           ├── InventoryTab.tsx    # Player inventory display
+│   │           ├── ShopTab.tsx         # Food/item purchasing interface
 │   │           ├── JobsTab.tsx         # Delivery job browser and active job tracker
 │   │           ├── RankingsTab.tsx     # Leaderboard display
 │   │           └── ChatTab.tsx         # Chat/log tab

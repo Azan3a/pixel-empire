@@ -1,24 +1,17 @@
 // components/game/ui/Header.tsx
 "use client";
 
-import { DollarSign, UtensilsCrossed, AlertTriangle } from "lucide-react";
+import { DollarSign, AlertTriangle } from "lucide-react";
 import { usePlayer } from "@/hooks/use-player";
-import { useFood } from "@/hooks/use-food";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { FOOD_LIST, MAX_HUNGER } from "@/convex/foodConfig";
+import { MAX_HUNGER } from "@/convex/foodConfig";
 
 export function Header() {
   const { playerInfo: player } = usePlayer();
-  const { buyFood } = useFood();
 
   if (!player) return null;
 
@@ -88,60 +81,6 @@ export function Header() {
             </div>
           </div>
         </div>
-
-        {/* Food popover */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn(
-                "size-8 rounded-full",
-                isLowHunger &&
-                  "bg-red-100 dark:bg-red-950/40 text-red-600 hover:bg-red-200 animate-bounce",
-              )}
-            >
-              <UtensilsCrossed className="size-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-64 p-2" sideOffset={8}>
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                Buy Food
-              </p>
-              <Separator />
-              {FOOD_LIST.map((food) => (
-                <button
-                  key={food.key}
-                  onClick={() => buyFood(food.key)}
-                  disabled={player.cash < food.price || hunger >= MAX_HUNGER}
-                  className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
-                    "hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed",
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{food.emoji}</span>
-                    <div className="text-left">
-                      <span className="font-semibold block">{food.name}</span>
-                      <span className="text-[10px] text-emerald-600 font-medium">
-                        +{food.hunger} hunger
-                      </span>
-                    </div>
-                  </div>
-                  <span className="font-mono font-bold text-xs text-muted-foreground">
-                    ${food.price}
-                  </span>
-                </button>
-              ))}
-              {hunger >= MAX_HUNGER && (
-                <p className="text-center text-xs text-muted-foreground py-1 italic">
-                  You&apos;re already full!
-                </p>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
     </header>
   );

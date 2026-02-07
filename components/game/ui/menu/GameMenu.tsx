@@ -1,4 +1,4 @@
-// /components/game/ui/GameMenu.tsx
+// components/game/ui/menu/GameMenu.tsx
 "use client";
 
 import * as React from "react";
@@ -8,6 +8,7 @@ import {
   BarChart3,
   MessageSquare,
   Keyboard,
+  ShoppingBag,
   X,
   Menu,
 } from "lucide-react";
@@ -38,7 +39,9 @@ import {
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@/hooks/use-player";
 import { useJobs } from "@/hooks/use-jobs";
+import { MAX_HUNGER } from "@/convex/foodConfig";
 import { InventoryTab } from "./InventoryTab";
+import { ShopTab } from "./ShopTab";
 import { JobsTab } from "./JobsTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
@@ -50,6 +53,13 @@ const NAV_ITEMS = [
     name: "Inventory",
     icon: Package,
     shortcut: "I",
+    group: "gameplay",
+  },
+  {
+    id: "shop",
+    name: "Shop",
+    icon: ShoppingBag,
+    shortcut: "B",
     group: "gameplay",
   },
   {
@@ -102,9 +112,16 @@ export function GameMenu() {
           e.preventDefault();
           setOpen((v) => !v);
           break;
+        case "escape":
+          setOpen(false);
+          break;
         case "i":
           setOpen(true);
           setActiveNav("inventory");
+          break;
+        case "b":
+          setOpen(true);
+          setActiveNav("shop");
           break;
         case "j":
           setOpen(true);
@@ -133,6 +150,8 @@ export function GameMenu() {
 
   const currentItem = NAV_ITEMS.find((n) => n.id === activeNav)!;
   const jobsBadge = !!activeJob;
+  const hunger = playerInfo.hunger ?? MAX_HUNGER;
+  const isLowHunger = hunger <= 25;
 
   const gameplayItems = NAV_ITEMS.filter((n) => n.group === "gameplay");
   const socialItems = NAV_ITEMS.filter((n) => n.group === "social");
@@ -151,10 +170,10 @@ export function GameMenu() {
           </DialogDescription>
 
           <SidebarProvider className="items-start">
-            {/* ── Sidebar ── */}
+            {/* Sidebar */}
             <Sidebar collapsible="none" className="hidden md:flex border-r">
               <SidebarContent>
-                {/* Gameplay group */}
+                {/* Gameplay */}
                 <SidebarGroup>
                   <SidebarGroupLabel>Gameplay</SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -168,9 +187,11 @@ export function GameMenu() {
                           >
                             <item.icon className="size-4" />
                             <span className="flex-1">{item.name}</span>
-                            {/* Active job badge on Jobs */}
                             {item.id === "jobs" && jobsBadge && (
                               <span className="size-2 rounded-full bg-orange-500 animate-pulse" />
+                            )}
+                            {item.id === "shop" && isLowHunger && (
+                              <span className="size-2 rounded-full bg-red-500 animate-pulse" />
                             )}
                             <kbd className="ml-auto text-[10px] font-mono text-muted-foreground/50">
                               {item.shortcut}
@@ -182,7 +203,7 @@ export function GameMenu() {
                   </SidebarGroupContent>
                 </SidebarGroup>
 
-                {/* Social group */}
+                {/* Social */}
                 <SidebarGroup>
                   <SidebarGroupLabel>Social</SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -206,7 +227,7 @@ export function GameMenu() {
                   </SidebarGroupContent>
                 </SidebarGroup>
 
-                {/* System group */}
+                {/* System */}
                 <SidebarGroup>
                   <SidebarGroupLabel>System</SidebarGroupLabel>
                   <SidebarGroupContent>
@@ -234,24 +255,28 @@ export function GameMenu() {
                 <div className="mt-auto border-t p-4">
                   <div className="flex items-center gap-3">
                     <div className="size-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-sm">
-                      🧑
+                      {hunger > 60 ? "😊" : hunger > 25 ? "😐" : "😫"}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-bold truncate">
                         {playerInfo.name}
                       </span>
-                      <span className="text-xs text-muted-foreground font-mono">
-                        ${(playerInfo.cash || 0).toLocaleString()}
-                      </span>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="font-mono">
+                          ${(playerInfo.cash || 0).toLocaleString()}
+                        </span>
+                        <span>•</span>
+                        <span className="font-mono">{hunger}% hunger</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </SidebarContent>
             </Sidebar>
 
-            {/* ── Main Content ── */}
+            {/* Main Content */}
             <main className="flex h-[min(80vh,78vh)] flex-1 flex-col overflow-hidden">
-              {/* Header with breadcrumb */}
+              {/* Header */}
               <header className="flex h-14 shrink-0 items-center gap-2 border-b px-6">
                 <Breadcrumb>
                   <BreadcrumbList>
@@ -264,29 +289,34 @@ export function GameMenu() {
                   </BreadcrumbList>
                 </Breadcrumb>
 
+                {/* Mobile nav */}
                 <div className="ml-auto flex items-center gap-1 md:hidden">
                   {NAV_ITEMS.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => setActiveNav(item.id)}
                       className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-2 rounded-lg transition-colors relative",
                         activeNav === item.id
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:bg-muted",
                       )}
                     >
                       <item.icon className="size-4" />
+                      {item.id === "shop" && isLowHunger && (
+                        <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 animate-pulse" />
+                      )}
                     </button>
                   ))}
                 </div>
               </header>
 
-              {/* Content area */}
+              {/* Content */}
               <div className="flex-1 overflow-y-auto p-6">
                 {activeNav === "inventory" && (
                   <InventoryTab inventory={playerInfo.inventory} />
                 )}
+                {activeNav === "shop" && <ShopTab />}
                 {activeNav === "jobs" && <JobsTab />}
                 {activeNav === "rankings" && (
                   <RankingsTab
@@ -304,7 +334,7 @@ export function GameMenu() {
         </DialogContent>
       </Dialog>
 
-      {/* ── FAB Trigger ── */}
+      {/* FAB */}
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
@@ -326,9 +356,11 @@ export function GameMenu() {
         >
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
         </div>
-        {/* Notification badge */}
         {!open && jobsBadge && (
           <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-orange-500 border-2 border-background animate-pulse" />
+        )}
+        {!open && isLowHunger && !jobsBadge && (
+          <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-red-500 border-2 border-background animate-pulse" />
         )}
       </button>
     </>
