@@ -13,11 +13,9 @@ import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import Loading from "../ui/Loading";
+import { MAP_SIZE, TILE_SIZE, getSpawnPoint } from "@/convex/gameConstants";
 
 extend({ Container, Graphics, Sprite, Text });
-
-const MAP_SIZE = 2000;
-const TILE_SIZE = 50;
 
 export function GameCanvas() {
   const [me, setMe] = useState<Player | null>(null);
@@ -30,9 +28,9 @@ export function GameCanvas() {
     (pos: { x: number; y: number }) => updatePosition(pos),
     [updatePosition],
   );
-
+  const spawn = getSpawnPoint();
   const { renderPos, resetPosition } = useMovement({
-    initialPos: { x: 400, y: 300 },
+    initialPos: spawn,
     properties,
     onSync,
   });
@@ -71,7 +69,7 @@ export function GameCanvas() {
     >
       <Application background="#2c2c2c" resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
-          <WorldGrid mapSize={MAP_SIZE} tileSize={TILE_SIZE} />
+          <WorldGrid />
 
           {properties.map((p) => (
             <PropertyNode
