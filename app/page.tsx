@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Gamepad } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function page() {
@@ -15,7 +15,7 @@ export default function page() {
             className="w-full h-full object-cover"
             poster="/hero02.webp"
           >
-            <source src="/hero-video.mp4" type="video/mp4" />
+            <source src="/hero02.webp" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           {/* Overlay for better text readability */}
@@ -29,9 +29,13 @@ export default function page() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/">
-                <div className="bg-white rounded-full p-2">
-                  <Gamepad className="text-black size-5" />
-                </div>
+                <Image
+                  alt="Logo"
+                  className="h-12 w-12"
+                  height={40}
+                  src={"/logo.png"}
+                  width={40}
+                />
               </Link>
             </div>
 

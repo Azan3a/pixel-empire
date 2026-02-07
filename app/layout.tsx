@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description:
     "A real-time multiplayer pixel art business simulator built with Next.js, Convex, PixiJS, and Bun.",
   icons: {
-    icon: "/convex.svg",
+    icon: "/logo.png",
   },
 };
 
