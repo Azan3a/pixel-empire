@@ -1,3 +1,4 @@
+// types/player.ts
 import { Id } from "@/convex/_generated/dataModel";
 
 export interface Player {
@@ -7,9 +8,10 @@ export interface Player {
   name: string;
   x: number;
   y: number;
-  gold: number;
   cash: number;
   jobTitle: string;
   avatar: string;
   lastSeen: number;
+  hunger?: number;
+  walkDistance?: number;
 }

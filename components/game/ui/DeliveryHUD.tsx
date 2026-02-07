@@ -19,12 +19,10 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
   const isPickup = activeJob?.status === "accepted";
   const isDelivery = activeJob?.status === "picked_up";
 
-  // Target position
   const targetX = isPickup ? activeJob?.pickupX : activeJob?.dropoffX;
   const targetY = isPickup ? activeJob?.pickupY : activeJob?.dropoffY;
   const targetName = isPickup ? activeJob?.pickupName : activeJob?.dropoffName;
 
-  // Distance calculation
   const distance =
     targetX !== undefined && targetY !== undefined
       ? Math.sqrt((targetX - playerX) ** 2 + (targetY - playerY) ** 2)
@@ -32,28 +30,20 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
 
   const isNear = distance < CLIENT_INTERACT_RADIUS;
 
-  // Angle to target (for compass arrow)
   const angle =
     targetX !== undefined && targetY !== undefined
       ? Math.atan2(targetY - playerY, targetX - playerX)
       : 0;
 
-  // F key handler
   const handleInteract = useCallback(() => {
     if (!activeJob || !isNear) return;
-
-    if (isPickup) {
-      pickupParcel(activeJob._id);
-    } else if (isDelivery) {
-      deliverParcel(activeJob._id);
-    }
+    if (isPickup) pickupParcel(activeJob._id);
+    else if (isDelivery) deliverParcel(activeJob._id);
   }, [activeJob, isNear, isPickup, isDelivery, pickupParcel, deliverParcel]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "f") {
-        handleInteract();
-      }
+      if (e.key.toLowerCase() === "f") handleInteract();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -62,8 +52,8 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
   if (!activeJob) return null;
 
   return (
-    <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
-      {/* Main objective banner */}
+    <div className="pointer-events-none absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+      {/* Main objective banner — now top-right */}
       <div
         className={cn(
           "pointer-events-auto flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 shadow-lg backdrop-blur-md",
@@ -75,9 +65,7 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
         {/* Compass arrow */}
         <div
           className="flex items-center justify-center size-9 rounded-full bg-black/30"
-          style={{
-            transform: `rotate(${angle + Math.PI / 2}rad)`,
-          }}
+          style={{ transform: `rotate(${angle + Math.PI / 2}rad)` }}
         >
           <Navigation
             className={cn(

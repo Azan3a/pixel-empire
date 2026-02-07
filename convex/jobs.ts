@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ROAD_SPACING, MAP_SIZE, HALF_CORRIDOR } from "./gameConstants";
+import { HUNGER_PER_DELIVERY } from "./foodConfig";
 
 // ── Helpers ──
 
@@ -242,6 +243,14 @@ export const acceptJob = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
+    // Hunger check
+    const hunger = player.hunger ?? 100;
+    if (hunger < 10) {
+      throw new Error(
+        "You're too hungry to take a delivery! Eat something first.",
+      );
+    }
+
     // Check no active job
     const existingAccepted = await ctx.db
       .query("jobs")
@@ -327,13 +336,15 @@ export const deliverParcel = mutation({
     if (job.status !== "picked_up")
       throw new Error("You haven't picked up the parcel yet");
 
-    // Server-side proximity check
-    const d = dist(player.x, player.y, job.dropoffX, job.dropoffY);
-    if (d > PICKUP_RADIUS) {
-      throw new Error("You're too far from the delivery location");
-    }
+    const d = Math.sqrt(
+      (player.x - job.dropoffX) ** 2 + (player.y - job.dropoffY) ** 2,
+    );
+    if (d > 60) throw new Error("You're too far from the delivery location");
 
-    // Complete job and pay player
+    // Complete job, pay reward, deduct hunger
+    const hunger = player.hunger ?? 100;
+    const newHunger = Math.max(0, hunger - HUNGER_PER_DELIVERY);
+
     await ctx.db.patch(args.jobId, {
       status: "completed",
       completedAt: Date.now(),
@@ -341,9 +352,14 @@ export const deliverParcel = mutation({
 
     await ctx.db.patch(player._id, {
       cash: player.cash + job.reward,
+      hunger: newHunger,
     });
 
-    return { earned: job.reward, newBalance: player.cash + job.reward };
+    return {
+      earned: job.reward,
+      newBalance: player.cash + job.reward,
+      hunger: newHunger,
+    };
   },
 });
 

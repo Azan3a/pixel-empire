@@ -14,6 +14,8 @@ export default defineSchema({
     jobTitle: v.string(),
     avatar: v.string(),
     lastSeen: v.number(),
+    hunger: v.optional(v.number()), // 0–100, defaults to 100
+    walkDistance: v.optional(v.number()), // accumulator for distance-based hunger decay
   }).index("by_userId", ["userId"]),
 
   inventory: defineTable({
@@ -36,7 +38,7 @@ export default defineSchema({
 
   jobs: defineTable({
     type: v.string(),
-    status: v.string(), // "available" | "accepted" | "picked_up" | "completed" | "cancelled"
+    status: v.string(),
     playerId: v.optional(v.id("players")),
     reward: v.number(),
     pickupX: v.number(),

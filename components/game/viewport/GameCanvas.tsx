@@ -10,6 +10,7 @@ import { useWorld } from "@/hooks/use-world";
 import { useJobs } from "@/hooks/use-jobs";
 import { useMovement } from "@/hooks/use-movement";
 import { getSpawnPoint } from "@/convex/gameConstants";
+import { MAX_HUNGER } from "@/convex/foodConfig";
 
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
@@ -24,9 +25,12 @@ export function GameCanvas() {
   const [me, setMe] = useState<Player | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { alivePlayers, initPlayer, updatePosition } = usePlayer();
+  const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
   const { properties, initCity, buyProperty } = useWorld();
   const { activeJob } = useJobs();
+
+  // Current hunger (live from server)
+  const hunger = playerInfo?.hunger ?? MAX_HUNGER;
 
   const onSync = useCallback(
     (pos: { x: number; y: number }) => updatePosition(pos),
@@ -38,6 +42,7 @@ export function GameCanvas() {
     initialPos: spawn,
     properties,
     onSync,
+    hunger,
   });
 
   // Initialize player
@@ -72,7 +77,28 @@ export function GameCanvas() {
       ref={containerRef}
       className="h-full w-full overflow-hidden bg-[#2c2c2c] relative"
     >
-      {/* ── Delivery HUD overlay (HTML, above canvas) ── */}
+      {/* ── Hunger warning vignette ── */}
+      {hunger < 15 && (
+        <div
+          className="absolute inset-0 pointer-events-none z-40 animate-pulse"
+          style={{
+            boxShadow: `inset 0 0 ${hunger < 5 ? 150 : 80}px rgba(239, 68, 68, ${hunger <= 0 ? 0.4 : 0.2})`,
+          }}
+        />
+      )}
+
+      {/* ── Starving overlay text ── */}
+      {hunger <= 0 && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
+          <p className="text-red-500 font-black text-xl animate-pulse opacity-60 text-center">
+            ⚠️ STARVING — BUY FOOD ⚠️
+            <br />
+            <span className="text-sm font-bold">Movement speed halved</span>
+          </p>
+        </div>
+      )}
+
+      {/* ── Delivery HUD (top-right) ── */}
       <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
 
       {/* ── PixiJS Canvas ── */}
@@ -80,7 +106,6 @@ export function GameCanvas() {
         <pixiContainer x={camX} y={camY}>
           <WorldGrid />
 
-          {/* Properties */}
           {properties.map((p) => (
             <PropertyNode
               key={p._id}
@@ -90,7 +115,6 @@ export function GameCanvas() {
             />
           ))}
 
-          {/* ── Delivery Markers ── */}
           {activeJob && (
             <>
               <DeliveryMarker
@@ -110,7 +134,6 @@ export function GameCanvas() {
             </>
           )}
 
-          {/* Other Players */}
           {alivePlayers
             .filter((p) => p._id !== me._id)
             .map((p) => (
@@ -124,7 +147,6 @@ export function GameCanvas() {
               />
             ))}
 
-          {/* Local Player */}
           <PlayerCharacter
             x={renderPos.x}
             y={renderPos.y}

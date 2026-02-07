@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { MAP_SIZE, BUILDING_PAD, getCityBlocks } from "./gameConstants";
+import { HUNGER_PER_WORK } from "./foodConfig";
 
 export const initCity = mutation({
   args: {},
@@ -158,8 +159,19 @@ export const workJob = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
+    const hunger = player.hunger ?? 100;
+    if (hunger <= 0) {
+      throw new Error("You're too hungry to work! Buy some food first.");
+    }
+
     const wage = 50;
-    await ctx.db.patch(player._id, { cash: player.cash + wage });
-    return { earned: wage, newBalance: player.cash + wage };
+    const newHunger = Math.max(0, hunger - HUNGER_PER_WORK);
+
+    await ctx.db.patch(player._id, {
+      cash: player.cash + wage,
+      hunger: newHunger,
+    });
+
+    return { earned: wage, newBalance: player.cash + wage, hunger: newHunger };
   },
 });
