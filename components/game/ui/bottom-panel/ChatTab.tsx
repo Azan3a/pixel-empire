@@ -1,3 +1,4 @@
+// components/game/ui/bottom-panel/ChatTab.tsx
 "use client";
 
 import { TabsContent } from "@/components/ui/tabs";

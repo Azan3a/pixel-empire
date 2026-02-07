@@ -1,3 +1,4 @@
+// components/game/ui/bottom-panel/JobsTab.tsx
 "use client";
 
 import { useWorld } from "@/hooks/use-world";

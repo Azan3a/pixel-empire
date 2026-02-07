@@ -1,3 +1,4 @@
+// components/game/ui/bottom-panel/BottomPanel.tsx
 "use client";
 
 import { useState } from "react";
