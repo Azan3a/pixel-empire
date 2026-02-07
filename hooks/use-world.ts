@@ -1,5 +1,3 @@
-// /hooks/use-world.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
@@ -12,6 +10,7 @@ export function useWorld() {
   const properties = (useQuery(api.world.getProperties) as Property[]) || [];
 
   const buyPropertyMutation = useMutation(api.world.buyProperty);
+  const sellPropertyMutation = useMutation(api.world.sellProperty);
   const workJobMutation = useMutation(api.world.workJob);
   const initCityMutation = useMutation(api.world.initCity);
 
@@ -20,8 +19,24 @@ export function useWorld() {
       await buyPropertyMutation({ propertyId });
       toast.success("Property purchased!");
       return { success: true };
-    } catch (e: any) {
-      const msg = e.data?.message || e.message || "Failed to buy property";
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to buy property";
+      toast.error(msg);
+      return { success: false, error: msg };
+    }
+  };
+
+  const sellProperty = async (propertyId: Id<"properties">) => {
+    try {
+      const res = await sellPropertyMutation({ propertyId });
+      if (res) {
+        toast.success(
+          `Sold ${res.sold} for $${res.sellPrice.toLocaleString()}`,
+        );
+      }
+      return { success: true };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to sell property";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -31,11 +46,11 @@ export function useWorld() {
     try {
       const res = await workJobMutation();
       if (res && typeof res === "object" && "earned" in res) {
-        toast.success(`Worked and earned $${(res as any).earned}`);
+        toast.success(`Worked and earned $${res.earned}`);
       }
       return { success: true };
-    } catch (e: any) {
-      const msg = e.data?.message || e.message || "Failed to work job";
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to work job";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -53,6 +68,7 @@ export function useWorld() {
   return {
     properties,
     buyProperty,
+    sellProperty,
     workJob,
     initCity,
   };

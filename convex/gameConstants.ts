@@ -7,6 +7,7 @@ export const SIDEWALK_W = 10;
 export const ROAD_CORRIDOR = ROAD_WIDTH + SIDEWALK_W * 2; // 68
 export const HALF_CORRIDOR = ROAD_CORRIDOR / 2; // 34
 export const BUILDING_PAD = 20; // min gap from road edge to building
+export const SELL_RATE = 0.7;
 
 /** Compute the walkable block edges along one axis */
 export function getBlockEdges(

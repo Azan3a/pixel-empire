@@ -1,7 +1,12 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { MAP_SIZE, BUILDING_PAD, getCityBlocks } from "./gameConstants";
+import {
+  MAP_SIZE,
+  BUILDING_PAD,
+  getCityBlocks,
+  SELL_RATE,
+} from "./gameConstants";
 import { HUNGER_PER_WORK } from "./foodConfig";
 
 export const initCity = mutation({
@@ -13,7 +18,6 @@ export const initCity = mutation({
     const blocks = getCityBlocks(MAP_SIZE);
 
     const templates = [
-      // Residential
       {
         name: "House",
         price: 1000,
@@ -35,7 +39,6 @@ export const initCity = mutation({
         type: "residential",
         sizeFactor: 0.65,
       },
-      // Commercial
       {
         name: "Corner Store",
         price: 5000,
@@ -62,26 +65,20 @@ export const initCity = mutation({
     let buildingIndex = 0;
 
     for (const block of blocks) {
-      // ── Skip some blocks to leave parks / open space ──
-      // Skip ~30% of blocks randomly
       if (Math.random() < 0.3) continue;
 
       const usableW = block.w - BUILDING_PAD * 2;
       const usableH = block.h - BUILDING_PAD * 2;
 
-      // Block too small for any building
       if (usableW < 50 || usableH < 50) continue;
 
-      // ── Pick template ──
       const template = templates[Math.floor(Math.random() * templates.length)];
 
-      // ── Size: proportional to block, with some randomness ──
-      const jitter = 0.9 + Math.random() * 0.2; // 0.9 – 1.1
+      const jitter = 0.9 + Math.random() * 0.2;
       const factor = template.sizeFactor * jitter;
       const bw = Math.round(Math.min(usableW, usableW * factor));
       const bh = Math.round(Math.min(usableH, usableH * factor));
 
-      // ── Position: random offset within remaining space ──
       const maxOffX = usableW - bw;
       const maxOffY = usableH - bh;
       const bx =
@@ -93,8 +90,7 @@ export const initCity = mutation({
         BUILDING_PAD +
         Math.floor(Math.random() * Math.max(1, maxOffY));
 
-      // ── Scale price by building area ──
-      const areaRatio = (bw * bh) / (100 * 100); // baseline 100x100
+      const areaRatio = (bw * bh) / (100 * 100);
       const adjustedPrice = Math.round(template.price * areaRatio);
       const adjustedIncome = Math.round(template.income * areaRatio);
 
@@ -144,6 +140,34 @@ export const buyProperty = mutation({
 
     await ctx.db.patch(player._id, { cash: player.cash - prop.price });
     await ctx.db.patch(prop._id, { ownerId: player._id });
+  },
+});
+
+export const sellProperty = mutation({
+  args: { propertyId: v.id("properties") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!player) throw new Error("Player not found");
+
+    const prop = await ctx.db.get(args.propertyId);
+    if (!prop) throw new Error("Property not found");
+
+    if (prop.ownerId !== player._id) {
+      throw new Error("You don't own this property");
+    }
+
+    const sellPrice = Math.round(prop.price * SELL_RATE);
+
+    await ctx.db.patch(player._id, { cash: player.cash + sellPrice });
+    await ctx.db.patch(prop._id, { ownerId: undefined });
+
+    return { sold: prop.name, sellPrice, newBalance: player.cash + sellPrice };
   },
 });
 
