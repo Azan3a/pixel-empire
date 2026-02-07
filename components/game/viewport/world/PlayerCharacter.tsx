@@ -35,34 +35,6 @@ function PlayerCharacterInner({
       const radius = 20;
       const isNight = sunlightIntensity < 0.3;
 
-      // ── Torch / visibility glow at night ──
-      if (isNight && isMe) {
-        // Outer ambient light radius
-        g.circle(0, 0, 90);
-        g.fill({ color: 0xffeedd, alpha: 0.03 });
-
-        g.circle(0, 0, 60);
-        g.fill({ color: 0xffdd99, alpha: 0.05 });
-
-        g.circle(0, 0, 35);
-        g.fill({ color: 0xffcc77, alpha: 0.06 });
-      } else if (isNight) {
-        // Other players have a smaller glow
-        g.circle(0, 0, 40);
-        g.fill({ color: 0xffeedd, alpha: 0.04 });
-      }
-
-      // ── "Me" outer glow rings ──
-      if (isMe) {
-        const glowAlpha = isNight ? 0.12 : 0.08;
-        g.circle(0, 0, radius + 12);
-        g.fill({ color, alpha: glowAlpha });
-
-        g.setStrokeStyle({ color, width: 1.5, alpha: isNight ? 0.35 : 0.25 });
-        g.circle(0, 0, radius + 8);
-        g.stroke();
-      }
-
       // ── Shadow ──
       g.ellipse(3, radius - 2, radius * 0.8, radius * 0.3);
       g.fill({ color: 0x000000, alpha: isNight ? 0.3 : 0.18 });
