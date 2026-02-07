@@ -101,7 +101,9 @@ pixel-empire/
 │   ├── jobs.ts                # Delivery job lifecycle (spawn, accept, pickup, deliver)
 │   ├── food.ts                # Food purchase and hunger restoration
 │   ├── gameConstants.ts       # Shared constants (road layout, map size, block calculation)
+│   └── timeConstants.ts       # 
 │   └── foodConfig.ts          # Food items, hunger thresholds, decay rates
+│   └── time.ts                # 
 ├── app/                       # Next.js app router
 ├── components/
 │   ├── game/
@@ -112,6 +114,7 @@ pixel-empire/
 │   │   │       ├── PropertyNode.tsx    # Building rendering (windows, doors, roofs)
 │   │   │       ├── PlayerCharacter.tsx # Player avatar with face, shading, name badge
 │   │   │       └── DeliveryMarker.tsx  # Animated pickup/dropoff markers
+│   │   │       └── DayNightOverlay.tsx  # Red vignette overlay when starving
 │   │   └── ui/
 │   │       ├── Header.tsx              # Top-left HUD (cash, hunger, food shop)
 │   │       ├── DeliveryHUD.tsx         # Top-right delivery objective tracker
@@ -130,6 +133,7 @@ pixel-empire/
 │   ├── use-world.ts           # Properties, city init, buying
 │   ├── use-jobs.ts            # Delivery job lifecycle
 │   ├── use-food.ts            # Food purchasing
+│   ├── use-game-time.ts       # Day/Night cycle and ambient lighting
 │   └── use-movement.ts        # Client-side input, collision, hunger-based speed
 ├── types/
 │   ├── player.ts              # Player interface
@@ -156,6 +160,7 @@ pixel-empire/
 - [x] Manual labor fallback job
 - [x] Leaderboard / ranking system
 - [x] Minimap showing nearby landmarks and delivery targets
+- [x] Day/Night Cycle
 - [x] Clean hook-based architecture (use-movement, use-jobs, use-food)
 
 ### 🔜 Next Up
@@ -173,7 +178,6 @@ pixel-empire/
 - [ ] **Property Upgrades** — Upgrade buildings to increase income (Level 1 → 2 → 3)
 - [ ] **Rent System** — Charge other players rent when they enter your property
 - [ ] **NPC Vendors** — Stationary NPCs at buildings for buying supplies, food, and tools
-- [ ] **Day/Night Cycle** — Visual lighting changes with time-based job availability
 - [ ] **Player Inventory Expansion** — Tools, keys, supplies that affect gameplay
 - [ ] **Achievement System** — Milestones for deliveries completed, cash earned, properties owned
 

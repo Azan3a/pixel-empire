@@ -1,17 +1,37 @@
 // components/game/ui/Header.tsx
 "use client";
 
-import { DollarSign, AlertTriangle } from "lucide-react";
+import {
+  DollarSign,
+  AlertTriangle,
+  Sun,
+  Moon,
+  Sunrise,
+  Sunset,
+  Cloud,
+} from "lucide-react";
 import { usePlayer } from "@/hooks/use-player";
+import { useGameTime } from "@/hooks/use-game-time";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { MAX_HUNGER } from "@/convex/foodConfig";
+import type { TimePhase } from "@/convex/timeConstants";
+
+const phaseIcons: Record<TimePhase, React.ReactNode> = {
+  DAWN: <Sunrise className="h-3.5 w-3.5 text-orange-400" />,
+  MORNING: <Sun className="h-3.5 w-3.5 text-yellow-400" />,
+  AFTERNOON: <Sun className="h-3.5 w-3.5 text-yellow-300" />,
+  EVENING: <Sunset className="h-3.5 w-3.5 text-orange-500" />,
+  DUSK: <Cloud className="h-3.5 w-3.5 text-purple-400" />,
+  NIGHT: <Moon className="h-3.5 w-3.5 text-blue-300" />,
+};
 
 export function Header() {
   const { playerInfo: player } = usePlayer();
+  const { formatted, phase } = useGameTime();
 
   if (!player) return null;
 
@@ -55,9 +75,8 @@ export function Header() {
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Hunger bar + food button */}
+      {/* Hunger bar */}
       <div className="flex items-center gap-4 px-2">
-        {/* Hunger bar */}
         <div className="flex items-center gap-2">
           <span className="text-sm">{"🍖"}</span>
 
@@ -81,6 +100,16 @@ export function Header() {
             </div>
           </div>
         </div>
+      </div>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      {/* Game Time */}
+      <div className="flex items-center gap-1.5 px-2">
+        {phaseIcons[phase]}
+        <span className="font-mono text-xs font-bold tabular-nums text-foreground">
+          {formatted}
+        </span>
       </div>
     </header>
   );

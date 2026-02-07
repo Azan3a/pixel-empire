@@ -3,12 +3,13 @@
 
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite, Text } from "pixi.js";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Player } from "@/types/player";
 import { usePlayer } from "@/hooks/use-player";
 import { useWorld } from "@/hooks/use-world";
 import { useJobs } from "@/hooks/use-jobs";
 import { useMovement } from "@/hooks/use-movement";
+import { useGameTime } from "@/hooks/use-game-time";
 import { getSpawnPoint } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@/types/property";
@@ -18,6 +19,7 @@ import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
+import { DayNightOverlay } from "./world/DayNightOverlay";
 
 import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
@@ -39,6 +41,7 @@ export function GameCanvas() {
   const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
   const { properties, initCity, buyProperty, sellProperty } = useWorld();
   const { activeJob } = useJobs();
+  const gameTime = useGameTime();
 
   const hunger = playerInfo?.hunger ?? MAX_HUNGER;
   const playerCash = playerInfo?.cash ?? 0;
@@ -99,6 +102,28 @@ export function GameCanvas() {
     setSelectedProperty(null);
   }, [selectedProperty, sellProperty]);
 
+  const {
+    tintR,
+    tintG,
+    tintB,
+    overlayColor,
+    overlayAlpha,
+    streetLightAlpha,
+    sunlightIntensity,
+  } = gameTime.ambient;
+
+  const bgColor = useMemo(() => {
+    const bgR = Math.round(0x2c * tintR);
+    const bgG = Math.round(0x2c * tintG);
+    const bgB = Math.round(0x2c * tintB);
+    return (bgR << 16) | (bgG << 8) | bgB;
+  }, [tintR, tintG, tintB]);
+
+  const bgHex = useMemo(
+    () => `#${bgColor.toString(16).padStart(6, "0")}`,
+    [bgColor],
+  );
+
   if (!me) return <Loading />;
 
   const vw = typeof window !== "undefined" ? window.innerWidth : 800;
@@ -110,7 +135,6 @@ export function GameCanvas() {
     .filter((p) => p._id !== me._id)
     .map((p) => ({ _id: p._id, x: p.x, y: p.y, name: p.name }));
 
-  // Check if selected property is owned by current player
   const isSelectedOwner =
     selectedProperty?.ownerId !== undefined &&
     me !== null &&
@@ -119,7 +143,8 @@ export function GameCanvas() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden bg-[#2c2c2c] relative"
+      className="h-full w-full overflow-hidden relative"
+      style={{ backgroundColor: bgHex }}
     >
       {hunger < 15 && (
         <div
@@ -168,7 +193,6 @@ export function GameCanvas() {
         <GameMenu />
       </div>
 
-      {/* Property Dialog — buy or sell */}
       <PropertyDialog
         property={selectedProperty}
         playerCash={playerCash}
@@ -179,9 +203,9 @@ export function GameCanvas() {
         onSell={handleSellConfirm}
       />
 
-      <Application background="#2c2c2c" resizeTo={containerRef}>
+      <Application background={bgColor} resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
-          <WorldGrid />
+          <WorldGrid tintR={tintR} tintG={tintG} tintB={tintB} />
 
           {properties.map((p) => (
             <PropertyNode
@@ -189,6 +213,7 @@ export function GameCanvas() {
               property={p}
               isOwner={p.ownerId === me._id}
               onInteract={handlePropertyClick}
+              sunlightIntensity={sunlightIntensity}
             />
           ))}
 
@@ -221,6 +246,7 @@ export function GameCanvas() {
                 name={p.name}
                 color={0xef4444}
                 isMe={false}
+                sunlightIntensity={sunlightIntensity}
               />
             ))}
 
@@ -230,6 +256,13 @@ export function GameCanvas() {
             name={me.name}
             color={0x10b981}
             isMe={true}
+            sunlightIntensity={sunlightIntensity}
+          />
+
+          <DayNightOverlay
+            overlayColor={overlayColor}
+            overlayAlpha={overlayAlpha}
+            streetLightAlpha={streetLightAlpha}
           />
         </pixiContainer>
       </Application>

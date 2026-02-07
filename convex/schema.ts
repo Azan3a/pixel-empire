@@ -14,8 +14,8 @@ export default defineSchema({
     jobTitle: v.string(),
     avatar: v.string(),
     lastSeen: v.number(),
-    hunger: v.optional(v.number()), // 0–100, defaults to 100
-    walkDistance: v.optional(v.number()), // accumulator for distance-based hunger decay
+    hunger: v.optional(v.number()),
+    walkDistance: v.optional(v.number()),
   }).index("by_userId", ["userId"]),
 
   inventory: defineTable({
@@ -55,4 +55,10 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_player", ["playerId"])
     .index("by_player_status", ["playerId", "status"]),
+
+  // World configuration — stores server-authoritative time settings
+  worldConfig: defineTable({
+    key: v.string(),
+    value: v.string(), // JSON-encoded value
+  }).index("by_key", ["key"]),
 });

@@ -1,7 +1,8 @@
+// components/game/viewport/world/PlayerCharacter.tsx
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 
 interface PlayerCharacterProps {
   x: number;
@@ -9,9 +10,9 @@ interface PlayerCharacterProps {
   name: string;
   color: number;
   isMe: boolean;
+  sunlightIntensity?: number; // 0 = full dark, 1 = full bright
 }
 
-// Darken a hex color by a factor (0–1)
 function darken(color: number, factor: number): number {
   const r = Math.floor(((color >> 16) & 0xff) * (1 - factor));
   const g = Math.floor(((color >> 8) & 0xff) * (1 - factor));
@@ -19,32 +20,52 @@ function darken(color: number, factor: number): number {
   return (r << 16) | (g << 8) | b;
 }
 
-export function PlayerCharacter({
+function PlayerCharacterInner({
   x,
   y,
   name,
   color,
   isMe,
+  sunlightIntensity = 1,
 }: PlayerCharacterProps) {
   const drawPlayer = useCallback(
     (g: Graphics) => {
       g.clear();
 
       const radius = 20;
+      const isNight = sunlightIntensity < 0.3;
+
+      // ── Torch / visibility glow at night ──
+      if (isNight && isMe) {
+        // Outer ambient light radius
+        g.circle(0, 0, 90);
+        g.fill({ color: 0xffeedd, alpha: 0.03 });
+
+        g.circle(0, 0, 60);
+        g.fill({ color: 0xffdd99, alpha: 0.05 });
+
+        g.circle(0, 0, 35);
+        g.fill({ color: 0xffcc77, alpha: 0.06 });
+      } else if (isNight) {
+        // Other players have a smaller glow
+        g.circle(0, 0, 40);
+        g.fill({ color: 0xffeedd, alpha: 0.04 });
+      }
 
       // ── "Me" outer glow rings ──
       if (isMe) {
+        const glowAlpha = isNight ? 0.12 : 0.08;
         g.circle(0, 0, radius + 12);
-        g.fill({ color, alpha: 0.08 });
+        g.fill({ color, alpha: glowAlpha });
 
-        g.setStrokeStyle({ color, width: 1.5, alpha: 0.25 });
+        g.setStrokeStyle({ color, width: 1.5, alpha: isNight ? 0.35 : 0.25 });
         g.circle(0, 0, radius + 8);
         g.stroke();
       }
 
       // ── Shadow ──
       g.ellipse(3, radius - 2, radius * 0.8, radius * 0.3);
-      g.fill({ color: 0x000000, alpha: 0.18 });
+      g.fill({ color: 0x000000, alpha: isNight ? 0.3 : 0.18 });
 
       // ── Body base ──
       g.circle(0, 0, radius);
@@ -56,11 +77,11 @@ export function PlayerCharacter({
 
       // ── Body highlight (top-left lighter) ──
       g.circle(-5, -5, radius * 0.55);
-      g.fill({ color: 0xffffff, alpha: 0.18 });
+      g.fill({ color: 0xffffff, alpha: isNight ? 0.1 : 0.18 });
 
       // Specular dot
       g.circle(-7, -8, 4);
-      g.fill({ color: 0xffffff, alpha: 0.3 });
+      g.fill({ color: 0xffffff, alpha: isNight ? 0.15 : 0.3 });
 
       // ── Body outline ──
       g.setStrokeStyle({
@@ -72,7 +93,6 @@ export function PlayerCharacter({
       g.stroke();
 
       // ── Eyes ──
-      // White
       g.ellipse(-6, -3, 4, 4.5);
       g.fill({ color: 0xffffff, alpha: 0.95 });
       g.ellipse(6, -3, 4, 4.5);
@@ -90,11 +110,12 @@ export function PlayerCharacter({
       g.circle(7, -3, 1.2);
       g.fill({ color: 0x000000 });
 
-      // Eye shine
+      // Eye shine — brighter at night (reflective)
+      const shineAlpha = isNight ? 1.0 : 0.9;
       g.circle(-6, -4.5, 1);
-      g.fill({ color: 0xffffff, alpha: 0.9 });
+      g.fill({ color: 0xffffff, alpha: shineAlpha });
       g.circle(6, -4.5, 1);
-      g.fill({ color: 0xffffff, alpha: 0.9 });
+      g.fill({ color: 0xffffff, alpha: shineAlpha });
 
       // ── Mouth ──
       g.setStrokeStyle({ color: darken(color, 0.5), width: 1.5, alpha: 0.45 });
@@ -117,7 +138,7 @@ export function PlayerCharacter({
       g.roundRect(-badgeW / 2, badgeY, badgeW, badgeH, 9);
       g.stroke();
     },
-    [color, isMe, name.length],
+    [color, isMe, name.length, sunlightIntensity],
   );
 
   return (
@@ -140,3 +161,5 @@ export function PlayerCharacter({
     </pixiContainer>
   );
 }
+
+export const PlayerCharacter = memo(PlayerCharacterInner);

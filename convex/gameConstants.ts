@@ -1,3 +1,4 @@
+// convex/gameConstants.ts
 // These must stay in sync between backend (initCity) and frontend (WorldGrid)
 export const MAP_SIZE = 2000;
 export const TILE_SIZE = 50;
