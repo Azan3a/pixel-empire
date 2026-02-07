@@ -13,7 +13,7 @@ import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import Loading from "../ui/Loading";
-import { MAP_SIZE, TILE_SIZE, getSpawnPoint } from "@/convex/gameConstants";
+import { getSpawnPoint } from "@/convex/gameConstants";
 
 extend({ Container, Graphics, Sprite, Text });
 
