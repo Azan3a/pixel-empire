@@ -6,11 +6,11 @@ Players enter a living city grid where every square foot is a potential asset. F
 
 **Core Loop:** Working Jobs → Saving Cash → Buying Property → Building an Empire.
 
-## ���️ Vision
+## Vision
 
 The long-term vision for Pixel Empire is a fully player-driven economy. We aim to support complex city-wide systems including player-run businesses, corporate hiring, specialized job roles, and a dynamic real estate market where every building serves a purpose in the global economy.
 
-## ��� MVP Features
+## MVP Features
 
 - **Real-time City Grid:** Smooth, top-down movement with server-side collision detection.
 - **Jobs System:** Interactive locations across the map where players can earn their first bit of capital.
@@ -18,7 +18,7 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 - **Wealth Leaderboard:** A global ranking system based on liquid cash and total asset valuation.
 - **Persistent World:** Your location and assets are saved in real-time via Convex.
 
-## ���️ Tech Stack
+## Tech Stack
 
 - **Next.js** – Frontend framework and optimized rendering.
 - **Convex** – Real-time backend, database, and server-side game logic.
@@ -26,7 +26,7 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 - **Bun** – High-performance runtime and package manager.
 - **Tailwind CSS** – Modern UI styling for game panels and HUDs.
 
-## ��� Quick Start
+## Quick Start
 
 If you've cloned this repository:
 
@@ -37,9 +37,9 @@ bun run dev
 
 This will start the Next.js development server at `http://localhost:3000` and the Convex background sync service.
 
-## ��� Project Structure
+## Project Structure
 
-```
+```bash
 /convex          # Server-authoritative logic (jobs, property, movement)
 /app             # Next.js routes and app layout
 /components      # Game HUD, panels, and UI components
@@ -48,7 +48,7 @@ This will start the Next.js development server at `http://localhost:3000` and th
 /public          # Sprites, tilesets, and static assets
 ```
 
-## ��� Development Roadmap
+## Development Roadmap
 
 - [x] Persistent player movement and sync.
 - [x] Basic Job system (Manual labor).
@@ -57,7 +57,7 @@ This will start the Next.js development server at `http://localhost:3000` and th
 - [ ] Player-to-player hiring and payroll systems.
 - [ ] Proximity-based trading and interaction.
 
-## ��� Resources
+## Resources
 
 - [Convex Documentation](https://docs.convex.dev/)
 - [PixiJS API Reference](https://pixijs.download/release/docs/index.html)
