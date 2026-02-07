@@ -1,4 +1,4 @@
-// /components/game/viewport/GameCanvas.tsx
+// components/game/viewport/GameCanvas.tsx
 "use client";
 
 import { Application, extend } from "@pixi/react";
@@ -7,13 +7,16 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Player } from "@/types/player";
 import { usePlayer } from "@/hooks/use-player";
 import { useWorld } from "@/hooks/use-world";
+import { useJobs } from "@/hooks/use-jobs";
 import { useMovement } from "@/hooks/use-movement";
+import { getSpawnPoint } from "@/convex/gameConstants";
 
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
+import { DeliveryMarker } from "./world/DeliveryMarker";
+import { DeliveryHUD } from "../ui/DeliveryHUD";
 import Loading from "../ui/Loading";
-import { getSpawnPoint } from "@/convex/gameConstants";
 
 extend({ Container, Graphics, Sprite, Text });
 
@@ -23,11 +26,13 @@ export function GameCanvas() {
 
   const { alivePlayers, initPlayer, updatePosition } = usePlayer();
   const { properties, initCity, buyProperty } = useWorld();
+  const { activeJob } = useJobs();
 
   const onSync = useCallback(
     (pos: { x: number; y: number }) => updatePosition(pos),
     [updatePosition],
   );
+
   const spawn = getSpawnPoint();
   const { renderPos, resetPosition } = useMovement({
     initialPos: spawn,
@@ -65,12 +70,17 @@ export function GameCanvas() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden bg-[#2c2c2c]"
+      className="h-full w-full overflow-hidden bg-[#2c2c2c] relative"
     >
+      {/* ── Delivery HUD overlay (HTML, above canvas) ── */}
+      <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
+
+      {/* ── PixiJS Canvas ── */}
       <Application background="#2c2c2c" resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
           <WorldGrid />
 
+          {/* Properties */}
           {properties.map((p) => (
             <PropertyNode
               key={p._id}
@@ -80,6 +90,27 @@ export function GameCanvas() {
             />
           ))}
 
+          {/* ── Delivery Markers ── */}
+          {activeJob && (
+            <>
+              <DeliveryMarker
+                x={activeJob.pickupX}
+                y={activeJob.pickupY}
+                type="pickup"
+                label={activeJob.pickupName}
+                active={activeJob.status === "accepted"}
+              />
+              <DeliveryMarker
+                x={activeJob.dropoffX}
+                y={activeJob.dropoffY}
+                type="dropoff"
+                label={activeJob.dropoffName}
+                active={activeJob.status === "picked_up"}
+              />
+            </>
+          )}
+
+          {/* Other Players */}
           {alivePlayers
             .filter((p) => p._id !== me._id)
             .map((p) => (
@@ -93,6 +124,7 @@ export function GameCanvas() {
               />
             ))}
 
+          {/* Local Player */}
           <PlayerCharacter
             x={renderPos.x}
             y={renderPos.y}

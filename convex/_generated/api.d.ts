@@ -12,6 +12,7 @@ import type * as CustomPassword from "../CustomPassword.js";
 import type * as auth from "../auth.js";
 import type * as gameConstants from "../gameConstants.js";
 import type * as http from "../http.js";
+import type * as jobs from "../jobs.js";
 import type * as players from "../players.js";
 import type * as users from "../users.js";
 import type * as world from "../world.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   gameConstants: typeof gameConstants;
   http: typeof http;
+  jobs: typeof jobs;
   players: typeof players;
   users: typeof users;
   world: typeof world;
