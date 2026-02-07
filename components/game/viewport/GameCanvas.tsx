@@ -1,3 +1,4 @@
+// /components/game/viewport/GameCanvas.tsx
 "use client";
 
 import { Application, extend } from "@pixi/react";

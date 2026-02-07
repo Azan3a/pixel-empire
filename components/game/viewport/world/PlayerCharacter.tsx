@@ -1,3 +1,4 @@
+// /components/game/viewport/world/PlayerCharacter.tsx
 "use client";
 
 import { Graphics } from "pixi.js";

@@ -1,3 +1,4 @@
+// /components/game/viewport/world/WorldGrid.tsx
 "use client";
 
 import { Graphics } from "pixi.js";
