@@ -1,4 +1,3 @@
-// components/game/ui/bottom-panel/Minimap.tsx
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
@@ -18,7 +17,7 @@ interface MinimapPlayer {
   name: string;
 }
 
-interface MinimapProps {
+interface FloatingMinimapProps {
   playerX: number;
   playerY: number;
   properties: Property[];
@@ -33,7 +32,7 @@ const SCALE = MINIMAP_SIZE / MAP_SIZE;
 const HALF_ROAD = ROAD_WIDTH / 2;
 const FULL_SW = HALF_ROAD + SIDEWALK_W;
 
-export function Minimap({
+export function FloatingMinimap({
   playerX,
   playerY,
   properties,
@@ -41,7 +40,7 @@ export function Minimap({
   activeJob,
   viewportWidth,
   viewportHeight,
-}: MinimapProps) {
+}: FloatingMinimapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const pulseRef = useRef(0);
@@ -56,7 +55,6 @@ export function Minimap({
     const w = MINIMAP_SIZE;
     const h = MINIMAP_SIZE;
 
-    // Size canvas for crisp rendering
     if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
       canvas.width = w * dpr;
       canvas.height = h * dpr;
@@ -67,28 +65,24 @@ export function Minimap({
 
     ctx.clearRect(0, 0, w, h);
 
-    // ── Background (grass) ──
+    // Background (grass)
     ctx.fillStyle = "#3a5a3a";
     ctx.fillRect(0, 0, w, h);
 
-    // ── Roads ──
+    // Roads
     ctx.fillStyle = "#555555";
-
-    // Horizontal roads
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
       const y = (ry - FULL_SW) * SCALE;
       const roadH = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
       ctx.fillRect(0, y, w, roadH);
     }
-
-    // Vertical roads
     for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
       const x = (rx - FULL_SW) * SCALE;
       const roadW = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
       ctx.fillRect(x, 0, roadW, h);
     }
 
-    // ── Road center lines (subtle) ──
+    // Road center lines
     ctx.strokeStyle = "#777777";
     ctx.lineWidth = 0.5;
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
@@ -104,7 +98,7 @@ export function Minimap({
       ctx.stroke();
     }
 
-    // ── Intersections (slightly brighter) ──
+    // Intersections
     ctx.fillStyle = "#666666";
     for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
       for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
@@ -115,7 +109,7 @@ export function Minimap({
       }
     }
 
-    // ── Properties ──
+    // Properties
     for (const prop of properties) {
       const px = prop.x * SCALE;
       const py = prop.y * SCALE;
@@ -129,29 +123,23 @@ export function Minimap({
       }
       ctx.fillRect(px, py, pw, ph);
 
-      // Thin border
       ctx.strokeStyle = "#00000040";
       ctx.lineWidth = 0.5;
       ctx.strokeRect(px, py, pw, ph);
     }
 
-    // ── Delivery markers ──
+    // Delivery markers
     if (activeJob) {
       const pulse = Math.sin(pulseRef.current) * 0.5 + 0.5;
       const markerSize = 3 + pulse * 2;
 
-      // Pickup
       if (activeJob.status === "accepted") {
         const px = activeJob.pickupX * SCALE;
         const py = activeJob.pickupY * SCALE;
-
-        // Glow ring
         ctx.beginPath();
         ctx.arc(px, py, markerSize + 3, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(59, 130, 246, ${0.15 + pulse * 0.15})`;
         ctx.fill();
-
-        // Marker dot
         ctx.beginPath();
         ctx.arc(px, py, markerSize, 0, Math.PI * 2);
         ctx.fillStyle = "#3b82f6";
@@ -161,13 +149,11 @@ export function Minimap({
         ctx.stroke();
       }
 
-      // Dropoff (always show, dim if not active)
       const dx = activeJob.dropoffX * SCALE;
       const dy = activeJob.dropoffY * SCALE;
       const isDropoffActive = activeJob.status === "picked_up";
 
       if (isDropoffActive) {
-        // Glow ring
         ctx.beginPath();
         ctx.arc(dx, dy, markerSize + 3, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(249, 115, 22, ${0.15 + pulse * 0.15})`;
@@ -182,7 +168,6 @@ export function Minimap({
       ctx.lineWidth = isDropoffActive ? 1 : 0.5;
       ctx.stroke();
 
-      // ── Route line (dashed) ──
       if (activeJob.status === "accepted") {
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = "#ffffff30";
@@ -195,13 +180,10 @@ export function Minimap({
       }
     }
 
-    // ── Other players ──
+    // Other players
     for (const p of otherPlayers) {
-      const px = p.x * SCALE;
-      const py = p.y * SCALE;
-
       ctx.beginPath();
-      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.arc(p.x * SCALE, p.y * SCALE, 2.5, 0, Math.PI * 2);
       ctx.fillStyle = "#ef4444";
       ctx.fill();
       ctx.strokeStyle = "#00000060";
@@ -209,17 +191,13 @@ export function Minimap({
       ctx.stroke();
     }
 
-    // ── Local player ──
+    // Local player
     const lpx = playerX * SCALE;
     const lpy = playerY * SCALE;
-
-    // Glow
     ctx.beginPath();
     ctx.arc(lpx, lpy, 6, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(16, 185, 129, 0.2)";
     ctx.fill();
-
-    // Dot
     ctx.beginPath();
     ctx.arc(lpx, lpy, 3.5, 0, Math.PI * 2);
     ctx.fillStyle = "#10b981";
@@ -228,55 +206,46 @@ export function Minimap({
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // ── Viewport rectangle ──
+    // Viewport rectangle
     const vpX = (playerX - viewportWidth / 2) * SCALE;
     const vpY = (playerY - viewportHeight / 2) * SCALE;
     const vpW = viewportWidth * SCALE;
     const vpH = viewportHeight * SCALE;
-
     ctx.strokeStyle = "#ffffff50";
     ctx.lineWidth = 1;
     ctx.strokeRect(vpX, vpY, vpW, vpH);
 
-    // Corner ticks for emphasis
     const tick = 4;
     ctx.strokeStyle = "#ffffffa0";
     ctx.lineWidth = 1.5;
-
-    // Top-left
+    // Corner ticks
     ctx.beginPath();
     ctx.moveTo(vpX, vpY + tick);
     ctx.lineTo(vpX, vpY);
     ctx.lineTo(vpX + tick, vpY);
     ctx.stroke();
-
-    // Top-right
     ctx.beginPath();
     ctx.moveTo(vpX + vpW - tick, vpY);
     ctx.lineTo(vpX + vpW, vpY);
     ctx.lineTo(vpX + vpW, vpY + tick);
     ctx.stroke();
-
-    // Bottom-left
     ctx.beginPath();
     ctx.moveTo(vpX, vpY + vpH - tick);
     ctx.lineTo(vpX, vpY + vpH);
     ctx.lineTo(vpX + tick, vpY + vpH);
     ctx.stroke();
-
-    // Bottom-right
     ctx.beginPath();
     ctx.moveTo(vpX + vpW - tick, vpY + vpH);
     ctx.lineTo(vpX + vpW, vpY + vpH);
     ctx.lineTo(vpX + vpW, vpY + vpH - tick);
     ctx.stroke();
 
-    // ── Border ──
+    // Border
     ctx.strokeStyle = "#ffffff15";
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 0, w, h);
 
-    // ── Coordinates label ──
+    // Coordinates
     ctx.fillStyle = "#ffffff90";
     ctx.font = "bold 9px monospace";
     ctx.textAlign = "right";
@@ -295,19 +264,15 @@ export function Minimap({
     viewportHeight,
   ]);
 
-  // Animation loop
   useEffect(() => {
     let running = true;
-
     const tick = () => {
       if (!running) return;
       pulseRef.current += 0.06;
       draw();
       animRef.current = requestAnimationFrame(tick);
     };
-
     tick();
-
     return () => {
       running = false;
       cancelAnimationFrame(animRef.current);
@@ -315,57 +280,10 @@ export function Minimap({
   }, [draw]);
 
   return (
-    <div className="flex flex-col gap-2 h-full">
-      {/* Title */}
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          Minimap
-        </span>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-            You
-          </span>
-          <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
-            Others
-          </span>
-        </div>
-      </div>
-
+    <div className="pointer-events-auto flex flex-col gap-1">
       {/* Canvas */}
-      <div className="relative rounded-lg overflow-hidden border border-border/50 bg-black/20 flex-1 flex items-center justify-center">
-        <canvas
-          ref={canvasRef}
-          className="rounded-lg"
-          style={{
-            imageRendering: "pixelated",
-          }}
-        />
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-3 flex-wrap">
-        <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-sm bg-[#3b82f6]" />
-          Commercial
-        </span>
-        <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-sm bg-[#f97316]" />
-          Residential
-        </span>
-        {activeJob && (
-          <>
-            <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#3b82f6] ring-1 ring-white" />
-              Pickup
-            </span>
-            <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#f97316] ring-1 ring-white" />
-              Dropoff
-            </span>
-          </>
-        )}
+      <div className="rounded-sm overflow-hidden border border-white/10 shadow-2xl bg-black/30 backdrop-blur-sm">
+        <canvas ref={canvasRef} style={{ imageRendering: "pixelated" }} />
       </div>
     </div>
   );

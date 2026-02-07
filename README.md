@@ -106,21 +106,23 @@ pixel-empire/
 ├── components/
 │   ├── game/
 │   │   ├── viewport/
-│   │   │   ├── GameCanvas.tsx         # Main PixiJS canvas with camera system
+│   │   │   ├── GameCanvas.tsx          # Main PixiJS canvas with camera system
 │   │   │   └── world/
-│   │   │       ├── WorldGrid.tsx      # Roads, grass, trees, crosswalks, street lights
-│   │   │       ├── PropertyNode.tsx   # Building rendering (windows, doors, roofs)
+│   │   │       ├── WorldGrid.tsx       # Roads, grass, trees, crosswalks, street lights
+│   │   │       ├── PropertyNode.tsx    # Building rendering (windows, doors, roofs)
 │   │   │       ├── PlayerCharacter.tsx # Player avatar with face, shading, name badge
-│   │   │       └── DeliveryMarker.tsx # Animated pickup/dropoff markers
+│   │   │       └── DeliveryMarker.tsx  # Animated pickup/dropoff markers
 │   │   └── ui/
-│   │       ├── SiteHeader.tsx         # Top-left HUD (cash, hunger, food shop)
-│   │       ├── DeliveryHUD.tsx        # Top-right delivery objective tracker
-│   │       └── bottom-panel/
-│   │           ├── BottomPanel.tsx     # Tabbed bottom panel container
+│   │       ├── Header.tsx              # Top-left HUD (cash, hunger, food shop)
+│   │       ├── DeliveryHUD.tsx         # Top-right delivery objective tracker
+│   │       ├── FloatingMinimap.tsx     # Minimap showing nearby roads and landmarks
+│   │       └── menu/
+│   │           ├── GameMenu.tsx
 │   │           ├── InventoryTab.tsx    # Player inventory display
 │   │           ├── JobsTab.tsx         # Delivery job browser and active job tracker
 │   │           ├── RankingsTab.tsx     # Leaderboard display
 │   │           └── ChatTab.tsx         # Chat/log tab
+│   │           └── ControlsTab.tsx
 │   └── ui/                    # shadcn/ui primitives
 ├── hooks/
 │   ├── use-player.ts          # Player state, init, position sync

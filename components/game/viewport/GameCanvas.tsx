@@ -1,4 +1,3 @@
-// components/game/viewport/GameCanvas.tsx
 "use client";
 
 import { Application, extend } from "@pixi/react";
@@ -16,8 +15,10 @@ import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
+
+import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
-import { BottomPanel } from "../ui/bottom-panel/BottomPanel";
+import { GameMenu } from "../ui/menu/GameMenu";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -70,6 +71,10 @@ export function GameCanvas() {
   const camX = vw / 2 - renderPos.x;
   const camY = vh / 2 - renderPos.y;
 
+  const otherPlayers = alivePlayers
+    .filter((p) => p._id !== me._id)
+    .map((p) => ({ _id: p._id, x: p.x, y: p.y, name: p.name }));
+
   return (
     <div
       ref={containerRef}
@@ -78,7 +83,7 @@ export function GameCanvas() {
       {/* Hunger warning vignette */}
       {hunger < 15 && (
         <div
-          className="absolute inset-0 pointer-events-none z-40 animate-pulse"
+          className="absolute inset-0 pointer-events-none z-50 animate-pulse"
           style={{
             boxShadow: `inset 0 0 ${hunger < 5 ? 150 : 80}px rgba(239, 68, 68, ${hunger <= 0 ? 0.4 : 0.2})`,
           }}
@@ -86,7 +91,7 @@ export function GameCanvas() {
       )}
 
       {hunger <= 0 && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
           <p className="text-red-500 font-black text-xl animate-pulse opacity-60 text-center">
             ⚠️ STARVING — BUY FOOD ⚠️
             <br />
@@ -95,12 +100,34 @@ export function GameCanvas() {
         </div>
       )}
 
-      {/* Delivery HUD (top-right) */}
-      <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
+      {/* Top-right: Minimap + Delivery HUD */}
+      <div className="absolute top-4 right-4 z-30 pointer-events-none flex flex-col items-end gap-3">
+        <FloatingMinimap
+          playerX={renderPos.x}
+          playerY={renderPos.y}
+          properties={properties}
+          otherPlayers={otherPlayers}
+          activeJob={
+            activeJob as
+              | (typeof activeJob & {
+                  status:
+                    | "available"
+                    | "accepted"
+                    | "picked_up"
+                    | "completed"
+                    | "cancelled";
+                })
+              | null
+          }
+          viewportWidth={vw}
+          viewportHeight={vh}
+        />
+        <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
+      </div>
 
-      {/* Bottom Panel with Minimap */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
-        <BottomPanel playerX={renderPos.x} playerY={renderPos.y} />
+      {/* Bottom-right: FAB Menu */}
+      <div className="absolute bottom-6 left-6 z-40 pointer-events-none flex flex-col items-end">
+        <GameMenu />
       </div>
 
       {/* PixiJS Canvas */}
