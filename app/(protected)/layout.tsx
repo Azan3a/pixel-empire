@@ -1,5 +1,4 @@
 import { Header } from "@/components/game/ui/Header";
-import { BottomPanel } from "@/components/game/ui/bottom-panel/BottomPanel";
 
 export default function Layout({
   children,
@@ -16,14 +15,6 @@ export default function Layout({
         {/* Top HUD: Floating Stats */}
         <div className="pointer-events-auto h-20 w-full flex justify-center pt-4">
           <Header />
-        </div>
-
-        {/* Spacer to push panels to bottom */}
-        <div className="flex-1" />
-
-        {/* Bottom HUD: Tabbed Panels */}
-        <div className="w-full flex justify-center pb-0">
-          <BottomPanel />
         </div>
       </div>
     </div>

@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { usePlayer } from "@/hooks/use-player";
+import { useWorld } from "@/hooks/use-world";
+import { useJobs } from "@/hooks/use-jobs";
 import {
   Package,
   BarChart3,
@@ -17,14 +19,22 @@ import { InventoryTab } from "./InventoryTab";
 import { JobsTab } from "./JobsTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
+import { Minimap } from "./Minimap";
 import { Button } from "@/components/ui/button";
 import { ControlsDialog } from "./ControlsDialog";
 
-export function BottomPanel() {
+interface BottomPanelProps {
+  playerX: number;
+  playerY: number;
+}
+
+export function BottomPanel({ playerX, playerY }: BottomPanelProps) {
   const [activeTab, setActiveTab] = useState("inventory");
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const { playerInfo, leaderboard } = usePlayer();
+  const { playerInfo, leaderboard, alivePlayers } = usePlayer();
+  const { properties } = useWorld();
+  const { activeJob } = useJobs();
 
   const tabs = [
     { id: "inventory", label: "Inventory", icon: Package },
@@ -35,11 +45,20 @@ export function BottomPanel() {
 
   if (!playerInfo) return null;
 
+  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 800;
+  const viewportHeight =
+    typeof window !== "undefined" ? window.innerHeight : 600;
+
+  // Filter out self from minimap players
+  const otherPlayers = alivePlayers
+    .filter((p) => p._id !== playerInfo._id)
+    .map((p) => ({ _id: p._id, x: p.x, y: p.y, name: p.name }));
+
   return (
     <div
       className={cn(
         "pointer-events-auto w-full mx-auto rounded-t-xl bg-background/95 backdrop-blur-md border border-b-0 shadow-2xl transition-all duration-300",
-        isExpanded ? "h-80" : "h-12",
+        isExpanded ? "h-92" : "h-12",
       )}
     >
       <Tabs
@@ -69,8 +88,8 @@ export function BottomPanel() {
             <ControlsDialog />
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
-              variant={"ghost"}
-              size={"icon"}
+              variant="ghost"
+              size="icon"
               className="h-8 w-8"
             >
               {isExpanded ? (
@@ -106,11 +125,28 @@ export function BottomPanel() {
               </TabsContent>
             </div>
 
-            {/* Context/Info Side Panel (e.g. selected item details, minimap, etc) */}
-            <div className="hidden lg:block w-72 border-l pl-4">
-              <div className="w-full h-full bg-muted/20 rounded-md border border-dashed flex items-center justify-center text-xs text-muted-foreground">
-                Context / Mini-Map Area
-              </div>
+            {/* Minimap Side Panel */}
+            <div className="hidden lg:block border-l pl-4 w-64">
+              <Minimap
+                playerX={playerX}
+                playerY={playerY}
+                properties={properties}
+                otherPlayers={otherPlayers}
+                activeJob={
+                  activeJob as
+                    | (typeof activeJob & {
+                        status:
+                          | "available"
+                          | "accepted"
+                          | "picked_up"
+                          | "completed"
+                          | "cancelled";
+                      })
+                    | null
+                }
+                viewportWidth={viewportWidth}
+                viewportHeight={viewportHeight}
+              />
             </div>
           </div>
         )}

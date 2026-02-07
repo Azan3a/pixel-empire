@@ -17,6 +17,7 @@ import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
+import { BottomPanel } from "../ui/bottom-panel/BottomPanel";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -29,7 +30,6 @@ export function GameCanvas() {
   const { properties, initCity, buyProperty } = useWorld();
   const { activeJob } = useJobs();
 
-  // Current hunger (live from server)
   const hunger = playerInfo?.hunger ?? MAX_HUNGER;
 
   const onSync = useCallback(
@@ -45,7 +45,6 @@ export function GameCanvas() {
     hunger,
   });
 
-  // Initialize player
   useEffect(() => {
     initPlayer().then((p) => {
       if (p) {
@@ -55,7 +54,6 @@ export function GameCanvas() {
     });
   }, [initPlayer, resetPosition]);
 
-  // Init city
   useEffect(() => {
     if (properties.length === 0) {
       const timer = setTimeout(() => {
@@ -77,7 +75,7 @@ export function GameCanvas() {
       ref={containerRef}
       className="h-full w-full overflow-hidden bg-[#2c2c2c] relative"
     >
-      {/* ── Hunger warning vignette ── */}
+      {/* Hunger warning vignette */}
       {hunger < 15 && (
         <div
           className="absolute inset-0 pointer-events-none z-40 animate-pulse"
@@ -87,7 +85,6 @@ export function GameCanvas() {
         />
       )}
 
-      {/* ── Starving overlay text ── */}
       {hunger <= 0 && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
           <p className="text-red-500 font-black text-xl animate-pulse opacity-60 text-center">
@@ -98,10 +95,15 @@ export function GameCanvas() {
         </div>
       )}
 
-      {/* ── Delivery HUD (top-right) ── */}
+      {/* Delivery HUD (top-right) */}
       <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
 
-      {/* ── PixiJS Canvas ── */}
+      {/* Bottom Panel with Minimap */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+        <BottomPanel playerX={renderPos.x} playerY={renderPos.y} />
+      </div>
+
+      {/* PixiJS Canvas */}
       <Application background="#2c2c2c" resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
           <WorldGrid />

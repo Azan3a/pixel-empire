@@ -152,13 +152,13 @@ pixel-empire/
 - [x] Property acquisition (residential & commercial)
 - [x] Manual labor fallback job
 - [x] Leaderboard / ranking system
+- [x] Minimap showing nearby landmarks and delivery targets
 - [x] Clean hook-based architecture (use-movement, use-jobs, use-food)
 
 ### 🔜 Next Up
 
 - [ ] **Passive Income Collection** — Periodic cash drip from owned properties (Convex cron job)
 - [ ] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout
-- [ ] **Minimap** — Small radar in the bottom panel showing nearby landmarks and delivery targets
 - [ ] **Sound Effects** — Pickup/delivery chimes, walking footsteps, purchase confirmation
 - [ ] **Mobile Controls** — On-screen joystick and touch interaction buttons
 - [ ] **Chat System** — Real-time player chat via Convex subscriptions
