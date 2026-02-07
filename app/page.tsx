@@ -19,11 +19,10 @@ function PixelDivider() {
       {Array.from({ length: 15 }).map((_, i) => (
         <div
           key={i}
-          className="w-2 h-2"
+          className="w-2 h-2 pixel-crisp"
           style={{
             backgroundColor:
               i % 3 === 0 ? "#10b981" : i % 3 === 1 ? "#059669" : "transparent",
-            imageRendering: "pixelated",
           }}
         />
       ))}
@@ -44,16 +43,11 @@ function PixelCard({
 }) {
   return (
     <div className="group relative">
-      {/* Pixel border effect */}
-      <div className="absolute -inset-px bg-linear-to-b from-white/10 to-transparent rounded-none" />
+      <div className="absolute -inset-px bg-linear-to-b from-white/10 to-transparent" />
       <div
-        className="relative bg-[#1a1a2e] border-2 border-[#2a2a4a] p-6 
-        hover:border-emerald-500/50 transition-all duration-300
-        hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
-        style={{
-          clipPath:
-            "polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px))",
-        }}
+        className="pixel-corners relative bg-[#1a1a2e] border-2 border-[#2a2a4a] p-6 
+          hover:border-emerald-500/50 transition-all duration-300
+          hover:translate-y-0.5 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
       >
         <div
           className="w-12 h-12 flex items-center justify-center mb-4 border-2"
@@ -86,8 +80,8 @@ function StepBlock({
     <div className="flex gap-4 items-start group">
       <div
         className="shrink-0 w-12 h-12 bg-emerald-500/10 border-2 border-emerald-500/30 
-        flex items-center justify-center font-mono font-black text-emerald-400 text-lg
-        group-hover:bg-emerald-500/20 group-hover:border-emerald-400/50 transition-all"
+          flex items-center justify-center font-mono font-black text-emerald-400 text-lg
+          group-hover:bg-emerald-500/20 group-hover:border-emerald-400/50 transition-all"
       >
         {number}
       </div>
@@ -104,46 +98,25 @@ function StepBlock({
 export default function Page() {
   return (
     <div className="bg-[#0d0d1a] text-white min-h-screen overflow-hidden">
-      {/* ═══════════════ HERO SECTION ═══════════════ */}
-      <div className="relative min-h-screen w-full">
-        {/* Pixel grid background */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-linear(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-linear(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: "32px 32px",
-            imageRendering: "pixelated",
-          }}
-        />
+      {/* ═══════════════ HERO ═══════════════ */}
+      <div className="relative min-h-screen w-full scanlines">
+        <div className="absolute inset-0 pixel-grid" />
 
         {/* linear orbs */}
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]" />
 
-        {/* Scanline overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.02]"
-          style={{
-            backgroundImage:
-              "repeating-linear-linear(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)",
-          }}
-        />
-
-        {/* ── Header ── */}
+        {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between py-6 px-6 md:px-10">
           <Link href="/" className="flex items-center gap-3 group">
             <Image
               alt="Pixel Empire"
-              className="h-10 w-10"
+              className="h-10 w-10 pixel-crisp"
               height={40}
               src="/logo.png"
               width={40}
-              style={{ imageRendering: "pixelated" }}
             />
-            <span className="font-mono font-black text-lg tracking-wider hidden sm:block">
+            <span className="font-pixel text-xs tracking-wider hidden sm:block">
               PIXEL<span className="text-emerald-400">EMPIRE</span>
             </span>
           </Link>
@@ -165,7 +138,7 @@ export default function Page() {
               <Button
                 variant="outline"
                 className="border-2 border-emerald-500/50 bg-emerald-500/10 text-emerald-400 
-                  hover:bg-emerald-500/20 hover:border-emerald-400 
+                  hover:bg-emerald-100 hover:border-emerald-400 
                   font-mono font-bold tracking-wider rounded-none px-6
                   transition-all duration-200"
               >
@@ -175,7 +148,7 @@ export default function Page() {
           </nav>
         </header>
 
-        {/* ── Hero Content ── */}
+        {/* Hero Content */}
         <main className="relative z-10 flex items-center justify-center min-h-screen px-6 md:px-10">
           <div className="max-w-4xl mx-auto text-center space-y-6 mt-16">
             {/* Badge */}
@@ -185,28 +158,15 @@ export default function Page() {
             </div>
 
             {/* Title */}
-            <h1 className="font-black tracking-tight leading-[0.95]">
-              <span
-                className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-mono"
-                style={{
-                  textShadow:
-                    "4px 4px 0px rgba(16,185,129,0.3), -1px -1px 0px rgba(0,0,0,0.5)",
-                }}
-              >
+            <h1 className="font-pixel leading-[1.1] crt-flicker">
+              <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-8xl pixel-text-shadow">
                 PIXEL
               </span>
-              <span
-                className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-mono text-emerald-400"
-                style={{
-                  textShadow:
-                    "4px 4px 0px rgba(16,185,129,0.15), -1px -1px 0px rgba(0,0,0,0.5)",
-                }}
-              >
+              <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-emerald-400 pixel-text-shadow-accent">
                 EMPIRE
               </span>
             </h1>
 
-            {/* Pixel divider */}
             <PixelDivider />
 
             {/* Subtitle */}
@@ -224,10 +184,7 @@ export default function Page() {
                 <Button
                   className="bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-black 
                     text-base tracking-wider rounded-none px-10 py-6
-                    shadow-[4px_4px_0px_0px_rgba(16,185,129,0.4)]
-                    hover:shadow-[2px_2px_0px_0px_rgba(16,185,129,0.4)]
-                    hover:translate-x-0.5 hover:-translate-y-0.5
-                    transition-all duration-150"
+                    pixel-shadow hover:pixel-shadow-hover transition-all duration-150"
                 >
                   START PLAYING
                   <ChevronRight className="w-5 h-5 ml-2" />
@@ -236,7 +193,7 @@ export default function Page() {
               <Link href="#features">
                 <Button
                   variant="ghost"
-                  className="text-white/50 hover:text-white font-mono tracking-wider rounded-none px-8 py-6
+                  className="text-white/50 hover:text-emerald-900 hover:font-semibold font-mono tracking-wider rounded-none px-8 py-6
                     border-2 border-transparent hover:border-white/10 transition-all"
                 >
                   LEARN MORE
@@ -244,8 +201,8 @@ export default function Page() {
               </Link>
             </div>
 
-            {/* Stats bar */}
-            <div className="flex items-center justify-center gap-8 md:gap-12 pt-4">
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-8 md:gap-12 pt-8">
               {[
                 { label: "PLAYERS", value: "LIVE" },
                 { label: "PROPERTIES", value: "100+" },
@@ -270,27 +227,16 @@ export default function Page() {
         </div>
       </div>
 
-      {/* ═══════════════ FEATURES SECTION ═══════════════ */}
+      {/* ═══════════════ FEATURES ═══════════════ */}
       <section id="features" className="relative py-32 px-6 md:px-10">
-        {/* Background texture */}
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-linear(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-linear(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: "16px 16px",
-          }}
-        />
+        <div className="absolute inset-0" />
 
         <div className="max-w-6xl mx-auto relative">
-          {/* Section header */}
           <div className="text-center space-y-4 mb-20">
             <div className="inline-block px-4 py-1 bg-emerald-500/10 border border-emerald-500/20 font-mono text-xs tracking-widest text-emerald-400">
               CORE FEATURES
             </div>
-            <h2 className="text-4xl md:text-5xl font-black font-mono tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-pixel tracking-tight leading-relaxed">
               YOUR CITY.
               <br />
               <span className="text-emerald-400">YOUR RULES.</span>
@@ -300,7 +246,6 @@ export default function Page() {
             </p>
           </div>
 
-          {/* Feature cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <PixelCard
               icon={<Truck className="w-6 h-6 text-yellow-400" />}
@@ -330,35 +275,25 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ═══════════════ GAMEPLAY LOOP SECTION ═══════════════ */}
+      {/* ═══════════════ GAMEPLAY LOOP ═══════════════ */}
       <section id="gameplay" className="relative py-32 px-6 md:px-10">
         <div className="absolute inset-0 bg-linear-to-b from-transparent via-emerald-500/2 to-transparent" />
 
         <div className="max-w-6xl mx-auto relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left — visual */}
+            {/* Pixel art visual */}
             <div className="relative">
-              <div
-                className="aspect-square max-w-md mx-auto bg-[#1a1a2e] border-2 border-[#2a2a4a] p-8
-                  flex items-center justify-center relative overflow-hidden"
-                style={{
-                  clipPath:
-                    "polygon(0 16px, 16px 16px, 16px 0, calc(100% - 16px) 0, calc(100% - 16px) 16px, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 16px calc(100% - 16px), 0 calc(100% - 16px))",
-                }}
-              >
-                {/* Inner pixel art illustration */}
+              <div className="pixel-corners-lg aspect-square max-w-md mx-auto bg-[#1a1a2e] border-2 border-[#2a2a4a] p-8 flex items-center justify-center relative overflow-hidden">
                 <div className="grid grid-cols-8 grid-rows-8 gap-1 w-full h-full max-w-70 max-h-70">
                   {Array.from({ length: 64 }).map((_, i) => {
                     const row = Math.floor(i / 8);
                     const col = i % 8;
-                    // Create a simple city silhouette pattern
                     const isBuilding =
                       (row >= 4 && col >= 1 && col <= 2) ||
                       (row >= 3 && col >= 3 && col <= 4) ||
                       (row >= 5 && col >= 5 && col <= 6) ||
                       (row >= 2 && col === 4);
                     const isRoad = row === 7;
-                    const isSky = row <= 1;
                     const isStar =
                       (row === 0 && col === 1) ||
                       (row === 1 && col === 6) ||
@@ -366,25 +301,16 @@ export default function Page() {
                     const isWindow =
                       isBuilding && (i + row) % 3 === 0 && row > 2;
 
-                    let bg = "bg-[#0d0d1a]";
+                    let bg = "bg-[#111122]";
                     if (isRoad) bg = "bg-[#3a3a3a]";
                     else if (isWindow) bg = "bg-yellow-400/80";
                     else if (isBuilding) bg = "bg-[#2a2a4a]";
                     else if (isStar) bg = "bg-white/60";
-                    else if (isSky) bg = "bg-[#0d0d1a]";
-                    else bg = "bg-[#111122]";
 
-                    return (
-                      <div
-                        key={i}
-                        className={`${bg} transition-colors duration-1000`}
-                        style={{ imageRendering: "pixelated" }}
-                      />
-                    );
+                    return <div key={i} className={`${bg} pixel-crisp`} />;
                   })}
                 </div>
 
-                {/* Corner accents */}
                 <div className="absolute top-4 left-4 w-3 h-3 border-t-2 border-l-2 border-emerald-500/30" />
                 <div className="absolute top-4 right-4 w-3 h-3 border-t-2 border-r-2 border-emerald-500/30" />
                 <div className="absolute bottom-4 left-4 w-3 h-3 border-b-2 border-l-2 border-emerald-500/30" />
@@ -392,13 +318,13 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Right — steps */}
+            {/* Steps */}
             <div className="space-y-8">
               <div className="space-y-4">
                 <div className="inline-block px-4 py-1 bg-emerald-500/10 border border-emerald-500/20 font-mono text-xs tracking-widest text-emerald-400">
                   THE CORE LOOP
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black font-mono tracking-tight">
+                <h2 className="text-4xl md:text-5xl font-pixel tracking-tight leading-relaxed">
                   FROM HUSTLE
                   <br />
                   <span className="text-emerald-400">TO EMPIRE</span>
@@ -409,22 +335,22 @@ export default function Page() {
                 <StepBlock
                   number="01"
                   title="ACCEPT DELIVERIES"
-                  description="Pick up jobs. Navigate the city streets. Deliver on time for cash."
+                  description="Pick up jobs from the board. Navigate the city streets. Deliver on time for cash."
                 />
                 <StepBlock
                   number="02"
                   title="EARN & SURVIVE"
-                  description="Spend wisely, buy food to stay alive, save the rest for investments."
+                  description="Spend wisely — buy food to stay alive, save the rest for investments."
                 />
                 <StepBlock
                   number="03"
                   title="BUY PROPERTY"
-                  description="Purchase buildings. Each one generates passive income over time."
+                  description="Purchase buildings across the city. Each one generates passive income over time."
                 />
                 <StepBlock
                   number="04"
                   title="BUILD YOUR EMPIRE"
-                  description="Expand your portfolio. Climb the ranks. Become the wealthiest player."
+                  description="Expand your portfolio. Climb the ranks. Become the wealthiest player in the city."
                 />
               </div>
             </div>
@@ -432,14 +358,14 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ═══════════════ DAY/NIGHT SECTION ═══════════════ */}
+      {/* ═══════════════ DAY/NIGHT ═══════════════ */}
       <section className="relative py-32 px-6 md:px-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <div className="inline-block px-4 py-1 bg-purple-500/10 border border-purple-500/20 font-mono text-xs tracking-widest text-purple-400">
               LIVING WORLD
             </div>
-            <h2 className="text-4xl md:text-5xl font-black font-mono tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-pixel tracking-tight leading-relaxed">
               THE CITY
               <br />
               <span className="text-purple-400">NEVER SLEEPS</span>
@@ -451,13 +377,9 @@ export default function Page() {
             </p>
           </div>
 
-          {/* Day/Night visual */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-            {/* Day card */}
-            <div
-              className="relative p-8 border-2 border-yellow-500/20 bg-linear-to-br from-sky-900/20 to-yellow-900/10
-                overflow-hidden group hover:border-yellow-500/40 transition-all"
-            >
+            {/* Day */}
+            <div className="relative p-8 border-2 border-yellow-500/20 bg-linear-to-br from-sky-900/20 to-yellow-900/10 overflow-hidden group hover:border-yellow-500/40 transition-all">
               <div className="absolute top-4 right-4 w-8 h-8 bg-yellow-400 rounded-full shadow-[0_0_20px_rgba(250,204,21,0.4)]" />
               <div className="space-y-3 relative">
                 <div className="flex items-center gap-2">
@@ -471,12 +393,11 @@ export default function Page() {
                   means more opportunities.
                 </p>
               </div>
-              {/* Pixel ground */}
               <div className="flex gap-0.5 mt-6">
                 {Array.from({ length: 20 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-3 flex-1"
+                    className="h-3 flex-1 pixel-crisp"
                     style={{
                       backgroundColor:
                         i % 4 === 0
@@ -492,11 +413,8 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Night card */}
-            <div
-              className="relative p-8 border-2 border-blue-500/20 bg-linear-to-br from-indigo-950/40 to-purple-950/20
-                overflow-hidden group hover:border-blue-500/40 transition-all"
-            >
+            {/* Night */}
+            <div className="relative p-8 border-2 border-blue-500/20 bg-linear-to-br from-indigo-950/40 to-purple-950/20 overflow-hidden group hover:border-blue-500/40 transition-all">
               <div className="absolute top-4 right-4 w-6 h-6 bg-blue-200 rounded-full shadow-[0_0_15px_rgba(147,197,253,0.3)]" />
               <div className="absolute top-6 right-14 w-1 h-1 bg-white/40 rounded-full" />
               <div className="absolute top-10 right-8 w-1 h-1 bg-white/20 rounded-full" />
@@ -512,12 +430,11 @@ export default function Page() {
                   premium payouts.
                 </p>
               </div>
-              {/* Pixel ground — darker */}
               <div className="flex gap-0.5 mt-6">
                 {Array.from({ length: 20 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-3 flex-1"
+                    className="h-3 flex-1 pixel-crisp"
                     style={{
                       backgroundColor:
                         i % 4 === 0
@@ -536,7 +453,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ═══════════════ CTA SECTION ═══════════════ */}
+      {/* ═══════════════ CTA ═══════════════ */}
       <section className="relative py-32 px-6 md:px-10">
         <div className="absolute inset-0 bg-linear-to-t from-emerald-500/3 to-transparent" />
 
@@ -545,7 +462,7 @@ export default function Page() {
 
           <Gamepad2 className="w-12 h-12 text-emerald-500/30 mx-auto" />
 
-          <h2 className="text-4xl md:text-6xl font-black font-mono tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-pixel tracking-tight leading-relaxed">
             READY TO
             <br />
             <span className="text-emerald-400">BUILD?</span>
@@ -562,10 +479,7 @@ export default function Page() {
               <Button
                 className="bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-black 
                   text-lg tracking-wider rounded-none px-14 py-7
-                  shadow-[6px_6px_0px_0px_rgba(16,185,129,0.3)]
-                  hover:shadow-[3px_3px_0px_0px_rgba(16,185,129,0.3)]
-                  hover:translate-x-0.5 hover:-translate-y-0.5
-                  transition-all duration-150"
+                  pixel-shadow hover:pixel-shadow-hover transition-all duration-150"
               >
                 PLAY FREE NOW
                 <ChevronRight className="w-6 h-6 ml-2" />
@@ -583,13 +497,12 @@ export default function Page() {
           <div className="flex items-center gap-3">
             <Image
               alt="Pixel Empire"
-              className="h-8 w-8"
+              className="h-8 w-8 pixel-crisp"
               height={32}
               src="/logo.png"
               width={32}
-              style={{ imageRendering: "pixelated" }}
             />
-            <span className="font-mono font-bold text-sm text-white/30 tracking-wider">
+            <span className="font-pixel text-[8px] text-white/30 tracking-wider">
               PIXEL<span className="text-emerald-500/50">EMPIRE</span>
             </span>
           </div>
