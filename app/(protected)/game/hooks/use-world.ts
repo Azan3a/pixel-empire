@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Property } from "@/types/property";
+import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 

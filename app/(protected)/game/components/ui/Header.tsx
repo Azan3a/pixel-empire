@@ -10,8 +10,8 @@ import {
   Sunset,
   Cloud,
 } from "lucide-react";
-import { usePlayer } from "@/hooks/use-player";
-import { useGameTime } from "@/hooks/use-game-time";
+import { usePlayer } from "@game/hooks/use-player";
+import { useGameTime } from "@game/hooks/use-game-time";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
 

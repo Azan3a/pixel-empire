@@ -1,8 +1,8 @@
 // components/game/ui/menu/InventoryTab.tsx
 "use client";
 
-import { useFood } from "@/hooks/use-food";
-import { usePlayer } from "@/hooks/use-player";
+import { useFood } from "@game/hooks/use-food";
+import { usePlayer } from "@game/hooks/use-player";
 import {
   FOOD_ITEMS,
   FOOD_KEYS,

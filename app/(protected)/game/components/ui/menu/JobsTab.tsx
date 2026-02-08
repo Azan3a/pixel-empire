@@ -1,6 +1,6 @@
 "use client";
 
-import { useJobs } from "@/hooks/use-jobs";
+import { useJobs } from "@game/hooks/use-jobs";
 import { Button } from "@/components/ui/button";
 import {
   Package,

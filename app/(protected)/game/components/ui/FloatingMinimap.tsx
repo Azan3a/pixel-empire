@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
-import { Property } from "@/types/property";
-import { Job } from "@/types/job";
+import { Property } from "@game/types/property";
+import { Job } from "@game/types/job";
 import {
   MAP_SIZE,
   ROAD_SPACING,

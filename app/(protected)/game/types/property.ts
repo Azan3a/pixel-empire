@@ -1,3 +1,4 @@
+// types/property.ts
 import { Id } from "@/convex/_generated/dataModel";
 
 export interface Property {

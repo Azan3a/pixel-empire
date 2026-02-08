@@ -4,15 +4,15 @@
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Player } from "@/types/player";
-import { usePlayer } from "@/hooks/use-player";
-import { useWorld } from "@/hooks/use-world";
-import { useJobs } from "@/hooks/use-jobs";
-import { useMovement } from "@/hooks/use-movement";
-import { useGameTime } from "@/hooks/use-game-time";
+import { Player } from "@game/types/player";
+import { usePlayer } from "@game/hooks/use-player";
+import { useWorld } from "@game/hooks/use-world";
+import { useJobs } from "@game/hooks/use-jobs";
+import { useMovement } from "@game/hooks/use-movement";
+import { useGameTime } from "@game/hooks/use-game-time";
 import { getSpawnPoint } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
-import { Property } from "@/types/property";
+import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
 
 import { WorldGrid } from "./world/WorldGrid";

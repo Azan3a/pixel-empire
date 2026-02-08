@@ -1,6 +1,6 @@
 "use client";
 
-import { useJobs } from "@/hooks/use-jobs";
+import { useJobs } from "@game/hooks/use-jobs";
 import { useEffect, useCallback } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";

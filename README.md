@@ -96,50 +96,33 @@ Open `http://localhost:3000`. Sign in, and you'll spawn at the first road inters
 pixel-empire/
 ├── convex/                    # Server-side game logic
 │   ├── schema.ts              # Database schema (players, properties, jobs, inventory)
+│   ├── users.ts               # User authentication and profiles
 │   ├── players.ts             # Player CRUD, position sync, hunger decay
 │   ├── world.ts               # City generation, property purchases, work job
-│   ├── jobs.ts                # Delivery job lifecycle (spawn, accept, pickup, deliver)
+│   ├── jobs.ts                # Delivery job lifecycle
 │   ├── food.ts                # Food purchase and hunger restoration
-│   ├── gameConstants.ts       # Shared constants (road layout, map size, block calculation)
-│   └── timeConstants.ts       # 
-│   └── foodConfig.ts          # Food items, hunger thresholds, decay rates
-│   └── time.ts                # 
+│   ├── foodConfig.ts          # Food item definitions
+│   ├── time.ts                # Time management and day/night cycle
+│   ├── timeConstants.ts       # Time-related constants
+│   ├── gameConstants.ts       # Shared constants
+│   └── ...
 ├── app/                       # Next.js app router
+│   ├── (protected)/
+│   │   └── game/
+│   │       ├── _components/   # Game-specific components
+│   │       │   ├── ui/        # HUB, Menus, Overlays (Header, DeliveryHUD, etc.)
+│   │       │   └── viewport/  # PixiJS Canvas and World rendering
+│   │       ├── hooks/         # Game-specific hooks (movement, jobs, food, etc.)
+│   │       ├── types/         # Game-specific TypeScript definitions
+│   │       ├── utils/         # Game-specific client utilities
+│   │       ├── layout.tsx
+│   │       └── page.tsx       # Game entry point
+│   ├── layout.tsx
+│   └── page.tsx
 ├── components/
-│   ├── game/
-│   │   ├── viewport/
-│   │   │   ├── GameCanvas.tsx          # Main PixiJS canvas with camera system
-│   │   │   └── world/
-│   │   │       ├── WorldGrid.tsx       # Roads, grass, trees, crosswalks, street lights
-│   │   │       ├── PropertyNode.tsx    # Building rendering (windows, doors, roofs)
-│   │   │       ├── PlayerCharacter.tsx # Player avatar with face, shading, name badge
-│   │   │       └── DeliveryMarker.tsx  # Animated pickup/dropoff markers
-│   │   │       └── DayNightOverlay.tsx  # Red vignette overlay when starving
-│   │   └── ui/
-│   │       ├── Header.tsx              # Top-left HUD (cash, hunger, food shop)
-│   │       ├── DeliveryHUD.tsx         # Top-right delivery objective tracker
-│   │       ├── FloatingMinimap.tsx     # Minimap showing nearby roads and landmarks
-│   │       └── menu/
-│   │           ├── GameMenu.tsx
-│   │           ├── InventoryTab.tsx    # Player inventory display
-│   │           ├── ShopTab.tsx         # Food/item purchasing interface
-│   │           ├── JobsTab.tsx         # Delivery job browser and active job tracker
-│   │           ├── RankingsTab.tsx     # Leaderboard display
-│   │           └── ChatTab.tsx         # Chat/log tab
-│   │           └── ControlsTab.tsx
 │   └── ui/                    # shadcn/ui primitives
-├── hooks/
-│   ├── use-player.ts          # Player state, init, position sync
-│   ├── use-world.ts           # Properties, city init, buying
-│   ├── use-jobs.ts            # Delivery job lifecycle
-│   ├── use-food.ts            # Food purchasing
-│   ├── use-game-time.ts       # Day/Night cycle and ambient lighting
-│   └── use-movement.ts        # Client-side input, collision, hunger-based speed
-├── types/
-│   ├── player.ts              # Player interface
-│   ├── property.ts            # Property interface
-│   └── job.ts                 # Job interface
-└── public/                    # Static assets
+├── public/                    # Static assets
+└── ...
 ```
 
 ## Development Roadmap

@@ -1,6 +1,6 @@
 // hooks/use-movement.ts
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Property } from "@/types/property";
+import { Property } from "@game/types/property";
 import { MAP_SIZE } from "@/convex/gameConstants";
 import { HUNGER_SLOW_THRESHOLD } from "@/convex/foodConfig";
 

@@ -1,8 +1,8 @@
 // components/game/ui/menu/ShopTab.tsx
 "use client";
 
-import { useFood } from "@/hooks/use-food";
-import { usePlayer } from "@/hooks/use-player";
+import { useFood } from "@game/hooks/use-food";
+import { usePlayer } from "@game/hooks/use-player";
 import { FOOD_LIST } from "@/convex/foodConfig";
 import { cn } from "@/lib/utils";
 import { ShoppingCart, UtensilsCrossed } from "lucide-react";

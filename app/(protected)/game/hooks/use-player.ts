@@ -3,7 +3,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Player } from "@/types/player";
+import { Player } from "@game/types/player";
 
 export function usePlayer() {
   const playerInfo = useQuery(api.players.getPlayerInfo);

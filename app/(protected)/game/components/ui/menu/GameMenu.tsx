@@ -37,8 +37,8 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { usePlayer } from "@/hooks/use-player";
-import { useJobs } from "@/hooks/use-jobs";
+import { usePlayer } from "@game/hooks/use-player";
+import { useJobs } from "@game/hooks/use-jobs";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { InventoryTab } from "./InventoryTab";
 import { ShopTab } from "./ShopTab";

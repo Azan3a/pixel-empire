@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Property } from "@/types/property";
+import { Property } from "@game/types/property";
 import {
   DollarSign,
   Home,

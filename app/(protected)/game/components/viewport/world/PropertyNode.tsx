@@ -3,7 +3,7 @@
 
 import { Graphics } from "pixi.js";
 import { useCallback, memo } from "react";
-import { Property } from "@/types/property";
+import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
 
 interface PropertyNodeProps {

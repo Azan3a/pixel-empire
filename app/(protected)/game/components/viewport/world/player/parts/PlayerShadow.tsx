@@ -14,7 +14,7 @@ export function PlayerShadow({ topY, isNight }: PlayerShadowProps) {
   const draw = useCallback(
     (g: Graphics) => {
       g.clear();
-      g.ellipse(0, topY + 15 * PX, 12, 4);
+      g.ellipse(0, topY + 12 * PX, 12, 6);
       g.fill({ color: 0x000000, alpha: isNight ? 0.3 : 0.15 });
     },
     [topY, isNight],

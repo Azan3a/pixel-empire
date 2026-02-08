@@ -1,4 +1,4 @@
-import { Header } from "@/components/game/ui/Header";
+import { Header } from "@/app/(protected)/game/components/ui/Header";
 
 export default function Layout({
   children,
