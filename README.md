@@ -163,6 +163,7 @@ pixel-empire/
 │   │       │       │   └── DeliveryMarker.tsx
 │   │       │       └── GameCanvas.tsx
 │   │       ├── hooks/               # Game-specific hooks
+│   │       │   ├── use-keyboard.ts  # Input handling and key state
 │   │       │   ├── use-movement.ts  # Collision, zone speed, ocean boundary
 │   │       │   ├── use-world.ts     # Properties, buy/sell, income, zone helpers
 │   │       │   ├── use-player.ts    # Player state, inventory, ownership count

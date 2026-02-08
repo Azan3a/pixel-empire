@@ -2,10 +2,11 @@
 "use client";
 
 import { useJobs } from "@game/hooks/use-jobs";
-import { useEffect, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getZoneAt, ZONES } from "@/convex/mapZones";
+import { useKeyboard } from "@game/hooks/use-keyboard";
 
 interface DeliveryHUDProps {
   playerX: number;
@@ -67,13 +68,15 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
     else if (isDelivery) deliverParcel(activeJob._id);
   }, [activeJob, isNear, isPickup, isDelivery, pickupParcel, deliverParcel]);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "f") handleInteract();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleInteract]);
+  useKeyboard({
+    bindings: [
+      {
+        controlId: "interact",
+        onKeyDown: handleInteract,
+      },
+    ],
+    enabled: !!activeJob,
+  });
 
   if (!activeJob) return null;
 

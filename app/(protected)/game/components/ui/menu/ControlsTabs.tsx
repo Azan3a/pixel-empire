@@ -1,17 +1,8 @@
-const CONTROLS = [
-  { action: "Move", key: "WASD / Arrows" },
-  { action: "Interact", key: "F" },
-  { action: "Toggle Menu", key: "Tab" },
-  { action: "Inventory", key: "I" },
-  { action: "Shop", key: "B" },
-  { action: "Jobs", key: "J" },
-  { action: "Rankings", key: "R" },
-  { action: "Chat / Log", key: "L" },
-  { action: "Controls", key: "H" },
-  { action: "Food Menu", key: "E" },
-  { action: "Close Menus", key: "Esc" },
-];
+import { getControlsList } from "@game/hooks/use-keyboard";
+
 export function ControlsTab() {
+  const controls = getControlsList();
+
   return (
     <div className="h-full">
       <h3 className="text-lg font-bold mb-1">Keyboard Controls</h3>
@@ -20,14 +11,14 @@ export function ControlsTab() {
       </p>
 
       <div className="grid gap-2 max-w-lg">
-        {CONTROLS.map((c) => (
+        {controls.map((c) => (
           <div
             key={c.action}
             className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors"
           >
             <span className="text-sm">{c.action}</span>
             <div className="flex gap-1.5">
-              {c.key.split(" / ").map((k) => (
+              {c.keys.map((k) => (
                 <kbd
                   key={k}
                   className="px-2 py-1 bg-muted rounded-md text-xs font-mono font-bold border border-border/50"

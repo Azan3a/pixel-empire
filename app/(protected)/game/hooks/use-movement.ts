@@ -4,6 +4,7 @@ import { Property } from "@game/types/property";
 import { MAP_SIZE } from "@/convex/gameConstants";
 import { HUNGER_SLOW_THRESHOLD } from "@/convex/foodConfig";
 import { getZoneAt, ZONES, WATER_LINE_Y } from "@/convex/mapZones";
+import { useKeysPressed, isControlPressed } from "@game/hooks/use-keyboard";
 
 const BASE_SPEED = 5;
 const SYNC_INTERVAL = 100;
@@ -25,7 +26,7 @@ export function useMovement({
 }: UseMovementOptions) {
   const [renderPos, setRenderPos] = useState(initialPos);
   const localPos = useRef(initialPos);
-  const keys = useRef<Record<string, boolean>>({});
+  const keys = useKeysPressed();
   const lastSync = useRef(0);
   const propertiesRef = useRef<Property[]>([]);
   const hungerRef = useRef(hunger);
@@ -41,22 +42,6 @@ export function useMovement({
   const resetPosition = useCallback((pos: { x: number; y: number }) => {
     localPos.current = { ...pos };
     setRenderPos({ ...pos });
-  }, []);
-
-  // Keyboard listeners
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      keys.current[e.key.toLowerCase()] = true;
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      keys.current[e.key.toLowerCase()] = false;
-    };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-    };
   }, []);
 
   // Movement tick
@@ -81,10 +66,10 @@ export function useMovement({
       let dx = 0;
       let dy = 0;
 
-      if (keys.current["w"] || keys.current["arrowup"]) dy -= speed;
-      if (keys.current["s"] || keys.current["arrowdown"]) dy += speed;
-      if (keys.current["a"] || keys.current["arrowleft"]) dx -= speed;
-      if (keys.current["d"] || keys.current["arrowright"]) dx += speed;
+      if (isControlPressed(keys, "move_up")) dy -= speed;
+      if (isControlPressed(keys, "move_down")) dy += speed;
+      if (isControlPressed(keys, "move_left")) dx -= speed;
+      if (isControlPressed(keys, "move_right")) dx += speed;
 
       if (dx === 0 && dy === 0) return;
 
@@ -136,7 +121,7 @@ export function useMovement({
     }, TICK_RATE);
 
     return () => clearInterval(interval);
-  }, [onSync]);
+  }, [onSync, keys]);
 
   return { renderPos, resetPosition };
 }

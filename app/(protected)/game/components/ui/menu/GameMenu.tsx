@@ -51,6 +51,7 @@ import { MapTab } from "./MapTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
 import { ControlsTab } from "./ControlsTabs";
+import { useKeyboard } from "@game/hooks/use-keyboard";
 
 const NAV_ITEMS = [
   {
@@ -122,68 +123,85 @@ export function GameMenu() {
   const { ownedCount, totalIncomePerCycle, properties } = useWorld();
   const { activeJob } = useJobs();
 
-  // Keyboard shortcuts & FloatingMinimap click event
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-
-      switch (e.key.toLowerCase()) {
-        case "tab":
-          e.preventDefault();
-          setOpen((v) => !v);
-          break;
-        case "escape":
-          setOpen(false);
-          break;
-        case "i":
+  useKeyboard({
+    bindings: [
+      {
+        controlId: "toggle_menu",
+        preventDefault: true,
+        onKeyDown: () => setOpen((v) => !v),
+      },
+      {
+        controlId: "close_menu",
+        onKeyDown: () => setOpen(false),
+      },
+      {
+        controlId: "open_inventory",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("inventory");
-          break;
-        case "m":
+        },
+      },
+      {
+        controlId: "open_map",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("map");
-          break;
-        case "b":
+        },
+      },
+      {
+        controlId: "open_shop",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("shop");
-          break;
-        case "j":
+        },
+      },
+      {
+        controlId: "open_jobs",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("jobs");
-          break;
-        case "p":
+        },
+      },
+      {
+        controlId: "open_properties",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("properties");
-          break;
-        case "r":
+        },
+      },
+      {
+        controlId: "open_rankings",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("rankings");
-          break;
-        case "l":
+        },
+      },
+      {
+        controlId: "open_chat",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("chat");
-          break;
-        case "h":
+        },
+      },
+      {
+        controlId: "open_controls",
+        onKeyDown: () => {
           setOpen(true);
           setActiveNav("controls");
-          break;
-      }
-    };
+        },
+      },
+    ],
+  });
 
-    // Listen for FloatingMinimap click event
-    const minimapEventHandler = () => {
+  // Keep the minimap event listener in its own small useEffect:
+  React.useEffect(() => {
+    const handler = () => {
       setOpen(true);
       setActiveNav("map");
     };
-    window.addEventListener("open-game-menu-map-tab", minimapEventHandler);
-    window.addEventListener("keydown", handler);
-    return () => {
-      window.removeEventListener("keydown", handler);
-      window.removeEventListener("open-game-menu-map-tab", minimapEventHandler);
-    };
+    window.addEventListener("open-game-menu-map-tab", handler);
+    return () => window.removeEventListener("open-game-menu-map-tab", handler);
   }, []);
-
   if (!playerInfo) return null;
 
   const currentItem = NAV_ITEMS.find((n) => n.id === activeNav)!;
