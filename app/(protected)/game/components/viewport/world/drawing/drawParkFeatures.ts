@@ -5,47 +5,85 @@ import { ZONES } from "@/convex/mapZones";
 import type { TintFn } from "../utils/tintFactory";
 
 /**
- * Draw park paths (cross + diagonal) and a decorative pond.
+ * Draw decorative park features: circular paths, gardens, a fountain, and ponds.
  */
 export function drawParkFeatures(g: Graphics, t: TintFn): void {
-  const parkBounds = ZONES.park.bounds;
-  const parkCX = (parkBounds.x1 + parkBounds.x2) / 2;
-  const parkCY = (parkBounds.y1 + parkBounds.y2) / 2;
+  const b = ZONES.park.bounds;
+  const cx = (b.x1 + b.x2) / 2;
+  const cy = (b.y1 + b.y2) / 2;
 
-  // ── Paths ──
-  g.setStrokeStyle({ color: t(0xc4a473), width: 8, alpha: 0.5 });
+  // ── Main Paths (Circular & Cross) ──
+  g.setStrokeStyle({ color: t(0xbc9c63), width: 10, alpha: 0.6 });
 
-  // Horizontal path
-  g.moveTo(parkBounds.x1 + 40, parkCY).lineTo(parkBounds.x2 - 40, parkCY);
+  // Central circle path
+  const radius = 280;
+  g.circle(cx, cy, radius);
   g.stroke();
 
-  // Vertical path
-  g.moveTo(parkCX, parkBounds.y1 + 40).lineTo(parkCX, parkBounds.y2 - 40);
+  // Cross paths
+  g.moveTo(b.x1 + 60, cy).lineTo(cx - radius + 5, cy);
+  g.moveTo(cx + radius - 5, cy).lineTo(b.x2 - 60, cy);
+  g.moveTo(cx, b.y1 + 60).lineTo(cx, cy - radius + 5);
+  g.moveTo(cx, cy + radius - 5).lineTo(cx, b.y2 - 60);
   g.stroke();
 
-  // Diagonal paths
-  g.moveTo(parkBounds.x1 + 80, parkBounds.y1 + 80).lineTo(
-    parkBounds.x2 - 80,
-    parkBounds.y2 - 80,
-  );
-  g.moveTo(parkBounds.x2 - 80, parkBounds.y1 + 80).lineTo(
-    parkBounds.x1 + 80,
-    parkBounds.y2 - 80,
-  );
-  g.stroke();
+  // ── Central Fountain ──
+  g.circle(cx, cy, 55);
+  g.fill({ color: t(0xbbbbbb) });
+  g.circle(cx, cy, 45);
+  g.fill({ color: t(0x4a92b2), alpha: 0.8 });
+  g.circle(cx, cy, 15);
+  g.fill({ color: 0xffffff, alpha: 0.4 });
 
-  // ── Pond ──
-  const pondX = parkCX + 120;
-  const pondY = parkCY - 100;
+  // ── Flower Beds ──
+  const drawFlowerBed = (fx: number, fy: number, color: number) => {
+    g.circle(fx, fy, 40);
+    g.fill({ color: t(0x3a5a3a), alpha: 0.8 }); // Soil/Dark grass
+    // Petals/flowers
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI * 2) / 6;
+      g.circle(fx + Math.cos(angle) * 18, fy + Math.sin(angle) * 18, 12);
+      g.fill({ color: t(color), alpha: 0.9 });
+    }
+    g.circle(fx, fy, 10);
+    g.fill({ color: t(0xffd700), alpha: 0.8 }); // Yellow center
+  };
 
-  g.ellipse(pondX, pondY, 80, 50);
-  g.fill({ color: t(0x3a8aaa), alpha: 0.6 });
+  drawFlowerBed(cx - 450, cy - 450, 0xff69b4); // Pink
+  drawFlowerBed(cx + 450, cy - 450, 0xba55d3); // Purple
+  drawFlowerBed(cx - 450, cy + 450, 0xff4500); // Red-Orange
+  drawFlowerBed(cx + 450, cy + 450, 0x1e90ff); // Blue
 
-  g.setStrokeStyle({ color: t(0x2a7a9a), width: 2, alpha: 0.4 });
-  g.ellipse(pondX, pondY, 80, 50);
-  g.stroke();
+  // ── Benches ──
+  const drawBench = (bx: number, by: number, rotation: number) => {
+    const bw = 50;
+    const bh = 14;
+    g.setStrokeStyle({ color: t(0x4a3a2a), width: 2 });
+    g.rect(bx - bw / 2, by - bh / 2, bw, bh);
+    g.fill({ color: t(0x6a4a3a) });
+    g.stroke();
+  };
 
-  // Pond highlight
-  g.ellipse(pondX - 20, pondY - 12, 30, 18);
-  g.fill({ color: 0xffffff, alpha: 0.08 });
+  // Benches around the circle
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI * 2) / 4 + Math.PI / 4;
+    const bx = cx + Math.cos(angle) * (radius + 40);
+    const by = cy + Math.sin(angle) * (radius + 40);
+    drawBench(bx, by, angle);
+  }
+
+  // ── Ponds ──
+  const drawPond = (px: number, py: number, rw: number, rh: number) => {
+    g.ellipse(px, py, rw, rh);
+    g.fill({ color: t(0x3a8aaa), alpha: 0.5 });
+    g.setStrokeStyle({ color: t(0x2a7a9a), width: 3, alpha: 0.3 });
+    g.ellipse(px, py, rw, rh);
+    g.stroke();
+    // Lily pads
+    g.circle(px - rw * 0.3, py + rh * 0.2, 10);
+    g.fill({ color: t(0x2d8a2d), alpha: 0.6 });
+  };
+
+  drawPond(cx + 420, cy - 100, 110, 70);
+  drawPond(cx - 380, cy + 280, 90, 60);
 }
