@@ -426,7 +426,7 @@ export const ZONE_VISUALS: Record<ZoneId, ZoneVisualConfig> = {
     treeCount: 6,
     treeSizeMin: 8,
     treeSizeMax: 14,
-    hasStreetLights: true,
+    hasStreetLights: false,
   },
   beach: {
     grassColor: 0xd4b483,

@@ -6,7 +6,12 @@ import {
   ROAD_WIDTH,
   SIDEWALK_W,
 } from "@/convex/gameConstants";
-import { ZONE_VISUALS, WATER_LINE_Y, getZoneAt } from "@/convex/mapZones";
+import {
+  ZONE_VISUALS,
+  WATER_LINE_Y,
+  getZoneAt,
+  ZONES,
+} from "@/convex/mapZones";
 
 export function drawIntersectionLights(g: Graphics, streetLightAlpha: number) {
   if (streetLightAlpha <= 0.02) return;
@@ -19,13 +24,14 @@ export function drawIntersectionLights(g: Graphics, streetLightAlpha: number) {
       // Skip intersections in the ocean
       if (iy > WATER_LINE_Y) continue;
 
-      // Check if this intersection's zone has street lights
+      // Check if this intersection's zone has street lights and roads
       const zoneId = getZoneAt(ix, iy);
+      const zone = ZONES[zoneId];
       const vis = ZONE_VISUALS[zoneId];
-      if (!vis.hasStreetLights) continue;
 
-      // Wide soft ambient wash
-      //   g.circle(ix, iy, 80);
+      if (!vis.hasStreetLights || !zone.hasRoads) continue;
+
+      // Individual lamp posts at intersection corners
       //   g.fill({ color: 0xffee88, alpha: streetLightAlpha * 0.04 });
 
       // Medium glow

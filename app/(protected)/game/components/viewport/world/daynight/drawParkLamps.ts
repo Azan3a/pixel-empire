@@ -10,7 +10,7 @@ export function drawParkLamps(g: Graphics, streetLightAlpha: number) {
   const parkCY = (parkBounds.y1 + parkBounds.y2) / 2;
 
   // Lights along the horizontal path
-  for (let lx = parkBounds.x1 + 250; lx < parkBounds.x2 - 120; lx += 400) {
+  for (let lx = parkBounds.x1 + 300; lx < parkBounds.x2 - 300; lx += 600) {
     g.circle(lx, parkCY, 35);
     g.fill({ color: 0xffeedd, alpha: streetLightAlpha * 0.04 });
     g.circle(lx, parkCY, 10);
@@ -18,8 +18,8 @@ export function drawParkLamps(g: Graphics, streetLightAlpha: number) {
   }
 
   // Lights along the vertical path
-  for (let ly = parkBounds.y1 + 250; ly < parkBounds.y2 - 120; ly += 400) {
-    if (Math.abs(ly - parkCY) < 100) continue; // Skip near center intersection
+  for (let ly = parkBounds.y1 + 300; ly < parkBounds.y2 - 300; ly += 600) {
+    if (Math.abs(ly - parkCY) < 200) continue; // Skip near center interaction
     g.circle(parkCX, ly, 35);
     g.fill({ color: 0xffeedd, alpha: streetLightAlpha * 0.04 });
     g.circle(parkCX, ly, 10);

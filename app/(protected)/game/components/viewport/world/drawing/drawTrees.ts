@@ -12,6 +12,7 @@ import {
   WATER_LINE_Y,
   getZoneAt,
   type ZoneId,
+  ZONES,
 } from "@/convex/mapZones";
 import { isOnRoad } from "../utils/gridHelpers";
 import type { TintFn } from "../utils/tintFactory";
@@ -138,6 +139,9 @@ function generateTreePlacements(): TreePlacement[] {
         // Extra margin check: ensure tree is far enough from road edges
         if (isNearRoadEdge(tx, ty)) continue;
 
+        // Skip if overlapping with park features
+        if (isNearParkFeature(tx, ty)) continue;
+
         // Skip if below waterline
         if (ty >= WATER_LINE_Y) continue;
 
@@ -169,6 +173,61 @@ function isNearRoadEdge(px: number, py: number): boolean {
   for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
     if (Math.abs(px - rx) < ROAD_MARGIN) return true;
   }
+  return false;
+}
+
+/**
+ * Check if a point overlaps with decorative park features like paths,
+ * ponds, fountains, or flower beds.
+ */
+function isNearParkFeature(px: number, py: number): boolean {
+  const b = ZONES.park.bounds;
+  // If not in park bounds, skip check
+  if (px < b.x1 || px > b.x2 || py < b.y1 || py > b.y2) return false;
+
+  const cx = (b.x1 + b.x2) / 2;
+  const cy = (b.y1 + b.y2) / 2;
+  const dx = px - cx;
+  const dy = py - cy;
+  const distSq = dx * dx + dy * dy;
+
+  // 1. Fountain (Center)
+  if (distSq < 75 * 75) return true;
+
+  // 2. Circular Path (Radius 280)
+  const dist = Math.sqrt(distSq);
+  if (Math.abs(dist - 280) < 30) return true;
+
+  // 3. Cross Paths
+  if (Math.abs(dx) < 20 || Math.abs(dy) < 20) return true;
+
+  // 4. Benches (near the circular path)
+  if (Math.abs(dist - 325) < 25) return true;
+
+  // 5. Flower Beds (cx ± 450, cy ± 450)
+  const bedOffsets = [
+    [-450, -450],
+    [450, -450],
+    [-450, 450],
+    [450, 450],
+  ];
+  for (const [ox, oy] of bedOffsets) {
+    const fdx = px - (cx + ox);
+    const fdy = py - (cy + oy);
+    if (fdx * fdx + fdy * fdy < 60 * 60) return true;
+  }
+
+  // 6. Ponds
+  // Pond 1: (cx + 420, cy - 100), 110 x 70
+  const p1dx = (px - (cx + 420)) / 125;
+  const p1dy = (py - (cy - 100)) / 85;
+  if (p1dx * p1dx + p1dy * p1dy < 1) return true;
+
+  // Pond 2: (cx - 380, cy + 280), 90 x 60
+  const p2dx = (px - (cx - 380)) / 105;
+  const p2dy = (py - (cy + 280)) / 75;
+  if (p2dx * p2dx + p2dy * p2dy < 1) return true;
+
   return false;
 }
 
