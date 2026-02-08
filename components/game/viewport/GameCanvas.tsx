@@ -17,7 +17,7 @@ import { Id } from "@/convex/_generated/dataModel";
 
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
-import { PlayerCharacter } from "./world/PlayerCharacter";
+import { PlayerCharacter } from "./world/player/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
 import { DayNightOverlay } from "./world/DayNightOverlay";
 
