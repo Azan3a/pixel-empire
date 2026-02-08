@@ -23,7 +23,7 @@ import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/player/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
-import { DayNightOverlay } from "./world/DayNightOverlay";
+import { DayNightOverlay } from "./world/daynight/DayNightOverlay";
 
 import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";

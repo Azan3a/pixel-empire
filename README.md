@@ -156,6 +156,7 @@ pixel-empire/
 │   │       │       │   ├── drawing/       # Modular terrain draw functions
 │   │       │       │   ├── player/        # Composite player character parts
 │   │       │       │   ├── property/      # Building rendering (base, doors, windows, details)
+│   │       │       │   ├── daynight/       # Day/night overlay and zone-specific night effects
 │   │       │       │   ├── utils/         # Color, grid, and tint utilities
 │   │       │       │   ├── WorldGrid.tsx
 │   │       │       │   ├── PropertyNode.tsx
