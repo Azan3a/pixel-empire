@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
+import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useMemo } from "react";
 import { getZoneAt, ZONES, type ZoneId } from "@/convex/mapZones";
@@ -28,7 +29,12 @@ export function useWorld() {
       toast.success("Property purchased!");
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to buy property";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "Failed to buy property";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -44,7 +50,12 @@ export function useWorld() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to sell property";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "Failed to sell property";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -62,7 +73,12 @@ export function useWorld() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "No income to collect";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "No income to collect";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -76,7 +92,12 @@ export function useWorld() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to work job";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "Failed to work job";
       toast.error(msg);
       return { success: false, error: msg };
     }

@@ -1,5 +1,5 @@
 // convex/world.ts
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
@@ -186,20 +186,20 @@ export const buyProperty = mutation({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new ConvexError("Unauthorized");
 
     const player = await ctx.db
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const prop = await ctx.db.get(args.propertyId);
-    if (!prop) throw new Error("Property not found");
+    if (!prop) throw new ConvexError("Property not found");
 
     // Service buildings cannot be owned
     if (prop.maxOwners === 0) {
-      throw new Error(
+      throw new ConvexError(
         "This building is a public service and cannot be purchased.",
       );
     }
@@ -213,7 +213,7 @@ export const buyProperty = mutation({
       .first();
 
     if (existingOwnership) {
-      throw new Error("You already own this property.");
+      throw new ConvexError("You already own this property.");
     }
 
     // Check max owners
@@ -223,14 +223,14 @@ export const buyProperty = mutation({
       .collect();
 
     if (currentOwners.length >= prop.maxOwners) {
-      throw new Error(
+      throw new ConvexError(
         "This property has reached its maximum number of owners.",
       );
     }
 
     // Check cash
     if (player.cash < prop.price) {
-      throw new Error("Insufficient cash");
+      throw new ConvexError("Insufficient cash");
     }
 
     // Deduct cash and create ownership
@@ -253,16 +253,16 @@ export const sellProperty = mutation({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new ConvexError("Unauthorized");
 
     const player = await ctx.db
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const prop = await ctx.db.get(args.propertyId);
-    if (!prop) throw new Error("Property not found");
+    if (!prop) throw new ConvexError("Property not found");
 
     // Find player's ownership record
     const ownership = await ctx.db
@@ -273,7 +273,7 @@ export const sellProperty = mutation({
       .first();
 
     if (!ownership) {
-      throw new Error("You don't own this property.");
+      throw new ConvexError("You don't own this property.");
     }
 
     const sellPrice = Math.round(prop.price * SELL_RATE);
@@ -292,13 +292,13 @@ export const collectIncome = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new ConvexError("Unauthorized");
 
     const player = await ctx.db
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const ownerships = await ctx.db
       .query("propertyOwnership")
@@ -306,7 +306,7 @@ export const collectIncome = mutation({
       .collect();
 
     if (ownerships.length === 0) {
-      throw new Error("You don't own any properties.");
+      throw new ConvexError("You don't own any properties.");
     }
 
     const now = Date.now();
@@ -340,7 +340,9 @@ export const collectIncome = mutation({
     }
 
     if (totalIncome === 0) {
-      throw new Error("No income ready to collect yet. Check back later!");
+      throw new ConvexError(
+        "No income ready to collect yet. Check back later!",
+      );
     }
 
     await ctx.db.patch(player._id, { cash: player.cash + totalIncome });
@@ -359,17 +361,17 @@ export const workJob = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new ConvexError("Unauthorized");
 
     const player = await ctx.db
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const hunger = player.hunger ?? 100;
     if (hunger <= 0) {
-      throw new Error("You're too hungry to work! Buy some food first.");
+      throw new ConvexError("You're too hungry to work! Buy some food first.");
     }
 
     const wage = 50;

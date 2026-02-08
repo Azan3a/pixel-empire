@@ -4,6 +4,7 @@
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FoodType, FOOD_ITEMS } from "@/convex/foodConfig";
+import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";
 import { usePlayer } from "./use-player";
@@ -21,7 +22,12 @@ export function useFood() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to buy food";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "Failed to buy food";
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -37,7 +43,12 @@ export function useFood() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to eat food";
+      const msg =
+        e instanceof ConvexError
+          ? (e.data as string)
+          : e instanceof Error
+            ? e.message
+            : "Failed to eat food";
       toast.error(msg);
       return { success: false, error: msg };
     }

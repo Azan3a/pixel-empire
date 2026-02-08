@@ -1,5 +1,5 @@
 // convex/food.ts
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { FOOD_ITEMS, FoodType, MAX_HUNGER } from "./foodConfig";
@@ -8,19 +8,19 @@ export const buyFood = mutation({
   args: { foodType: v.string() },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new ConvexError("Unauthorized");
 
     const player = await ctx.db
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const food = FOOD_ITEMS[args.foodType as FoodType];
-    if (!food) throw new Error("Unknown food type");
+    if (!food) throw new ConvexError("Unknown food type");
 
     if (player.cash < food.price) {
-      throw new Error(`Not enough cash. Need $${food.price}`);
+      throw new ConvexError(`Not enough cash. Need $${food.price}`);
     }
 
     // Deduct cash
@@ -65,15 +65,15 @@ export const consumeFood = mutation({
       .query("players")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new ConvexError("Player not found");
 
     const food = FOOD_ITEMS[args.foodType as FoodType];
-    if (!food) throw new Error("Unknown food type");
+    if (!food) throw new ConvexError("Unknown food type");
 
     const currentHunger = player.hunger ?? MAX_HUNGER;
 
     if (currentHunger >= MAX_HUNGER) {
-      throw new Error("You're already full!");
+      throw new ConvexError("You're already full!");
     }
 
     // Check inventory
@@ -84,7 +84,7 @@ export const consumeFood = mutation({
       .first();
 
     if (!invItem || invItem.quantity <= 0) {
-      throw new Error(`You don't have any ${food.name} to eat!`);
+      throw new ConvexError(`You don't have any ${food.name} to eat!`);
     }
 
     // Consume from inventory
