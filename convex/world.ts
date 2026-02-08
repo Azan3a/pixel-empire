@@ -1,6 +1,7 @@
 // convex/world.ts
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
   MAP_SIZE,
@@ -289,12 +290,12 @@ export const sellProperty = mutation({
 // ── Collect Income Helper ──
 
 export async function processIncomeCollection(
-  ctx: any,
-  player: any,
+  ctx: MutationCtx,
+  player: Doc<"players">,
 ): Promise<{ totalIncome: number; propertiesCollected: number }> {
   const ownerships = await ctx.db
     .query("propertyOwnership")
-    .withIndex("by_player", (q: any) => q.eq("playerId", player._id))
+    .withIndex("by_player", (q) => q.eq("playerId", player._id))
     .collect();
 
   if (ownerships.length === 0) {

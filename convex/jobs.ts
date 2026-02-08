@@ -1,12 +1,19 @@
 // convex/jobs.ts
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import {
+  mutation,
+  query,
+  internalMutation,
+  type MutationCtx,
+} from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ROAD_SPACING, MAP_SIZE, HALF_CORRIDOR } from "./gameConstants";
 import { HUNGER_PER_DELIVERY } from "./foodConfig";
 import { getZoneAt, WATER_LINE_Y, type ZoneId } from "./mapZones";
 
 // ── Helpers ──
+
+const JOB_TIMEOUT = 1000 * 60 * 30; // 30 minutes until a job is considered stale
 
 /** All road intersection centers (safe spawn points on roads) */
 function getIntersections(): { x: number; y: number }[] {
@@ -269,72 +276,83 @@ export const getActiveJob = query({
 export const spawnJobs = mutation({
   args: {},
   handler: async (ctx) => {
-    const available = await ctx.db
-      .query("jobs")
-      .withIndex("by_status", (q) => q.eq("status", "available"))
-      .take(20);
-
-    if (available.length >= 5) return;
-
-    const roadPoints = getRoadPoints();
-    const toSpawn = 8 - available.length;
-
-    for (let i = 0; i < toSpawn; i++) {
-      const pickupIdx = Math.floor(Math.random() * roadPoints.length);
-      let dropoffIdx = Math.floor(Math.random() * roadPoints.length);
-
-      // Ensure different point and minimum distance
-      let attempts = 0;
-      while (
-        (dropoffIdx === pickupIdx ||
-          dist(
-            roadPoints[pickupIdx].x,
-            roadPoints[pickupIdx].y,
-            roadPoints[dropoffIdx].x,
-            roadPoints[dropoffIdx].y,
-          ) < 300) &&
-        attempts < 30
-      ) {
-        dropoffIdx = Math.floor(Math.random() * roadPoints.length);
-        attempts++;
-      }
-
-      const pickup = roadPoints[pickupIdx];
-      const dropoff = roadPoints[dropoffIdx];
-
-      // Reward scales with distance — tuned for larger 4000px map
-      const distance = dist(pickup.x, pickup.y, dropoff.x, dropoff.y);
-      const baseReward = 30 + Math.round(distance * 0.12);
-
-      // Cross-zone bonus: reward bump if pickup and dropoff are in different zones
-      const pickupZone = getZoneAt(pickup.x, pickup.y);
-      const dropoffZone = getZoneAt(dropoff.x, dropoff.y);
-      const crossZoneBonus = pickupZone !== dropoffZone ? 20 : 0;
-
-      const variance = Math.floor(Math.random() * 30) - 10;
-      const reward = Math.max(25, baseReward + crossZoneBonus + variance);
-
-      const seed = hashCoord(pickup.x, pickup.y, i + Date.now());
-
-      await ctx.db.insert("jobs", {
-        type: "delivery",
-        status: "available",
-        playerId: undefined,
-        reward,
-        pickupX: pickup.x,
-        pickupY: pickup.y,
-        dropoffX: dropoff.x,
-        dropoffY: dropoff.y,
-        pickupName: getLandmarkName(pickup.x, pickup.y),
-        dropoffName: getLandmarkName(dropoff.x, dropoff.y),
-        title: getJobTitle(seed, pickup.x, pickup.y),
-        acceptedAt: undefined,
-        pickedUpAt: undefined,
-        completedAt: undefined,
-      });
-    }
+    await spawnJobsInternalLogic(ctx);
   },
 });
+
+export const spawnJobsInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    await spawnJobsInternalLogic(ctx);
+  },
+});
+
+async function spawnJobsInternalLogic(ctx: MutationCtx) {
+  const available = await ctx.db
+    .query("jobs")
+    .withIndex("by_status", (q) => q.eq("status", "available"))
+    .take(20);
+
+  if (available.length >= 10) return;
+
+  const roadPoints = getRoadPoints();
+  const toSpawn = 12 - available.length;
+
+  for (let i = 0; i < toSpawn; i++) {
+    const pickupIdx = Math.floor(Math.random() * roadPoints.length);
+    let dropoffIdx = Math.floor(Math.random() * roadPoints.length);
+
+    // Ensure different point and minimum distance
+    let attempts = 0;
+    while (
+      (dropoffIdx === pickupIdx ||
+        dist(
+          roadPoints[pickupIdx].x,
+          roadPoints[pickupIdx].y,
+          roadPoints[dropoffIdx].x,
+          roadPoints[dropoffIdx].y,
+        ) < 300) &&
+      attempts < 30
+    ) {
+      dropoffIdx = Math.floor(Math.random() * roadPoints.length);
+      attempts++;
+    }
+
+    const pickup = roadPoints[pickupIdx];
+    const dropoff = roadPoints[dropoffIdx];
+
+    // Reward scales with distance — tuned for larger 4000px map
+    const distance = dist(pickup.x, pickup.y, dropoff.x, dropoff.y);
+    const baseReward = 30 + Math.round(distance * 0.12);
+
+    // Cross-zone bonus: reward bump if pickup and dropoff are in different zones
+    const pickupZone = getZoneAt(pickup.x, pickup.y);
+    const dropoffZone = getZoneAt(dropoff.x, dropoff.y);
+    const crossZoneBonus = pickupZone !== dropoffZone ? 20 : 0;
+
+    const variance = Math.floor(Math.random() * 30) - 10;
+    const reward = Math.max(25, baseReward + crossZoneBonus + variance);
+
+    const seed = hashCoord(pickup.x, pickup.y, i + Date.now());
+
+    await ctx.db.insert("jobs", {
+      type: "delivery",
+      status: "available",
+      playerId: undefined,
+      reward,
+      pickupX: pickup.x,
+      pickupY: pickup.y,
+      dropoffX: dropoff.x,
+      dropoffY: dropoff.y,
+      pickupName: getLandmarkName(pickup.x, pickup.y),
+      dropoffName: getLandmarkName(dropoff.x, dropoff.y),
+      title: getJobTitle(seed, pickup.x, pickup.y),
+      acceptedAt: undefined,
+      pickedUpAt: undefined,
+      completedAt: undefined,
+    });
+  }
+}
 
 export const acceptJob = mutation({
   args: { jobId: v.id("jobs") },
@@ -491,5 +509,41 @@ export const cancelJob = mutation({
     });
 
     return { success: true };
+  },
+});
+
+export const cleanupStaleJobs = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const staleThreshold = now - JOB_TIMEOUT;
+
+    // Find accepted jobs that are stale
+    const staleAccepted = await ctx.db
+      .query("jobs")
+      .withIndex("by_status", (q) => q.eq("status", "accepted"))
+      .filter((q) => q.lt(q.field("acceptedAt"), staleThreshold))
+      .collect();
+
+    // Find picked_up jobs that are stale
+    const stalePickedUp = await ctx.db
+      .query("jobs")
+      .withIndex("by_status", (q) => q.eq("status", "picked_up"))
+      .filter((q) => q.lt(q.field("pickedUpAt"), staleThreshold))
+      .collect();
+
+    const allStale = [...staleAccepted, ...stalePickedUp];
+
+    for (const job of allStale) {
+      await ctx.db.patch(job._id, {
+        status: "available",
+        playerId: undefined,
+        acceptedAt: undefined,
+        pickedUpAt: undefined,
+      });
+      console.log(`Auto-cancelled stale job: ${job._id} (${job.title})`);
+    }
+
+    return { cancelledCount: allStale.length };
   },
 });

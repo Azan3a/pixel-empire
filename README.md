@@ -216,15 +216,9 @@ pixel-empire/
 - [x] Leaderboard / ranking system
 - [x] Clean hook-based architecture (use-movement, use-world, use-jobs, use-food, use-player)
 - [x] **Physical Shop Interaction** — Removed global shop from the game menu. Players walk to in-world Food Shops, Supply Stores, and Clothing Stores and click them to purchase items. Shop dialog is type-specific with server-side proximity validation.
+- [x] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout via Convex scheduled functions.
 
 ### 🔜 Next Up
-
-- [ ] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout via Convex scheduled functions.
-- [ ] **Sound Effects** — Pickup/delivery chimes, walking footsteps, purchase confirmation, zone ambient sounds.
-- [ ] **Mobile Controls** — On-screen joystick and touch interaction buttons for mobile play.
-- [ ] **Chat System** — Real-time player chat via Convex subscriptions with proximity and global channels.
-
-### 🚀 Mid-Term
 
 - [ ] **Resource Gathering**
   - **Lumberjacking** — Chop trees in the Forest zone for wood. Sell at supply stores or use for crafting.
@@ -237,6 +231,9 @@ pixel-empire/
 - [ ] **NPC Vendors** — Stationary NPCs at service buildings for banking, gambling mini-games, and quest-giving.
 - [ ] **Player Inventory Expansion** — Tools, raw materials, crafted goods, keys, and cosmetics.
 - [ ] **Achievement System** — Milestones for deliveries completed, cash earned, properties owned, resources gathered.
+- [ ] **Sound Effects** — Pickup/delivery chimes, walking footsteps, purchase confirmation, zone ambient sounds.
+- [ ] **Mobile Controls** — On-screen joystick and touch interaction buttons for mobile play.
+- [ ] **Chat System** — Real-time player chat via Convex subscriptions with proximity and global channels.
 
 ### 🏗️ Long-Term Vision
 
