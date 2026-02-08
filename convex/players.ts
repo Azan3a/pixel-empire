@@ -5,6 +5,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "./foodConfig";
 import { getSpawnPoint, MAP_SIZE } from "./gameConstants";
 import { WATER_LINE_Y } from "./mapZones";
+import { processIncomeCollection } from "./world";
 
 export const getOrCreatePlayer = mutation({
   args: {},
@@ -18,7 +19,8 @@ export const getOrCreatePlayer = mutation({
       .unique();
 
     if (existingPlayer) {
-      const patches: Record<string, number> = { lastSeen: Date.now() };
+      const now = Date.now();
+      const patches: Record<string, number> = { lastSeen: now };
       if (existingPlayer.hunger === undefined) patches.hunger = MAX_HUNGER;
       if (existingPlayer.walkDistance === undefined) patches.walkDistance = 0;
 
@@ -38,6 +40,10 @@ export const getOrCreatePlayer = mutation({
         patches.x = spawn.x;
         patches.y = spawn.y;
       }
+
+      // Collect pending income on login
+      await processIncomeCollection(ctx, existingPlayer);
+      patches.lastIncomeCheckAt = now;
 
       await ctx.db.patch(existingPlayer._id, patches);
       return {
@@ -64,6 +70,7 @@ export const getOrCreatePlayer = mutation({
       jobTitle: "Unemployed",
       avatar,
       lastSeen: Date.now(),
+      lastIncomeCheckAt: Date.now(),
       hunger: MAX_HUNGER,
       walkDistance: 0,
     });
@@ -115,12 +122,23 @@ export const updatePosition = mutation({
       walkDist -= HUNGER_WALK_THRESHOLD;
     }
 
+    // ── Auto-income collection ──
+    const now = Date.now();
+    const INCOME_CHECK_INTERVAL = 30000; // Check every 30 seconds
+    let lastIncomeCheck = player.lastIncomeCheckAt ?? 0;
+
+    if (now - lastIncomeCheck > INCOME_CHECK_INTERVAL) {
+      await processIncomeCollection(ctx, player);
+      lastIncomeCheck = now;
+    }
+
     await ctx.db.patch(player._id, {
       x: clampedX,
       y: clampedY,
-      lastSeen: Date.now(),
+      lastSeen: now,
       hunger,
       walkDistance: walkDist,
+      lastIncomeCheckAt: lastIncomeCheck,
     });
   },
 });

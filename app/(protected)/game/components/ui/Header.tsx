@@ -34,7 +34,7 @@ const phaseIcons: Record<TimePhase, React.ReactNode> = {
 
 export function Header() {
   const { playerInfo: player } = usePlayer();
-  const { ownedCount, totalIncomePerCycle, collectIncome } = useWorld();
+  const { ownedCount, totalIncomePerCycle } = useWorld();
   const { formatted, phase } = useGameTime();
 
   if (!player) return null;
@@ -82,14 +82,12 @@ export function Header() {
       {/* Properties + Income */}
       {ownedCount > 0 && (
         <>
-          <button
-            onClick={() => collectIncome()}
+          <div
             className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-colors pointer-events-auto",
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full",
               "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400",
-              "hover:bg-blue-100 dark:hover:bg-blue-950/50 active:scale-95",
             )}
-            title="Click to collect income from your properties"
+            title="Total income per game day (collected automatically)"
           >
             <Building2 className="h-3.5 w-3.5" />
             <span className="font-bold text-xs tabular-nums">{ownedCount}</span>
@@ -97,7 +95,7 @@ export function Header() {
             <span className="font-mono text-[10px] opacity-70">
               +${totalIncomePerCycle}
             </span>
-          </button>
+          </div>
 
           <Separator orientation="vertical" className="h-6" />
         </>

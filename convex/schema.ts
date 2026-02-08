@@ -15,6 +15,7 @@ export default defineSchema({
     jobTitle: v.string(),
     avatar: v.string(),
     lastSeen: v.number(),
+    lastIncomeCheckAt: v.optional(v.number()),
     hunger: v.optional(v.number()),
     walkDistance: v.optional(v.number()),
   }).index("by_userId", ["userId"]),

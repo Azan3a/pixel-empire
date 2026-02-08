@@ -33,7 +33,7 @@ function formatCooldown(ms: number): string {
 }
 
 export function PropertiesTab() {
-  const { properties, collectIncome, ownedCount, totalIncomePerCycle } =
+  const { properties, ownedCount, totalIncomePerCycle } =
     useWorld();
   const { playerInfo } = usePlayer();
 
@@ -51,15 +51,10 @@ export function PropertiesTab() {
             My Properties
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Manage your property empire and collect income.
+            Your property empire. Income is collected automatically while you
+            are active.
           </p>
         </div>
-        {ownedCount > 0 && (
-          <Button onClick={() => collectIncome()} className="gap-1.5">
-            <DollarSign className="size-4" />
-            Collect Income
-          </Button>
-        )}
       </div>
 
       {/* Stats summary */}
