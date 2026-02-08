@@ -26,6 +26,7 @@ import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import Loading from "../ui/Loading";
+import { usePreventZoom } from "@/hooks/use-prevent-zoom";
 
 extend({ Container, Graphics, Sprite, Text });
 
@@ -58,6 +59,8 @@ export function GameCanvas() {
     onSync,
     hunger,
   });
+
+  usePreventZoom();
 
   useEffect(() => {
     initPlayer().then((p) => {
@@ -143,7 +146,7 @@ export function GameCanvas() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden relative"
+      className="h-full w-full overflow-hidden relative touch-none" // <-- add touch-none here
       style={{ backgroundColor: bgHex }}
     >
       {hunger < 15 && (
