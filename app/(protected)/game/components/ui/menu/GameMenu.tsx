@@ -122,7 +122,7 @@ export function GameMenu() {
   const { ownedCount, totalIncomePerCycle, properties } = useWorld();
   const { activeJob } = useJobs();
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts & FloatingMinimap click event
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -171,8 +171,17 @@ export function GameMenu() {
       }
     };
 
+    // Listen for FloatingMinimap click event
+    const minimapEventHandler = () => {
+      setOpen(true);
+      setActiveNav("map");
+    };
+    window.addEventListener("open-game-menu-map-tab", minimapEventHandler);
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("open-game-menu-map-tab", minimapEventHandler);
+    };
   }, []);
 
   if (!playerInfo) return null;

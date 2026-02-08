@@ -368,8 +368,17 @@ export function FloatingMinimap({
     };
   }, [draw]);
 
+  // Add click handler to open MapTab
+  const handleMinimapClick = () => {
+    window.dispatchEvent(new CustomEvent("open-game-menu-map-tab"));
+  };
+
   return (
-    <div className="pointer-events-auto flex flex-col gap-1">
+    <div
+      className="pointer-events-auto flex flex-col gap-1"
+      onClick={handleMinimapClick}
+      style={{ cursor: "pointer" }}
+    >
       <div className="rounded-sm overflow-hidden border border-white/10 shadow-2xl bg-black/30 backdrop-blur-sm">
         <canvas ref={canvasRef} style={{ imageRendering: "pixelated" }} />
       </div>
