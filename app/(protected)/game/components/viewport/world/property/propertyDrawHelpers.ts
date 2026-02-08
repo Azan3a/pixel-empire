@@ -2,9 +2,6 @@
 
 import { tintColor } from "../utils/colorUtils";
 
-/**
- * Deterministic check for whether a window should be "lit" at night.
- */
 export function isWindowLit(
   px: number,
   py: number,
@@ -15,9 +12,16 @@ export function isWindowLit(
   return hash < 55;
 }
 
-/** Brightness factor from sunlight intensity. */
 export function brightnessFactor(sunlightIntensity: number): number {
   return 0.4 + sunlightIntensity * 0.6;
+}
+
+export function stableHash(a: number, b: number, seed: number): number {
+  let h = seed;
+  h = ((h ^ (a * 374761393)) + 1013904223) | 0;
+  h = ((h ^ (b * 668265263)) + 1013904223) | 0;
+  h = h ^ (h >>> 16);
+  return (h >>> 0) / 0xffffffff;
 }
 
 export { tintColor };

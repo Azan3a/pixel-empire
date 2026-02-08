@@ -7,10 +7,9 @@ import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
 import { resolvePalette } from "./property/buildingPalettes";
 import { brightnessFactor } from "./property/propertyDrawHelpers";
-import { drawBuildingBase } from "./property/drawBuildingBase";
-import { drawBuildingDetails } from "./property/drawBuildingDetails";
-import { drawWindows } from "./property/drawWindows";
-import { drawDoorAndAccessories } from "./property/drawDoorAndAccessories";
+import { drawBuildingBase } from "./property/base/drawBuildingBase";
+import { drawWindows } from "./property/windows/drawWindows";
+import { drawDoorAndAccessories } from "./property/doors/drawDoorAndAccessories";
 import { drawBuildingBorder } from "./property/drawBuildingBorder";
 import { PropertyLabel } from "./property/PropertyLabel";
 
@@ -44,13 +43,24 @@ function PropertyNodeInner({
       const isNight = sunlightIntensity < 0.3;
       const isDusk = sunlightIntensity < 0.6;
 
-      drawBuildingBase(g, width, height, category, palette, bf, isNight);
-      drawBuildingDetails(g, width, height, subType, palette, bf, isNight, px);
+      drawBuildingBase(
+        g,
+        width,
+        height,
+        category,
+        subType,
+        palette,
+        bf,
+        isNight,
+        px,
+        py,
+      );
       drawWindows(
         g,
         width,
         height,
         category,
+        subType,
         palette,
         bf,
         isNight,
