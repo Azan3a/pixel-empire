@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Keyboard,
   ShoppingBag,
+  Map,
   X,
   Menu,
   Building2,
@@ -46,11 +47,19 @@ import { InventoryTab } from "./InventoryTab";
 import { ShopTab } from "./ShopTab";
 import { JobsTab } from "./JobsTab";
 import { PropertiesTab } from "./PropertiesTab";
+import { MapTab } from "./MapTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
 import { ControlsTab } from "./ControlsTabs";
 
 const NAV_ITEMS = [
+  {
+    id: "map",
+    name: "World Map",
+    icon: Map,
+    shortcut: "M",
+    group: "gameplay",
+  },
   {
     id: "inventory",
     name: "Inventory",
@@ -58,6 +67,7 @@ const NAV_ITEMS = [
     shortcut: "I",
     group: "gameplay",
   },
+
   {
     id: "shop",
     name: "Shop",
@@ -108,8 +118,8 @@ export function GameMenu() {
   const [open, setOpen] = React.useState(false);
   const [activeNav, setActiveNav] = React.useState<NavId>("inventory");
 
-  const { playerInfo, leaderboard } = usePlayer();
-  const { ownedCount, totalIncomePerCycle } = useWorld();
+  const { playerInfo, leaderboard, alivePlayers } = usePlayer();
+  const { ownedCount, totalIncomePerCycle, properties } = useWorld();
   const { activeJob } = useJobs();
 
   // Keyboard shortcuts
@@ -129,6 +139,10 @@ export function GameMenu() {
         case "i":
           setOpen(true);
           setActiveNav("inventory");
+          break;
+        case "m":
+          setOpen(true);
+          setActiveNav("map");
           break;
         case "b":
           setOpen(true);
@@ -343,6 +357,15 @@ export function GameMenu() {
               <div className="flex-1 overflow-y-auto p-6">
                 {activeNav === "inventory" && (
                   <InventoryTab inventory={playerInfo.inventory} />
+                )}
+                {activeNav === "map" && (
+                  <MapTab
+                    playerX={playerInfo.x}
+                    playerY={playerInfo.y}
+                    properties={properties}
+                    otherPlayers={alivePlayers}
+                    activeJob={activeJob}
+                  />
                 )}
                 {activeNav === "shop" && <ShopTab />}
                 {activeNav === "jobs" && <JobsTab />}
