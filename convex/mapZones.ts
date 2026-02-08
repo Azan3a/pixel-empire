@@ -102,6 +102,17 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
     hasRoads: true,
     description: "Warehouses, factories, and the delivery hub.",
   },
+  park: {
+    id: "park",
+    name: "Central Park",
+    bounds: { x1: 0, y1: 1255, x2: 1250, y2: 2750 },
+    skipChance: 1.0, // no buildings
+    terrainColor: 0x3a9a3a,
+    terrainAccent: 0x2d8a2d,
+    speedMultiplier: 0.9,
+    hasRoads: false,
+    description: "Open green space with paths, ponds, and benches.",
+  },
   forest: {
     id: "forest",
     name: "Forest",
@@ -112,17 +123,6 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
     speedMultiplier: 0.7,
     hasRoads: false,
     description: "Dense woodland with winding trails.",
-  },
-  park: {
-    id: "park",
-    name: "Central Park",
-    bounds: { x1: 0, y1: 1350, x2: 1250, y2: 2750 },
-    skipChance: 1.0, // no buildings
-    terrainColor: 0x3a9a3a,
-    terrainAccent: 0x2d8a2d,
-    speedMultiplier: 0.9,
-    hasRoads: false,
-    description: "Open green space with paths, ponds, and benches.",
   },
   beach: {
     id: "beach",
