@@ -1,4 +1,3 @@
-// components/game/ui/menu/GameMenu.tsx
 "use client";
 
 import * as React from "react";
@@ -8,7 +7,6 @@ import {
   BarChart3,
   MessageSquare,
   Keyboard,
-  ShoppingBag,
   Map,
   X,
   Menu,
@@ -44,7 +42,6 @@ import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { InventoryTab } from "./InventoryTab";
-import { ShopTab } from "./ShopTab";
 import { JobsTab } from "./JobsTab";
 import { PropertiesTab } from "./PropertiesTab";
 import { MapTab } from "./MapTab";
@@ -66,14 +63,6 @@ const NAV_ITEMS = [
     name: "Inventory",
     icon: Package,
     shortcut: "I",
-    group: "gameplay",
-  },
-
-  {
-    id: "shop",
-    name: "Shop",
-    icon: ShoppingBag,
-    shortcut: "B",
     group: "gameplay",
   },
   {
@@ -146,13 +135,6 @@ export function GameMenu() {
         onKeyDown: () => {
           setOpen(true);
           setActiveNav("map");
-        },
-      },
-      {
-        controlId: "open_shop",
-        onKeyDown: () => {
-          setOpen(true);
-          setActiveNav("shop");
         },
       },
       {
@@ -245,9 +227,6 @@ export function GameMenu() {
                             <span className="flex-1">{item.name}</span>
                             {item.id === "jobs" && jobsBadge && (
                               <span className="size-2 rounded-full bg-orange-500 animate-pulse" />
-                            )}
-                            {item.id === "shop" && isLowHunger && (
-                              <span className="size-2 rounded-full bg-red-500 animate-pulse" />
                             )}
                             {item.id === "properties" && ownedCount > 0 && (
                               <span className="text-[10px] font-mono text-muted-foreground/70 tabular-nums">
@@ -372,9 +351,6 @@ export function GameMenu() {
                       )}
                     >
                       <item.icon className="size-4" />
-                      {item.id === "shop" && isLowHunger && (
-                        <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 animate-pulse" />
-                      )}
                     </button>
                   ))}
                 </div>
@@ -394,7 +370,6 @@ export function GameMenu() {
                     activeJob={activeJob}
                   />
                 )}
-                {activeNav === "shop" && <ShopTab />}
                 {activeNav === "jobs" && <JobsTab />}
                 {activeNav === "properties" && <PropertiesTab />}
                 {activeNav === "rankings" && (

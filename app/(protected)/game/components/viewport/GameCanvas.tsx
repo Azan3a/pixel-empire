@@ -1,4 +1,3 @@
-// components/game/viewport/GameCanvas.tsx
 "use client";
 
 import { Application, extend } from "@pixi/react";
@@ -10,10 +9,11 @@ import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { useMovement } from "@game/hooks/use-movement";
 import { useGameTime } from "@game/hooks/use-game-time";
-import { getSpawnPoint } from "@/convex/gameConstants";
+import { getSpawnPoint, SHOP_INTERACT_RADIUS } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
 import {
   //  getZoneAt,
   ZONES,
@@ -29,6 +29,7 @@ import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
+import { ShopDialog } from "../ui/ShopDialog";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -41,6 +42,9 @@ export function GameCanvas() {
     null,
   );
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+
+  const [selectedShop, setSelectedShop] = useState<Property | null>(null);
+  const [shopDialogOpen, setShopDialogOpen] = useState(false);
 
   const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
   const {
@@ -72,6 +76,12 @@ export function GameCanvas() {
     hunger,
   });
 
+  // Ref to track current position without re-creating click callbacks every frame
+  const renderPosRef = useRef(renderPos);
+  useEffect(() => {
+    renderPosRef.current = renderPos;
+  }, [renderPos]);
+
   // Current zone for the player
   const currentZone = useMemo(
     () => getPlayerZone(renderPos.x, renderPos.y),
@@ -100,7 +110,26 @@ export function GameCanvas() {
   const handlePropertyClick = useCallback(
     (propertyId: Id<"properties">) => {
       const prop = properties.find((p) => p._id === propertyId);
-      if (prop) {
+      if (!prop) return;
+
+      if (prop.category === "shop") {
+        // Compute distance from player to building center
+        const centerX = prop.x + prop.width / 2;
+        const centerY = prop.y + prop.height / 2;
+        const pos = renderPosRef.current;
+        const distance = Math.sqrt(
+          (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
+        );
+
+        if (distance <= SHOP_INTERACT_RADIUS) {
+          setSelectedShop(prop);
+          setShopDialogOpen(true);
+        } else {
+          toast("Walk closer to enter this shop", {
+            description: `You need to be near ${prop.name} to shop here.`,
+          });
+        }
+      } else {
         setSelectedProperty(prop);
         setPurchaseDialogOpen(true);
       }
@@ -121,6 +150,20 @@ export function GameCanvas() {
     setPurchaseDialogOpen(false);
     setSelectedProperty(null);
   }, [selectedProperty, sellProperty]);
+
+  const handleShopBuyProperty = useCallback(async () => {
+    if (!selectedShop) return;
+    await buyProperty(selectedShop._id);
+    setShopDialogOpen(false);
+    setSelectedShop(null);
+  }, [selectedShop, buyProperty]);
+
+  const handleShopSellProperty = useCallback(async () => {
+    if (!selectedShop) return;
+    await sellProperty(selectedShop._id);
+    setShopDialogOpen(false);
+    setSelectedShop(null);
+  }, [selectedShop, sellProperty]);
 
   const {
     tintR,
@@ -224,6 +267,15 @@ export function GameCanvas() {
         onOpenChange={setPurchaseDialogOpen}
         onBuy={handleBuyConfirm}
         onSell={handleSellConfirm}
+      />
+
+      <ShopDialog
+        property={selectedShop}
+        playerCash={playerCash}
+        open={shopDialogOpen}
+        onOpenChange={setShopDialogOpen}
+        onBuyProperty={handleShopBuyProperty}
+        onSellProperty={handleShopSellProperty}
       />
 
       <Application background={bgColor} resizeTo={containerRef}>

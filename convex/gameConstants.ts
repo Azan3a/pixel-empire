@@ -12,6 +12,9 @@ export const SELL_RATE = 0.7;
 /** Income collection cooldown — once per game day (20 real minutes) */
 export const INCOME_COOLDOWN_MS = 20 * 60 * 1000;
 
+/** Max distance (center-to-center) a player can be from a shop to interact */
+export const SHOP_INTERACT_RADIUS = 120;
+
 /** Compute the walkable block edges along one axis */
 export function getBlockEdges(
   mapSize: number,

@@ -8,15 +8,19 @@ import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";
 import { usePlayer } from "./use-player";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function useFood() {
   const buyFoodMutation = useMutation(api.food.buyFood);
   const consumeFoodMutation = useMutation(api.food.consumeFood);
   const { playerInfo, getItemQuantity } = usePlayer();
 
-  const buyFood = async (foodType: FoodType) => {
+  const buyFood = async (
+    foodType: FoodType,
+    shopPropertyId: Id<"properties">,
+  ) => {
     try {
-      const res = await buyFoodMutation({ foodType });
+      const res = await buyFoodMutation({ foodType, shopPropertyId });
       if (res) {
         toast.success(`${res.emoji} Bought ${res.food}!`);
       }

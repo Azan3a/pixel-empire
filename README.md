@@ -43,7 +43,7 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 
 - **Hunger Meter** — Displayed in the header with a color-coded progress bar.
 - **Hunger Decay** — Walking 800 units costs 1 hunger. Completing a delivery costs 5. Manual labor costs 3.
-- **Food System** — Buy food from the Shop tab (Apple $10, Burger $25, Pizza $40, Full Meal $75). Food goes to inventory; consume from the Inventory tab to restore hunger.
+- **Food System** — Walk to in-world Food Shops to buy food (Apple $10, Burger $25, Pizza $40, Full Meal $75). Click the shop building to open the shop dialog. Food goes to inventory; consume from the Inventory tab to restore hunger.
 - **Starvation Penalties** — Below 25% hunger: speed decreases. At 0%: half speed, can't work, red vignette overlay with warning text. Below 10%: can't accept deliveries.
 
 ### Economy & Property
@@ -75,13 +75,13 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 - **Floating Minimap** — Top-right canvas minimap showing zone-colored terrain, roads, buildings (color-coded by category), delivery markers, other players, viewport rectangle, zone name, and coordinates.
 - **Game Menu** — Bottom-left FAB opening a dialog with sidebar navigation:
   - **Inventory** — View and consume food items, see supplies.
-  - **Shop** — Buy food globally, browse in-world shop locations.
   - **Jobs** — Available deliveries with zone info, cross-zone badges, and distance. Active job tracker.
   - **Properties** — Owned property list, income stats, collect button.
   - **Rankings** — Global leaderboard by cash.
   - **Chat / Log** — Placeholder for future chat system.
   - **Controls** — Key bindings reference.
 - **Property Dialog** — Click any building to see category, zone, price, income, owner count, and buy/sell actions. Service buildings show a "Public" badge with no purchase option.
+- **Shop Dialog** — Click a shop building when nearby to open a type-specific shop dialog. Food Shops sell food items, Supply Stores and Clothing Stores show "Coming soon". The dialog also includes property buy/sell actions. Server validates player proximity on every purchase.
 
 ## Tech Stack
 
@@ -117,7 +117,6 @@ Open `http://localhost:3000`. Sign in, and you'll spawn at the center of Downtow
 | Buy property              | Click on building   |
 | Toggle menu               | `Tab`               |
 | Inventory                 | `I`                 |
-| Shop                      | `B`                 |
 | Jobs                      | `J`                 |
 | Properties                | `P`                 |
 | Rankings                  | `R`                 |
@@ -145,11 +144,12 @@ pixel-empire/
 │   │   └── game/
 │   │       ├── components/
 │   │       │   ├── ui/              # HUD, Menus, Overlays
-│   │       │   │   ├── menu/        # GameMenu, InventoryTab, ShopTab, JobsTab, PropertiesTab, MapTab, etc.
+│   │       │   │   ├── menu/        # GameMenu, InventoryTab, JobsTab, PropertiesTab, MapTab, etc.
 │   │       │   │   ├── Header.tsx
 │   │       │   │   ├── DeliveryHUD.tsx
 │   │       │   │   ├── FloatingMinimap.tsx
 │   │       │   │   ├── PropertyDialog.tsx
+│   │       │   │   ├── ShopDialog.tsx
 │   │       │   │   └── Loading.tsx
 │   │       │   └── viewport/        # PixiJS Canvas and World rendering
 │   │       │       ├── world/
@@ -212,10 +212,10 @@ pixel-empire/
 - [x] Player characters with composite parts, walk animation, and directional facing
 - [x] Leaderboard / ranking system
 - [x] Clean hook-based architecture (use-movement, use-world, use-jobs, use-food, use-player)
+- [x] **Physical Shop Interaction** — Removed global shop from the game menu. Players walk to in-world Food Shops, Supply Stores, and Clothing Stores and click them to purchase items. Shop dialog is type-specific with server-side proximity validation.
 
 ### 🔜 Next Up
 
-- [ ] **Physical Shop Interaction** — Remove global shop from the game menu. Players must walk to in-world Food Shops, Supply Stores, and Clothing Stores to purchase items. Entering shop proximity opens a full shop dialog (like the GameMenu) with category tabs for browsing and buying.
 - [ ] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout via Convex scheduled functions.
 - [ ] **Sound Effects** — Pickup/delivery chimes, walking footsteps, purchase confirmation, zone ambient sounds.
 - [ ] **Mobile Controls** — On-screen joystick and touch interaction buttons for mobile play.

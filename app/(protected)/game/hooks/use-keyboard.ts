@@ -1,4 +1,3 @@
-// hooks/use-keyboard.ts
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -31,7 +30,6 @@ export const CONTROL_MAP = {
   close_menu: { keys: ["escape"], action: "Close Menus", group: "menu" },
   open_inventory: { keys: ["i"], action: "Inventory", group: "menu" },
   open_map: { keys: ["m"], action: "World Map", group: "menu" },
-  open_shop: { keys: ["b"], action: "Shop", group: "menu" },
   open_jobs: { keys: ["j"], action: "Jobs", group: "menu" },
   open_properties: { keys: ["p"], action: "Properties", group: "menu" },
   open_rankings: { keys: ["r"], action: "Rankings", group: "menu" },
