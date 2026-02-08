@@ -1,5 +1,5 @@
 // convex/mapZones.ts
-// Zone definitions, building templates, and helpers for the 4000×4000 map
+import { HALF_CORRIDOR, ROAD_SPACING } from "./gameConstants";
 
 // ── Types ──
 
@@ -69,7 +69,12 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
   downtown: {
     id: "downtown",
     name: "Downtown",
-    bounds: { x1: 1250, y1: 1250, x2: 2750, y2: 2750 },
+    bounds: {
+      x1: 5 * ROAD_SPACING - HALF_CORRIDOR,
+      y1: 5 * ROAD_SPACING,
+      x2: 11 * ROAD_SPACING,
+      y2: 11 * ROAD_SPACING,
+    },
     skipChance: 0.1,
     terrainColor: 0x4a7a4a,
     terrainAccent: 0x3d6b3d,
@@ -94,7 +99,12 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
   industrial: {
     id: "industrial",
     name: "Industrial District",
-    bounds: { x1: 0, y1: 0, x2: 1250, y2: 1250 },
+    bounds: {
+      x1: 0,
+      y1: 0,
+      x2: 5 * ROAD_SPACING,
+      y2: 5 * ROAD_SPACING + HALF_CORRIDOR,
+    },
     skipChance: 0.25,
     terrainColor: 0x5a6a4a,
     terrainAccent: 0x4a5a3d,
@@ -105,7 +115,12 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
   park: {
     id: "park",
     name: "Central Park",
-    bounds: { x1: 0, y1: 1255, x2: 1250, y2: 2750 },
+    bounds: {
+      x1: 0,
+      y1: 5 * ROAD_SPACING + HALF_CORRIDOR,
+      x2: 5 * ROAD_SPACING - HALF_CORRIDOR,
+      y2: 11 * ROAD_SPACING - HALF_CORRIDOR,
+    },
     skipChance: 1.0, // no buildings
     terrainColor: 0x3a9a3a,
     terrainAccent: 0x2d8a2d,
@@ -116,7 +131,12 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
   forest: {
     id: "forest",
     name: "Forest",
-    bounds: { x1: 2750, y1: 0, x2: 4000, y2: 1250 },
+    bounds: {
+      x1: 11 * ROAD_SPACING + HALF_CORRIDOR,
+      y1: 0,
+      x2: 4000,
+      y2: 5 * ROAD_SPACING - HALF_CORRIDOR,
+    },
     skipChance: 0.85,
     terrainColor: 0x2d6a2d,
     terrainAccent: 0x1a5a1a,
