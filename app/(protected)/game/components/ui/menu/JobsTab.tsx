@@ -66,12 +66,15 @@ export function JobsTab() {
             </span>
           </div>
 
-          {isCrossZone && (
+          {isCrossZone ? (
             <div className="mb-4">
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
                 CROSS-ZONE DELIVERY — BONUS REWARD
               </span>
             </div>
+          ) : (
+            // Placeholder to maintain spacing for non-cross-zone jobs
+            <div className="mb-4 h-5" />
           )}
 
           <div className="flex items-center gap-3 mb-6">
@@ -192,12 +195,15 @@ export function JobsTab() {
                   </span>
                 </div>
 
-                {isCrossZone && (
+                {isCrossZone ? (
                   <div className="mb-2">
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
                       CROSS-ZONE
                     </span>
                   </div>
+                ) : (
+                  // Placeholder to maintain spacing for non-cross-zone jobs
+                  <div className="mb-2 h-5" />
                 )}
 
                 <div className="space-y-1.5 mb-4">
