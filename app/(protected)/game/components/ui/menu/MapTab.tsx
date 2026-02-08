@@ -112,9 +112,14 @@ export function MapTab({
 
     // ── Beach sand ──
     const beachBounds = ZONES.beach.bounds;
-    const sandTopPx = beachBounds.y1 * SCALE;
     const waterLinePx = WATER_LINE_Y * SCALE;
-    ctx.fillStyle = "#d4b483";
+    const sandTopPx = beachBounds.y1 * SCALE;
+
+    // Sand gradient
+    const sandGradient = ctx.createLinearGradient(0, sandTopPx, 0, waterLinePx);
+    sandGradient.addColorStop(0, "#d4b483");
+    sandGradient.addColorStop(1, "#f0e4c8");
+    ctx.fillStyle = sandGradient;
     ctx.fillRect(0, sandTopPx, size, waterLinePx - sandTopPx);
 
     // ── Boardwalk ──
@@ -123,64 +128,217 @@ export function MapTab({
     ctx.fillStyle = "#8b6b4a";
     ctx.fillRect(0, bwTopPx, size, bwHPx);
 
+    // Plank lines (subtle)
+    ctx.strokeStyle = "#6b4a2a";
+    ctx.lineWidth = 0.5;
+    ctx.globalAlpha = 0.3;
+    for (let px = 0; px < MAP_SIZE; px += 24) {
+      ctx.beginPath();
+      ctx.moveTo(px * SCALE, bwTopPx);
+      ctx.lineTo(px * SCALE, bwTopPx + bwHPx);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+
     // ── Ocean ──
     ctx.fillStyle = "#1a6b8a";
     ctx.fillRect(0, waterLinePx, size, size - waterLinePx);
 
-    // ── Park pond ──
+    // Waves
+    ctx.strokeStyle = "#2a8aaa";
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.3;
+    for (let wy = WATER_LINE_Y + 15; wy < MAP_SIZE; wy += 40) {
+      ctx.beginPath();
+      for (let wx = 0; wx < MAP_SIZE; wx += 60) {
+        ctx.moveTo(wx * SCALE, wy * SCALE);
+        ctx.lineTo((wx + 30) * SCALE, (wy - 4) * SCALE);
+        ctx.lineTo((wx + 60) * SCALE, wy * SCALE);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // ── Park features ──
     const parkBounds = ZONES.park.bounds;
-    const parkCX = ((parkBounds.x1 + parkBounds.x2) / 2) * SCALE;
-    const parkCY = ((parkBounds.y1 + parkBounds.y2) / 2) * SCALE;
-    const pondX = parkCX + 120 * SCALE;
-    const pondY = parkCY - 100 * SCALE;
+    const parkCX = (parkBounds.x1 + parkBounds.x2) / 2;
+    const parkCY = (parkBounds.y1 + parkBounds.y2) / 2;
+
+    // Park paths
+    ctx.strokeStyle = "#bc9c63";
+    ctx.lineWidth = 10 * SCALE;
+    ctx.globalAlpha = 0.5;
+    const radius = 280;
     ctx.beginPath();
-    ctx.ellipse(pondX, pondY, 80 * SCALE, 50 * SCALE, 0, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(58, 138, 170, 0.5)";
+    ctx.arc(parkCX * SCALE, parkCY * SCALE, radius * SCALE, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(parkBounds.x1 * SCALE, parkCY * SCALE);
+    ctx.lineTo(parkBounds.x2 * SCALE, parkCY * SCALE);
+    ctx.moveTo(parkCX * SCALE, parkBounds.y1 * SCALE);
+    ctx.lineTo(parkCX * SCALE, parkBounds.y2 * SCALE);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    // Central Fountain
+    ctx.beginPath();
+    ctx.arc(parkCX * SCALE, parkCY * SCALE, 55 * SCALE, 0, Math.PI * 2);
+    ctx.fillStyle = "#bbbbbb";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(parkCX * SCALE, parkCY * SCALE, 45 * SCALE, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(74, 146, 178, 0.8)";
     ctx.fill();
 
+    // Ponds
+    const drawPond = (px: number, py: number, rw: number, rh: number) => {
+      ctx.beginPath();
+      ctx.ellipse(
+        px * SCALE,
+        py * SCALE,
+        rw * SCALE,
+        rh * SCALE,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = "rgba(58, 138, 170, 0.5)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(42, 122, 154, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    };
+    drawPond(parkCX + 420, parkCY - 100, 110, 70);
+    drawPond(parkCX - 380, parkCY + 280, 90, 60);
+
     // ── Roads ──
-    ctx.fillStyle = "#555555";
+    const asphaltColor = "#3a3a3a";
+    const sidewalkColor = "#9e9e9e";
+
+    // Horizontal Roads
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
       if (ry - FULL_SW > WATER_LINE_Y) continue;
-      const y = (ry - FULL_SW) * SCALE;
-      const roadH = Math.min(
-        (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
-        waterLinePx - y,
-      );
-      if (roadH > 0) ctx.fillRect(0, y, size, roadH);
-    }
-    for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
-      const x = (rx - FULL_SW) * SCALE;
-      const roadW = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
-      const roadH = Math.min(size, waterLinePx);
-      ctx.fillRect(x, 0, roadW, roadH);
+
+      let segmentStart = -1;
+      for (let rx = 0; rx < MAP_SIZE; rx += ROAD_SPACING) {
+        const zUp = getZoneAt(rx + ROAD_SPACING / 2, ry - 1);
+        const zDown = getZoneAt(rx + ROAD_SPACING / 2, ry + 1);
+        if (ZONES[zUp].hasRoads || ZONES[zDown].hasRoads) {
+          if (segmentStart === -1) segmentStart = rx;
+        } else if (segmentStart !== -1) {
+          drawRoadSegment(ctx, segmentStart, ry, rx - segmentStart, true);
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        drawRoadSegment(ctx, segmentStart, ry, MAP_SIZE - segmentStart, true);
+      }
     }
 
-    // ── Road center lines ──
-    ctx.strokeStyle = "#777777";
-    ctx.lineWidth = 0.5;
-    for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
-      if (ry > WATER_LINE_Y) continue;
-      ctx.beginPath();
-      ctx.moveTo(0, ry * SCALE);
-      ctx.lineTo(size, ry * SCALE);
-      ctx.stroke();
-    }
+    // Vertical Roads
     for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
-      ctx.beginPath();
-      ctx.moveTo(rx * SCALE, 0);
-      ctx.lineTo(rx * SCALE, Math.min(size, waterLinePx));
-      ctx.stroke();
+      let segmentStart = -1;
+      for (let ry = 0; ry < MAP_SIZE; ry += ROAD_SPACING) {
+        const zLeft = getZoneAt(rx - 1, ry + ROAD_SPACING / 2);
+        const zRight = getZoneAt(rx + 1, ry + ROAD_SPACING / 2);
+        if (ZONES[zLeft].hasRoads || ZONES[zRight].hasRoads) {
+          if (segmentStart === -1) segmentStart = ry;
+        } else if (segmentStart !== -1) {
+          drawRoadSegment(ctx, rx, segmentStart, ry - segmentStart, false);
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        drawRoadSegment(ctx, rx, segmentStart, MAP_SIZE - segmentStart, false);
+      }
+    }
+
+    function drawRoadSegment(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      length: number,
+      horizontal: boolean,
+    ) {
+      if (horizontal) {
+        const rTop = (y - FULL_SW) * SCALE;
+        const rBottom = Math.min((y + FULL_SW) * SCALE, waterLinePx);
+        const rH = rBottom - rTop;
+        if (rH <= 0) return;
+
+        // Sidewalk
+        ctx.fillStyle = sidewalkColor;
+        ctx.fillRect(x * SCALE, rTop, length * SCALE, rH);
+
+        // Asphalt
+        const aTop = (y - ROAD_WIDTH / 2) * SCALE;
+        const aBottom = Math.min((y + ROAD_WIDTH / 2) * SCALE, waterLinePx);
+        const aH = aBottom - aTop;
+        if (aH > 0) {
+          ctx.fillStyle = asphaltColor;
+          ctx.fillRect(x * SCALE, aTop, length * SCALE, aH);
+
+          // Center line
+          if (size > 300 && y * SCALE < waterLinePx) {
+            ctx.setLineDash([4 * SCALE, 4 * SCALE]);
+            ctx.strokeStyle = "rgba(232, 185, 48, 0.5)";
+            ctx.lineWidth = 1 * SCALE;
+            ctx.beginPath();
+            ctx.moveTo(x * SCALE, y * SCALE);
+            ctx.lineTo((x + length) * SCALE, y * SCALE);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      } else {
+        const rLeft = (x - FULL_SW) * SCALE;
+        const rW = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
+        const rTop = y * SCALE;
+        const rBottom = Math.min((y + length) * SCALE, waterLinePx);
+        const rH = rBottom - rTop;
+        if (rH <= 0) return;
+
+        // Sidewalk
+        ctx.fillStyle = sidewalkColor;
+        ctx.fillRect(rLeft, rTop, rW, rH);
+
+        // Asphalt
+        const aLeft = (x - ROAD_WIDTH / 2) * SCALE;
+        const aW = ROAD_WIDTH * SCALE;
+        ctx.fillStyle = asphaltColor;
+        ctx.fillRect(aLeft, rTop, aW, rH);
+
+        // Center line
+        if (size > 300) {
+          ctx.setLineDash([4 * SCALE, 4 * SCALE]);
+          ctx.strokeStyle = "rgba(232, 185, 48, 0.5)";
+          ctx.lineWidth = 1 * SCALE;
+          ctx.beginPath();
+          ctx.moveTo(x * SCALE, rTop);
+          ctx.lineTo(x * SCALE, rBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
     }
 
     // ── Intersections ──
-    ctx.fillStyle = "#666666";
     for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
       for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
-        if (iy > WATER_LINE_Y) continue;
-        const x = (ix - HALF_ROAD) * SCALE;
-        const y = (iy - HALF_ROAD) * SCALE;
+        if (iy - HALF_ROAD > WATER_LINE_Y) continue;
+        const hasH =
+          ZONES[getZoneAt(ix, iy - 1)].hasRoads ||
+          ZONES[getZoneAt(ix, iy + 1)].hasRoads;
+        const hasV =
+          ZONES[getZoneAt(ix - 1, iy)].hasRoads ||
+          ZONES[getZoneAt(ix + 1, iy)].hasRoads;
+        if (!hasH || !hasV) continue;
+
+        const x = (ix - ROAD_WIDTH / 2) * SCALE;
+        const y = (iy - ROAD_WIDTH / 2) * SCALE;
         const s = ROAD_WIDTH * SCALE;
+        ctx.fillStyle = asphaltColor;
         ctx.fillRect(x, y, s, s);
       }
     }

@@ -99,9 +99,13 @@ export function FloatingMinimap({
 
     // ── Beach sand ──
     const beachBounds = ZONES.beach.bounds;
-    const sandTopPx = beachBounds.y1 * SCALE;
     const waterLinePx = WATER_LINE_Y * SCALE;
-    ctx.fillStyle = "#d4b483";
+    const sandTopPx = beachBounds.y1 * SCALE;
+
+    const sandGradient = ctx.createLinearGradient(0, sandTopPx, 0, waterLinePx);
+    sandGradient.addColorStop(0, "#d4b483");
+    sandGradient.addColorStop(1, "#f0e4c8");
+    ctx.fillStyle = sandGradient;
     ctx.fillRect(0, sandTopPx, w, waterLinePx - sandTopPx);
 
     // ── Boardwalk ──
@@ -114,50 +118,95 @@ export function FloatingMinimap({
     ctx.fillStyle = "#1a6b8a";
     ctx.fillRect(0, waterLinePx, w, h - waterLinePx);
 
-    // ── Park pond ──
+    // ── Park Ponds ──
     const parkBounds = ZONES.park.bounds;
-    const parkCX = ((parkBounds.x1 + parkBounds.x2) / 2) * SCALE;
-    const parkCY = ((parkBounds.y1 + parkBounds.y2) / 2) * SCALE;
-    const pondX = parkCX + 120 * SCALE;
-    const pondY = parkCY - 100 * SCALE;
-    ctx.beginPath();
-    ctx.ellipse(pondX, pondY, 80 * SCALE, 50 * SCALE, 0, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(58, 138, 170, 0.5)";
-    ctx.fill();
+    const parkCX = (parkBounds.x1 + parkBounds.x2) / 2;
+    const parkCY = (parkBounds.y1 + parkBounds.y2) / 2;
+
+    const drawPond = (px: number, py: number, rw: number, rh: number) => {
+      ctx.beginPath();
+      ctx.ellipse(
+        px * SCALE,
+        py * SCALE,
+        rw * SCALE,
+        rh * SCALE,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = "rgba(58, 138, 170, 0.5)";
+      ctx.fill();
+    };
+    drawPond(parkCX + 420, parkCY - 100, 110, 70);
+    drawPond(parkCX - 380, parkCY + 280, 90, 60);
 
     // ── Roads ──
-    ctx.fillStyle = "#555555";
+    const asphaltColor = "#555555";
+
+    // Horizontal Roads
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
       if (ry - FULL_SW > WATER_LINE_Y) continue;
-      const y = (ry - FULL_SW) * SCALE;
-      const roadH = Math.min(
-        (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
-        waterLinePx - y,
-      );
-      if (roadH > 0) ctx.fillRect(0, y, w, roadH);
-    }
-    for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
-      const x = (rx - FULL_SW) * SCALE;
-      const roadW = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
-      const roadH = Math.min(h, waterLinePx);
-      ctx.fillRect(x, 0, roadW, roadH);
+
+      let segmentStart = -1;
+      for (let rx = 0; rx < MAP_SIZE; rx += ROAD_SPACING) {
+        const zUp = getZoneAt(rx + ROAD_SPACING / 2, ry - 1);
+        const zDown = getZoneAt(rx + ROAD_SPACING / 2, ry + 1);
+        if (ZONES[zUp].hasRoads || ZONES[zDown].hasRoads) {
+          if (segmentStart === -1) segmentStart = rx;
+        } else if (segmentStart !== -1) {
+          ctx.fillStyle = asphaltColor;
+          ctx.fillRect(
+            segmentStart * SCALE,
+            (ry - FULL_SW) * SCALE,
+            (rx - segmentStart) * SCALE,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+          );
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        ctx.fillStyle = asphaltColor;
+        ctx.fillRect(
+          segmentStart * SCALE,
+          (ry - FULL_SW) * SCALE,
+          (MAP_SIZE - segmentStart) * SCALE,
+          (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+        );
+      }
     }
 
-    // ── Road center lines ──
-    ctx.strokeStyle = "#777777";
-    ctx.lineWidth = 0.5;
-    for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
-      if (ry > WATER_LINE_Y) continue;
-      ctx.beginPath();
-      ctx.moveTo(0, ry * SCALE);
-      ctx.lineTo(w, ry * SCALE);
-      ctx.stroke();
-    }
+    // Vertical Roads
     for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
-      ctx.beginPath();
-      ctx.moveTo(rx * SCALE, 0);
-      ctx.lineTo(rx * SCALE, Math.min(h, waterLinePx));
-      ctx.stroke();
+      let segmentStart = -1;
+      for (let ry = 0; ry < MAP_SIZE; ry += ROAD_SPACING) {
+        const zLeft = getZoneAt(rx - 1, ry + ROAD_SPACING / 2);
+        const zRight = getZoneAt(rx + 1, ry + ROAD_SPACING / 2);
+        if (ZONES[zLeft].hasRoads || ZONES[zRight].hasRoads) {
+          if (segmentStart === -1) segmentStart = ry;
+        } else if (segmentStart !== -1) {
+          ctx.fillStyle = asphaltColor;
+          ctx.fillRect(
+            (rx - FULL_SW) * SCALE,
+            segmentStart * SCALE,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+            (ry - segmentStart) * SCALE,
+          );
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        ctx.fillStyle = asphaltColor;
+        const rTop = segmentStart * SCALE;
+        const rH = Math.min(MAP_SIZE, WATER_LINE_Y) * SCALE - rTop;
+        if (rH > 0) {
+          ctx.fillRect(
+            (rx - FULL_SW) * SCALE,
+            rTop,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+            rH,
+          );
+        }
+      }
     }
 
     // ── Intersections ──
@@ -165,6 +214,14 @@ export function FloatingMinimap({
     for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
       for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
         if (iy > WATER_LINE_Y) continue;
+        const hasH =
+          ZONES[getZoneAt(ix, iy - 1)].hasRoads ||
+          ZONES[getZoneAt(ix, iy + 1)].hasRoads;
+        const hasV =
+          ZONES[getZoneAt(ix - 1, iy)].hasRoads ||
+          ZONES[getZoneAt(ix + 1, iy)].hasRoads;
+        if (!hasH || !hasV) continue;
+
         const x = (ix - HALF_ROAD) * SCALE;
         const y = (iy - HALF_ROAD) * SCALE;
         const s = ROAD_WIDTH * SCALE;
