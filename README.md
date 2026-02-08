@@ -1,5 +1,7 @@
 # Pixel Empire
 
+![Pixel Empire Screenshot](/public//image.png)
+
 A modern multiplayer business simulator built with **Next.js**, **Convex**, **PixiJS**, and **Bun**. Inspired by the high-stakes economic gameplay of GTA Online, but rendered in a persistent top-down city world.
 
 Players enter a living city where every block is a potential asset. From humble beginnings running delivery jobs to becoming a real estate mogul, the goal is simple: **accumulate as much money and property as possible.**
