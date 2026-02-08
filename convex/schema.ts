@@ -5,6 +5,7 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
+
   players: defineTable({
     userId: v.id("users"),
     name: v.string(),
@@ -28,13 +29,28 @@ export default defineSchema({
     name: v.string(),
     price: v.number(),
     income: v.number(),
-    ownerId: v.optional(v.id("players")),
     x: v.number(),
     y: v.number(),
     width: v.number(),
     height: v.number(),
-    type: v.string(),
-  }).index("by_owner", ["ownerId"]),
+    category: v.string(), // "residential" | "commercial" | "service" | "shop"
+    subType: v.string(), // "house" | "duplex" | "bank" | "food_shop" | etc.
+    zoneId: v.string(), // "downtown" | "suburbs" | "industrial" | etc.
+    maxOwners: v.number(), // 0 = not ownable (service buildings)
+  })
+    .index("by_zone", ["zoneId"])
+    .index("by_category", ["category"]),
+
+  propertyOwnership: defineTable({
+    propertyId: v.id("properties"),
+    playerId: v.id("players"),
+    level: v.number(), // upgrade level (1 = base)
+    purchasedAt: v.number(),
+    lastCollectedAt: v.number(), // last income collection timestamp
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_player", ["playerId"])
+    .index("by_player_property", ["playerId", "propertyId"]),
 
   jobs: defineTable({
     type: v.string(),
@@ -56,9 +72,8 @@ export default defineSchema({
     .index("by_player", ["playerId"])
     .index("by_player_status", ["playerId", "status"]),
 
-  // World configuration — stores server-authoritative time settings
   worldConfig: defineTable({
     key: v.string(),
-    value: v.string(), // JSON-encoded value
+    value: v.string(),
   }).index("by_key", ["key"]),
 });

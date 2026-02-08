@@ -1,6 +1,5 @@
 // convex/gameConstants.ts
-// These must stay in sync between backend (initCity) and frontend (WorldGrid)
-export const MAP_SIZE = 2000;
+export const MAP_SIZE = 4000;
 export const TILE_SIZE = 50;
 export const ROAD_SPACING = 250;
 export const ROAD_WIDTH = 48;
@@ -9,6 +8,9 @@ export const ROAD_CORRIDOR = ROAD_WIDTH + SIDEWALK_W * 2; // 68
 export const HALF_CORRIDOR = ROAD_CORRIDOR / 2; // 34
 export const BUILDING_PAD = 20; // min gap from road edge to building
 export const SELL_RATE = 0.7;
+
+/** Income collection cooldown — once per game day (20 real minutes) */
+export const INCOME_COOLDOWN_MS = 20 * 60 * 1000;
 
 /** Compute the walkable block edges along one axis */
 export function getBlockEdges(
@@ -60,7 +62,7 @@ export function getCityBlocks(mapSize: number) {
   return blocks;
 }
 
-/** Find spawn point on the first intersection (safe road position) */
+/** Spawn point — center of downtown at a road intersection */
 export function getSpawnPoint() {
-  return { x: ROAD_SPACING, y: ROAD_SPACING }; // center of first intersection
+  return { x: 2000, y: 2000 };
 }

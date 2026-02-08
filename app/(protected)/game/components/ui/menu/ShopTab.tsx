@@ -5,7 +5,7 @@ import { useFood } from "@game/hooks/use-food";
 import { usePlayer } from "@game/hooks/use-player";
 import { FOOD_LIST } from "@/convex/foodConfig";
 import { cn } from "@/lib/utils";
-import { ShoppingCart, UtensilsCrossed } from "lucide-react";
+import { ShoppingCart, UtensilsCrossed, Store, MapPin } from "lucide-react";
 
 export function ShopTab() {
   const { buyFood } = useFood();
@@ -75,14 +75,64 @@ export function ShopTab() {
         </div>
       </div>
 
-      {/* Placeholder for future shop categories */}
+      {/* Shops info section */}
       <div className="border-t pt-6">
-        <div className="text-center py-8 text-muted-foreground">
-          <span className="text-3xl block mb-3">🏗️</span>
-          <p className="text-sm font-medium">More items coming soon</p>
-          <p className="text-xs mt-1">
-            Tools, vehicles, and supplies will be available here.
-          </p>
+        <div className="flex items-center gap-2 mb-4">
+          <Store className="size-4 text-purple-500" />
+          <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            In-World Shops
+          </h4>
+        </div>
+
+        <div className="space-y-3">
+          <div className="p-4 rounded-xl border bg-card/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🍔</span>
+              <div>
+                <span className="font-bold text-sm">Food Shops</span>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <MapPin className="size-2.5" />
+                  <span>Downtown, Beach & Boardwalk</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Visit food shops in the world for discounted prices. Own one to
+              earn passive income!
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl border bg-card/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🔧</span>
+              <div>
+                <span className="font-bold text-sm">Supply Stores</span>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <MapPin className="size-2.5" />
+                  <span>Suburbs, Industrial District</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Purchase tools and supplies for jobs. Coming soon!
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl border bg-card/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">👕</span>
+              <div>
+                <span className="font-bold text-sm">Clothing Stores</span>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <MapPin className="size-2.5" />
+                  <span>Downtown, Beach & Boardwalk</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Customize your character with new outfits. Coming soon!
+            </p>
+          </div>
         </div>
       </div>
     </div>

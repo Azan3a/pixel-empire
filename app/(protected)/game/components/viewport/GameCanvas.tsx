@@ -14,6 +14,10 @@ import { getSpawnPoint } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
+import {
+  //  getZoneAt,
+  ZONES,
+} from "@/convex/mapZones";
 
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
@@ -26,7 +30,6 @@ import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import Loading from "../ui/Loading";
-import { usePreventZoom } from "@/hooks/use-prevent-zoom";
 
 extend({ Container, Graphics, Sprite, Text });
 
@@ -40,7 +43,16 @@ export function GameCanvas() {
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
 
   const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
-  const { properties, initCity, buyProperty, sellProperty } = useWorld();
+  const {
+    properties,
+    initCity,
+    buyProperty,
+    sellProperty,
+    // collectIncome,
+    getPlayerZone,
+    // ownedCount,
+    // totalIncomePerCycle,
+  } = useWorld();
   const { activeJob } = useJobs();
   const gameTime = useGameTime();
 
@@ -60,7 +72,12 @@ export function GameCanvas() {
     hunger,
   });
 
-  usePreventZoom();
+  // Current zone for the player
+  const currentZone = useMemo(
+    () => getPlayerZone(renderPos.x, renderPos.y),
+    [getPlayerZone, renderPos.x, renderPos.y],
+  );
+  const currentZoneName = ZONES[currentZone].name;
 
   useEffect(() => {
     initPlayer().then((p) => {
@@ -138,15 +155,10 @@ export function GameCanvas() {
     .filter((p) => p._id !== me._id)
     .map((p) => ({ _id: p._id, x: p.x, y: p.y, name: p.name }));
 
-  const isSelectedOwner =
-    selectedProperty?.ownerId !== undefined &&
-    me !== null &&
-    selectedProperty.ownerId === me._id;
-
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden relative touch-none" // <-- add touch-none here
+      className="h-full w-full overflow-hidden relative"
       style={{ backgroundColor: bgHex }}
     >
       {hunger < 15 && (
@@ -167,6 +179,15 @@ export function GameCanvas() {
           </p>
         </div>
       )}
+
+      {/* Zone indicator */}
+      <div className="absolute top-20 left-4 z-30 pointer-events-none">
+        <div className="px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-sm border border-white/10 shadow-lg">
+          <span className="text-xs font-bold text-foreground/80">
+            📍 {currentZoneName}
+          </span>
+        </div>
+      </div>
 
       <div className="absolute top-4 right-4 z-30 pointer-events-none flex flex-col items-end gap-3">
         <FloatingMinimap
@@ -199,7 +220,6 @@ export function GameCanvas() {
       <PropertyDialog
         property={selectedProperty}
         playerCash={playerCash}
-        isOwner={isSelectedOwner}
         open={purchaseDialogOpen}
         onOpenChange={setPurchaseDialogOpen}
         onBuy={handleBuyConfirm}
@@ -214,7 +234,6 @@ export function GameCanvas() {
             <PropertyNode
               key={p._id}
               property={p}
-              isOwner={p.ownerId === me._id}
               onInteract={handlePropertyClick}
               sunlightIntensity={sunlightIntensity}
             />

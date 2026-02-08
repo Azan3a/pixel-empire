@@ -1,4 +1,4 @@
-# Plan: Zone-Based Map Expansion with Instanced Ownership
+# [Plan: Zone-Based Map Expansion with Instanced Ownership](https://arena.ai/c/019c3af8-7602-7ba1-b40c-26585a0017c4)
 
 **TL;DR:** Expand the map to 4000×4000 with 6 distinct zones (Downtown, Suburbs, Beach/Boardwalk, Park, Industrial, Forest). Introduce instanced property ownership so multiple players can own the same building independently — each player gets their own income stream and upgrade path. Add new building types: shops (food, supplies, tools, clothing), bank, casino, police station — where bank/police/casino are public service points and shops are ownable. Replace the current random `initCity` with a zone-based procedural generator. Decompose `WorldGrid.tsx` into terrain layer components.
 

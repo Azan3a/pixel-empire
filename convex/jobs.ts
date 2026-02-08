@@ -4,6 +4,7 @@ import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ROAD_SPACING, MAP_SIZE, HALF_CORRIDOR } from "./gameConstants";
 import { HUNGER_PER_DELIVERY } from "./foodConfig";
+import { getZoneAt, WATER_LINE_Y, type ZoneId } from "./mapZones";
 
 // ── Helpers ──
 
@@ -12,6 +13,8 @@ function getIntersections(): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = [];
   for (let x = ROAD_SPACING; x < MAP_SIZE; x += ROAD_SPACING) {
     for (let y = ROAD_SPACING; y < MAP_SIZE; y += ROAD_SPACING) {
+      // Skip points in ocean
+      if (y > WATER_LINE_Y) continue;
       points.push({ x, y });
     }
   }
@@ -24,6 +27,7 @@ function getRoadPoints(): { x: number; y: number }[] {
 
   // Points along horizontal roads
   for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
+    if (ry > WATER_LINE_Y) continue;
     for (let px = 80; px < MAP_SIZE; px += 120) {
       points.push({ x: px, y: ry + HALF_CORRIDOR + 8 });
       points.push({ x: px, y: ry - HALF_CORRIDOR - 8 });
@@ -33,6 +37,7 @@ function getRoadPoints(): { x: number; y: number }[] {
   // Points along vertical roads
   for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
     for (let py = 80; py < MAP_SIZE; py += 120) {
+      if (py > WATER_LINE_Y) continue;
       points.push({ x: rx + HALF_CORRIDOR + 8, y: py });
       points.push({ x: rx - HALF_CORRIDOR - 8, y: py });
     }
@@ -49,66 +54,163 @@ function hashCoord(x: number, y: number, seed: number): number {
   return Math.abs((x * 7919 + y * 104729 + seed * 31) % 10000);
 }
 
-/** Generate a landmark name from coordinates */
-function getLandmarkName(x: number, y: number): string {
-  const prefixes = [
+/** Zone-aware landmark name prefixes */
+const ZONE_PREFIXES: Record<ZoneId, string[]> = {
+  downtown: [
+    "Downtown",
+    "Central",
+    "Midtown",
+    "Metro",
+    "City",
+    "Main St",
+    "Tower",
+    "Grand",
+  ],
+  suburbs: [
     "North",
     "South",
     "East",
     "West",
-    "Central",
-    "Old",
-    "New",
-    "Upper",
-    "Lower",
-    "Downtown",
-  ];
-  const places = [
-    "Market",
-    "Plaza",
-    "Square",
-    "Corner",
-    "Station",
-    "Depot",
-    "Warehouse",
-    "Terminal",
-    "Hub",
+    "Maple",
+    "Oak",
+    "Pine",
+    "Elm",
+    "Cedar",
+    "Birch",
+  ],
+  industrial: [
+    "Factory",
     "Dock",
-    "Port",
-    "Block",
-    "Junction",
-    "Exchange",
-    "Point",
-    "Gate",
+    "Freight",
+    "Iron",
+    "Steel",
+    "Harbor",
+    "Rail",
     "Yard",
-    "Landing",
-  ];
+  ],
+  forest: [
+    "Trail",
+    "Ridge",
+    "Creek",
+    "Hollow",
+    "Timber",
+    "Pine",
+    "Fern",
+    "Moss",
+  ],
+  park: [
+    "Garden",
+    "Pond",
+    "Meadow",
+    "Fountain",
+    "Bench",
+    "Grove",
+    "Lawn",
+    "Hill",
+  ],
+  beach: ["Shore", "Pier", "Boardwalk", "Surf", "Tide", "Sand", "Cove", "Wave"],
+};
+
+const PLACES = [
+  "Market",
+  "Plaza",
+  "Square",
+  "Corner",
+  "Station",
+  "Depot",
+  "Warehouse",
+  "Terminal",
+  "Hub",
+  "Dock",
+  "Port",
+  "Block",
+  "Junction",
+  "Exchange",
+  "Point",
+  "Gate",
+  "Yard",
+  "Landing",
+];
+
+/** Generate a zone-aware landmark name from coordinates */
+function getLandmarkName(x: number, y: number): string {
+  const zoneId = getZoneAt(x, y);
+  const prefixes = ZONE_PREFIXES[zoneId];
 
   const h = hashCoord(x, y, 42);
   const prefix = prefixes[h % prefixes.length];
-  const place = places[(h >> 4) % places.length];
+  const place = PLACES[(h >> 4) % PLACES.length];
   return `${prefix} ${place}`;
 }
 
-/** Generate a job title */
-function getJobTitle(seed: number): string {
-  const titles = [
-    "Rush Delivery",
+/** Zone-aware job titles */
+const ZONE_JOB_TITLES: Record<ZoneId, string[]> = {
+  downtown: [
+    "Express Courier",
     "Priority Package",
-    "Express Parcel",
-    "Fragile Goods",
-    "Urgent Documents",
-    "Medical Supplies",
-    "Food Delivery",
-    "Electronics Shipment",
-    "Antique Transport",
-    "Special Cargo",
-    "Overnight Express",
+    "VIP Documents",
+    "Office Supplies",
+    "Catering Order",
+    "Legal Papers",
+  ],
+  suburbs: [
+    "Home Delivery",
+    "Grocery Run",
+    "Furniture Pickup",
+    "Mail Package",
+    "Garden Supplies",
+    "School Supplies",
+  ],
+  industrial: [
     "Bulk Freight",
-    "VIP Package",
-    "Confidential Docs",
     "Parts Delivery",
-  ];
+    "Equipment Haul",
+    "Scrap Metal Run",
+    "Chemical Transport",
+    "Tool Shipment",
+  ],
+  forest: [
+    "Ranger Supplies",
+    "Trail Provisions",
+    "Wildlife Package",
+    "Campsite Delivery",
+    "Firewood Bundle",
+  ],
+  park: [
+    "Park Supplies",
+    "Event Catering",
+    "Maintenance Gear",
+    "Festival Setup",
+    "Gardening Tools",
+  ],
+  beach: [
+    "Beach Supplies",
+    "Surfboard Delivery",
+    "Pier Goods",
+    "Seafood Express",
+    "Boardwalk Restock",
+  ],
+};
+
+const FALLBACK_TITLES = [
+  "Rush Delivery",
+  "Priority Package",
+  "Express Parcel",
+  "Fragile Goods",
+  "Urgent Documents",
+  "Medical Supplies",
+  "Food Delivery",
+  "Electronics Shipment",
+  "Antique Transport",
+  "Special Cargo",
+  "Overnight Express",
+  "Confidential Docs",
+];
+
+/** Generate a job title based on pickup zone */
+function getJobTitle(seed: number, pickupX: number, pickupY: number): string {
+  const zoneId = getZoneAt(pickupX, pickupY);
+  const titles = ZONE_JOB_TITLES[zoneId] ?? FALLBACK_TITLES;
   return titles[seed % titles.length];
 }
 
@@ -118,7 +220,7 @@ function dist(x1: number, y1: number, x2: number, y2: number): number {
 }
 
 // ── Interaction radius ──
-const PICKUP_RADIUS = 60; // server-side generous radius
+const PICKUP_RADIUS = 60;
 
 // ── Queries ──
 
@@ -144,7 +246,6 @@ export const getActiveJob = query({
       .unique();
     if (!player) return null;
 
-    // Check "accepted" first
     const accepted = await ctx.db
       .query("jobs")
       .withIndex("by_player_status", (q) =>
@@ -153,7 +254,6 @@ export const getActiveJob = query({
       .first();
     if (accepted) return accepted;
 
-    // Check "picked_up"
     const pickedUp = await ctx.db
       .query("jobs")
       .withIndex("by_player_status", (q) =>
@@ -174,13 +274,12 @@ export const spawnJobs = mutation({
       .withIndex("by_status", (q) => q.eq("status", "available"))
       .take(20);
 
-    if (available.length >= 5) return; // enough jobs exist
+    if (available.length >= 5) return;
 
     const roadPoints = getRoadPoints();
     const toSpawn = 8 - available.length;
 
     for (let i = 0; i < toSpawn; i++) {
-      // Pick two distinct random points
       const pickupIdx = Math.floor(Math.random() * roadPoints.length);
       let dropoffIdx = Math.floor(Math.random() * roadPoints.length);
 
@@ -193,8 +292,8 @@ export const spawnJobs = mutation({
             roadPoints[pickupIdx].y,
             roadPoints[dropoffIdx].x,
             roadPoints[dropoffIdx].y,
-          ) < 200) &&
-        attempts < 20
+          ) < 300) &&
+        attempts < 30
       ) {
         dropoffIdx = Math.floor(Math.random() * roadPoints.length);
         attempts++;
@@ -203,11 +302,17 @@ export const spawnJobs = mutation({
       const pickup = roadPoints[pickupIdx];
       const dropoff = roadPoints[dropoffIdx];
 
-      // Reward scales with distance
+      // Reward scales with distance — tuned for larger 4000px map
       const distance = dist(pickup.x, pickup.y, dropoff.x, dropoff.y);
-      const baseReward = 30 + Math.round(distance * 0.15);
-      const variance = Math.floor(Math.random() * 30) - 10; // -10 to +20
-      const reward = Math.max(25, baseReward + variance);
+      const baseReward = 30 + Math.round(distance * 0.12);
+
+      // Cross-zone bonus: reward bump if pickup and dropoff are in different zones
+      const pickupZone = getZoneAt(pickup.x, pickup.y);
+      const dropoffZone = getZoneAt(dropoff.x, dropoff.y);
+      const crossZoneBonus = pickupZone !== dropoffZone ? 20 : 0;
+
+      const variance = Math.floor(Math.random() * 30) - 10;
+      const reward = Math.max(25, baseReward + crossZoneBonus + variance);
 
       const seed = hashCoord(pickup.x, pickup.y, i + Date.now());
 
@@ -222,7 +327,7 @@ export const spawnJobs = mutation({
         dropoffY: dropoff.y,
         pickupName: getLandmarkName(pickup.x, pickup.y),
         dropoffName: getLandmarkName(dropoff.x, dropoff.y),
-        title: getJobTitle(seed),
+        title: getJobTitle(seed, pickup.x, pickup.y),
         acceptedAt: undefined,
         pickedUpAt: undefined,
         completedAt: undefined,
@@ -243,7 +348,6 @@ export const acceptJob = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
-    // Hunger check
     const hunger = player.hunger ?? 100;
     if (hunger < 10) {
       throw new Error(
@@ -251,7 +355,6 @@ export const acceptJob = mutation({
       );
     }
 
-    // Check no active job
     const existingAccepted = await ctx.db
       .query("jobs")
       .withIndex("by_player_status", (q) =>
@@ -303,7 +406,6 @@ export const pickupParcel = mutation({
     if (job.playerId !== player._id) throw new Error("This isn't your job");
     if (job.status !== "accepted") throw new Error("Job not in pickup state");
 
-    // Server-side proximity check
     const d = dist(player.x, player.y, job.pickupX, job.pickupY);
     if (d > PICKUP_RADIUS) {
       throw new Error("You're too far from the pickup location");
@@ -336,12 +438,11 @@ export const deliverParcel = mutation({
     if (job.status !== "picked_up")
       throw new Error("You haven't picked up the parcel yet");
 
-    const d = Math.sqrt(
-      (player.x - job.dropoffX) ** 2 + (player.y - job.dropoffY) ** 2,
-    );
-    if (d > 60) throw new Error("You're too far from the delivery location");
+    const d = dist(player.x, player.y, job.dropoffX, job.dropoffY);
+    if (d > PICKUP_RADIUS) {
+      throw new Error("You're too far from the delivery location");
+    }
 
-    // Complete job, pay reward, deduct hunger
     const hunger = player.hunger ?? 100;
     const newHunger = Math.max(0, hunger - HUNGER_PER_DELIVERY);
 
@@ -382,7 +483,6 @@ export const cancelJob = mutation({
       throw new Error("Job can't be cancelled");
     }
 
-    // Reset the job back to available so someone else can take it
     await ctx.db.patch(args.jobId, {
       status: "available",
       playerId: undefined,

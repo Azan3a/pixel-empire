@@ -3,7 +3,8 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "./foodConfig";
-import { getSpawnPoint } from "./gameConstants";
+import { getSpawnPoint, MAP_SIZE } from "./gameConstants";
+import { WATER_LINE_Y } from "./mapZones";
 
 export const getOrCreatePlayer = mutation({
   args: {},
@@ -17,10 +18,26 @@ export const getOrCreatePlayer = mutation({
       .unique();
 
     if (existingPlayer) {
-      // Backfill hunger fields for existing players
       const patches: Record<string, number> = { lastSeen: Date.now() };
       if (existingPlayer.hunger === undefined) patches.hunger = MAX_HUNGER;
       if (existingPlayer.walkDistance === undefined) patches.walkDistance = 0;
+
+      // Migrate players stuck outside new map boundaries
+      let needsReposition = false;
+      if (
+        existingPlayer.x < 0 ||
+        existingPlayer.x > MAP_SIZE ||
+        existingPlayer.y < 0 ||
+        existingPlayer.y > WATER_LINE_Y
+      ) {
+        needsReposition = true;
+      }
+
+      if (needsReposition) {
+        const spawn = getSpawnPoint();
+        patches.x = spawn.x;
+        patches.y = spawn.y;
+      }
 
       await ctx.db.patch(existingPlayer._id, patches);
       return {
@@ -28,6 +45,7 @@ export const getOrCreatePlayer = mutation({
         hunger: existingPlayer.hunger ?? MAX_HUNGER,
         walkDistance: existingPlayer.walkDistance ?? 0,
         lastSeen: Date.now(),
+        ...(needsReposition ? { x: patches.x, y: patches.y } : {}),
       };
     }
 
@@ -56,6 +74,13 @@ export const getOrCreatePlayer = mutation({
       quantity: 5,
     });
 
+    // Give new players a starter apple
+    await ctx.db.insert("inventory", {
+      playerId,
+      item: "apple",
+      quantity: 2,
+    });
+
     return await ctx.db.get(playerId);
   },
 });
@@ -72,9 +97,13 @@ export const updatePosition = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
+    // ── Clamp position to valid world bounds ──
+    const clampedX = Math.max(0, Math.min(MAP_SIZE, args.x));
+    const clampedY = Math.max(0, Math.min(WATER_LINE_Y, args.y));
+
     // ── Calculate distance moved ──
-    const dx = args.x - player.x;
-    const dy = args.y - player.y;
+    const dx = clampedX - player.x;
+    const dy = clampedY - player.y;
     const distMoved = Math.sqrt(dx * dx + dy * dy);
 
     // ── Hunger decay from walking ──
@@ -87,8 +116,8 @@ export const updatePosition = mutation({
     }
 
     await ctx.db.patch(player._id, {
-      x: args.x,
-      y: args.y,
+      x: clampedX,
+      y: clampedY,
       lastSeen: Date.now(),
       hunger,
       walkDistance: walkDist,
@@ -137,6 +166,12 @@ export const getPlayerInfo = query({
       .withIndex("by_player", (q) => q.eq("playerId", player._id))
       .collect();
 
+    // Count owned properties
+    const ownerships = await ctx.db
+      .query("propertyOwnership")
+      .withIndex("by_player", (q) => q.eq("playerId", player._id))
+      .collect();
+
     return {
       ...player,
       hunger: player.hunger ?? MAX_HUNGER,
@@ -144,6 +179,7 @@ export const getPlayerInfo = query({
       inventory,
       rank,
       total,
+      ownedPropertyCount: ownerships.length,
     };
   },
 });

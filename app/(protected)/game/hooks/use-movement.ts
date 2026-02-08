@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Property } from "@game/types/property";
 import { MAP_SIZE } from "@/convex/gameConstants";
 import { HUNGER_SLOW_THRESHOLD } from "@/convex/foodConfig";
+import { getZoneAt, ZONES, WATER_LINE_Y } from "@/convex/mapZones";
 
 const BASE_SPEED = 5;
 const SYNC_INTERVAL = 100;
@@ -61,13 +62,21 @@ export function useMovement({
   // Movement tick
   useEffect(() => {
     const interval = setInterval(() => {
-      // ── Speed scales with hunger ──
+      // ── Hunger speed scaling ──
       const h = hungerRef.current;
-      const speedMultiplier =
+      const hungerMultiplier =
         h < HUNGER_SLOW_THRESHOLD
-          ? 0.5 + (h / HUNGER_SLOW_THRESHOLD) * 0.5 // 0.5 at 0, 1.0 at threshold
+          ? 0.5 + (h / HUNGER_SLOW_THRESHOLD) * 0.5
           : 1.0;
-      const speed = Math.max(1, Math.round(BASE_SPEED * speedMultiplier));
+
+      // ── Zone-based speed scaling ──
+      const currentZoneId = getZoneAt(localPos.current.x, localPos.current.y);
+      const zoneMultiplier = ZONES[currentZoneId].speedMultiplier;
+
+      const speed = Math.max(
+        1,
+        Math.round(BASE_SPEED * hungerMultiplier * zoneMultiplier),
+      );
 
       let dx = 0;
       let dy = 0;
@@ -86,10 +95,21 @@ export function useMovement({
         dy = Math.round(dy * factor);
       }
 
-      const newX = localPos.current.x + dx;
-      const newY = localPos.current.y + dy;
+      let newX = localPos.current.x + dx;
+      let newY = localPos.current.y + dy;
 
+      // ── Map boundaries ──
+      newX = Math.max(0, Math.min(MAP_SIZE, newX));
+      newY = Math.max(0, Math.min(MAP_SIZE, newY));
+
+      // ── Ocean boundary — can't walk into water ──
       const halfSize = PLAYER_HITBOX / 2;
+      const playerBottom = newY + halfSize;
+      if (playerBottom > WATER_LINE_Y) {
+        newY = WATER_LINE_Y - halfSize;
+      }
+
+      // ── Building collision (AABB) ──
       const pLeft = newX - halfSize;
       const pTop = newY - halfSize;
 
@@ -103,8 +123,8 @@ export function useMovement({
 
       if (collides) return;
 
-      localPos.current.x = Math.max(0, Math.min(MAP_SIZE, newX));
-      localPos.current.y = Math.max(0, Math.min(MAP_SIZE, newY));
+      localPos.current.x = newX;
+      localPos.current.y = newY;
 
       setRenderPos({ x: localPos.current.x, y: localPos.current.y });
 

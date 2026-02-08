@@ -9,8 +9,11 @@ import {
   Sunrise,
   Sunset,
   Cloud,
+  Building2,
+  TrendingUp,
 } from "lucide-react";
 import { usePlayer } from "@game/hooks/use-player";
+import { useWorld } from "@game/hooks/use-world";
 import { useGameTime } from "@game/hooks/use-game-time";
 import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +34,7 @@ const phaseIcons: Record<TimePhase, React.ReactNode> = {
 
 export function Header() {
   const { playerInfo: player } = usePlayer();
+  const { ownedCount, totalIncomePerCycle, collectIncome } = useWorld();
   const { formatted, phase } = useGameTime();
 
   if (!player) return null;
@@ -74,6 +78,30 @@ export function Header() {
       </div>
 
       <Separator orientation="vertical" className="h-6" />
+
+      {/* Properties + Income */}
+      {ownedCount > 0 && (
+        <>
+          <button
+            onClick={() => collectIncome()}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-colors pointer-events-auto",
+              "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400",
+              "hover:bg-blue-100 dark:hover:bg-blue-950/50 active:scale-95",
+            )}
+            title="Click to collect income from your properties"
+          >
+            <Building2 className="h-3.5 w-3.5" />
+            <span className="font-bold text-xs tabular-nums">{ownedCount}</span>
+            <TrendingUp className="h-3 w-3 opacity-60" />
+            <span className="font-mono text-[10px] opacity-70">
+              +${totalIncomePerCycle}
+            </span>
+          </button>
+
+          <Separator orientation="vertical" className="h-6" />
+        </>
+      )}
 
       {/* Hunger bar */}
       <div className="flex items-center gap-4 px-2">

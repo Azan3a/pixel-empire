@@ -14,9 +14,10 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 
 ### City & World
 
-- **Procedural City Grid** — Roads with lane markings, sidewalks, crosswalks, and intersections generated from shared constants between server and client.
-- **Smart Building Placement** — Properties spawn inside city blocks between road corridors, never overlapping roads or sidewalks.
-- **Decorative Environment** — Trees, street lights, grass textures, and road details bring the city to life.
+- **Expanded Game World** — A massive 4000×4000 map featuring 6 distinct zones: Downtown, Suburbs, Industrial District, Forest, Central Park, and Beach/Boardwalk.
+- **Zone-Based Procedural Generation** — Each district has unique terrain, building styles, property values, and road layouts.
+- **Smart Building Placement** — Properties spawn inside city blocks, respecting zone boundaries and avoiding water/ocean areas.
+- **Decorative Environment** — Zone-specific details like dense forests, sandy beaches, park paths, and street lights.
 - **Server-Side Collision** — AABB collision detection prevents players from walking through buildings.
 
 ### Player & Movement
@@ -43,9 +44,10 @@ The long-term vision for Pixel Empire is a fully player-driven economy. We aim t
 
 ### Economy & Property
 
-- **Real Estate Market** — Purchase commercial and residential properties with varied sizes and prices.
-- **Building Variety** — Houses, duplexes, apartments, corner stores, offices, and malls with visual details (windows, doors, chimneys, AC units, awnings).
-- **Passive Income** — Owned properties generate income scaled to building size.
+- **Instanced Property Ownership** — Multiple players can own the same building independently (GTA Online style), allowing everyone to build their own empire without property scarcity.
+- **Diverse Property Types** — Buy Houses, Apartments, Malls, Warehouses, Factories, and Retail Shops.
+- **Service Buildings** — Public landmarks like the Bank, Casino, Police Station, and Ranger Station anchor the world.
+- **Income Collection** — Return to your properties to collect accumulated earnings (once per game-day).
 - **Manual Labor Fallback** — Click-based $50 work job available as a guaranteed low-pay income source.
 
 ### UI & HUD
@@ -130,6 +132,9 @@ pixel-empire/
 ### ✅ Completed
 
 - [x] Persistent player movement with real-time multiplayer sync
+- [x] Zone-based Map Expansion (Downtown, Suburbs, Beach, Forest, etc.)
+- [x] Instanced Property Ownership System
+- [x] New Building Types (Shops, Services, Industrial)
 - [x] Procedural city generation with roads, sidewalks, and intersections
 - [x] Smart building placement inside city blocks (no road overlap)
 - [x] Detailed building graphics (windows, doors, chimneys, awnings)
@@ -148,7 +153,6 @@ pixel-empire/
 
 ### 🔜 Next Up
 
-- [ ] **Passive Income Collection** — Periodic cash drip from owned properties (Convex cron job)
 - [ ] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout
 - [ ] **Sound Effects** — Pickup/delivery chimes, walking footsteps, purchase confirmation
 - [ ] **Mobile Controls** — On-screen joystick and touch interaction buttons

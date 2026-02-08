@@ -15,6 +15,7 @@ import type * as foodConfig from "../foodConfig.js";
 import type * as gameConstants from "../gameConstants.js";
 import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
+import type * as mapZones from "../mapZones.js";
 import type * as players from "../players.js";
 import type * as time from "../time.js";
 import type * as timeConstants from "../timeConstants.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   gameConstants: typeof gameConstants;
   http: typeof http;
   jobs: typeof jobs;
+  mapZones: typeof mapZones;
   players: typeof players;
   time: typeof time;
   timeConstants: typeof timeConstants;

@@ -5,11 +5,17 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
+import { Job } from "@game/types/job";
+import { getZoneAt, ZONES } from "@/convex/mapZones";
 
 export function useJobs() {
-  const availableJobs = useQuery(api.jobs.getAvailableJobs) ?? [];
-  const activeJob = useQuery(api.jobs.getActiveJob) ?? null;
+  const rawAvailableJobs = useQuery(api.jobs.getAvailableJobs);
+  const availableJobs = useMemo(
+    () => (rawAvailableJobs ?? []) as Job[],
+    [rawAvailableJobs],
+  );
+  const activeJob = (useQuery(api.jobs.getActiveJob) ?? null) as Job | null;
 
   const acceptJobMutation = useMutation(api.jobs.acceptJob);
   const pickupParcelMutation = useMutation(api.jobs.pickupParcel);
@@ -25,7 +31,6 @@ export function useJobs() {
       spawnJobsMutation()
         .catch(() => {}) // silent — idempotent
         .finally(() => {
-          // Allow re-spawn after 30 seconds
           setTimeout(() => {
             hasSpawned.current = false;
           }, 30000);
@@ -83,9 +88,44 @@ export function useJobs() {
     }
   };
 
+  /** Get zone info for the active job's current target */
+  const activeJobZoneInfo = useMemo(() => {
+    if (!activeJob) return null;
+
+    const pickupZoneId = getZoneAt(activeJob.pickupX, activeJob.pickupY);
+    const dropoffZoneId = getZoneAt(activeJob.dropoffX, activeJob.dropoffY);
+
+    return {
+      pickupZone: ZONES[pickupZoneId],
+      dropoffZone: ZONES[dropoffZoneId],
+      isCrossZone: pickupZoneId !== dropoffZoneId,
+    };
+  }, [activeJob]);
+
+  /** Enrich available jobs with zone data */
+  const enrichedJobs = useMemo(() => {
+    return availableJobs.map((job) => {
+      const pickupZoneId = getZoneAt(job.pickupX, job.pickupY);
+      const dropoffZoneId = getZoneAt(job.dropoffX, job.dropoffY);
+      const distance = Math.sqrt(
+        (job.dropoffX - job.pickupX) ** 2 + (job.dropoffY - job.pickupY) ** 2,
+      );
+
+      return {
+        ...job,
+        pickupZone: ZONES[pickupZoneId],
+        dropoffZone: ZONES[dropoffZoneId],
+        isCrossZone: pickupZoneId !== dropoffZoneId,
+        distance,
+      };
+    });
+  }, [availableJobs]);
+
   return {
     availableJobs,
+    enrichedJobs,
     activeJob,
+    activeJobZoneInfo,
     acceptJob,
     pickupParcel,
     deliverParcel,

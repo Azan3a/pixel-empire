@@ -1,5 +1,10 @@
 // types/property.ts
 import { Id } from "@/convex/_generated/dataModel";
+import type {
+  PropertyCategory,
+  PropertySubType,
+  ZoneId,
+} from "@/convex/mapZones";
 
 export interface Property {
   _id: Id<"properties">;
@@ -7,10 +12,16 @@ export interface Property {
   name: string;
   price: number;
   income: number;
-  ownerId?: Id<"players">;
   x: number;
   y: number;
   width: number;
   height: number;
-  type: string; // "residential", "commercial", "industrial"
+  category: PropertyCategory;
+  subType: PropertySubType;
+  zoneId: ZoneId;
+  maxOwners: number;
+  /** Whether the current player owns this property (from joined query) */
+  isOwned: boolean;
+  /** Total number of players who own this property */
+  ownerCount: number;
 }

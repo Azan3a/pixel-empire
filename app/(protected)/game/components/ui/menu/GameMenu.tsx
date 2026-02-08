@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   X,
   Menu,
+  Building2,
 } from "lucide-react";
 
 import {
@@ -38,11 +39,13 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@game/hooks/use-player";
+import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { InventoryTab } from "./InventoryTab";
 import { ShopTab } from "./ShopTab";
 import { JobsTab } from "./JobsTab";
+import { PropertiesTab } from "./PropertiesTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
 import { ControlsTab } from "./ControlsTabs";
@@ -67,6 +70,13 @@ const NAV_ITEMS = [
     name: "Jobs",
     icon: Briefcase,
     shortcut: "J",
+    group: "gameplay",
+  },
+  {
+    id: "properties",
+    name: "Properties",
+    icon: Building2,
+    shortcut: "P",
     group: "gameplay",
   },
   {
@@ -99,6 +109,7 @@ export function GameMenu() {
   const [activeNav, setActiveNav] = React.useState<NavId>("inventory");
 
   const { playerInfo, leaderboard } = usePlayer();
+  const { ownedCount, totalIncomePerCycle } = useWorld();
   const { activeJob } = useJobs();
 
   // Keyboard shortcuts
@@ -126,6 +137,10 @@ export function GameMenu() {
         case "j":
           setOpen(true);
           setActiveNav("jobs");
+          break;
+        case "p":
+          setOpen(true);
+          setActiveNav("properties");
           break;
         case "r":
           setOpen(true);
@@ -166,7 +181,7 @@ export function GameMenu() {
         >
           <DialogTitle className="sr-only">Game Menu</DialogTitle>
           <DialogDescription className="sr-only">
-            Manage your inventory, jobs, rankings, and more.
+            Manage your inventory, jobs, properties, rankings, and more.
           </DialogDescription>
 
           <SidebarProvider className="items-start">
@@ -192,6 +207,11 @@ export function GameMenu() {
                             )}
                             {item.id === "shop" && isLowHunger && (
                               <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+                            )}
+                            {item.id === "properties" && ownedCount > 0 && (
+                              <span className="text-[10px] font-mono text-muted-foreground/70 tabular-nums">
+                                {ownedCount}
+                              </span>
                             )}
                             <kbd className="ml-auto text-[10px] font-mono text-muted-foreground/50">
                               {item.shortcut}
@@ -268,6 +288,14 @@ export function GameMenu() {
                         <span>•</span>
                         <span className="font-mono">{hunger}% hunger</span>
                       </div>
+                      {ownedCount > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] text-blue-500/70 mt-0.5">
+                          <Building2 className="size-2.5" />
+                          <span>
+                            {ownedCount} owned · +${totalIncomePerCycle}/cycle
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -318,6 +346,7 @@ export function GameMenu() {
                 )}
                 {activeNav === "shop" && <ShopTab />}
                 {activeNav === "jobs" && <JobsTab />}
+                {activeNav === "properties" && <PropertiesTab />}
                 {activeNav === "rankings" && (
                   <RankingsTab
                     leaderboard={leaderboard}

@@ -1,9 +1,11 @@
+// components/game/ui/DeliveryHUD.tsx
 "use client";
 
 import { useJobs } from "@game/hooks/use-jobs";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getZoneAt, ZONES } from "@/convex/mapZones";
 
 interface DeliveryHUDProps {
   playerX: number;
@@ -11,6 +13,14 @@ interface DeliveryHUDProps {
 }
 
 const CLIENT_INTERACT_RADIUS = 40;
+
+/** Format distance for the larger 4000px map */
+function formatDistance(d: number): string {
+  if (d >= 1000) {
+    return `${(d / 1000).toFixed(1)}k`;
+  }
+  return `${Math.round(d)}`;
+}
 
 export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
   const { activeJob, pickupParcel, deliverParcel } = useJobs();
@@ -33,6 +43,23 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
     targetX !== undefined && targetY !== undefined
       ? Math.atan2(targetY - playerY, targetX - playerX)
       : 0;
+
+  // Zone info for the target location
+  const targetZone = useMemo(() => {
+    if (targetX === undefined || targetY === undefined) return null;
+    const zoneId = getZoneAt(targetX, targetY);
+    return ZONES[zoneId];
+  }, [targetX, targetY]);
+
+  // Cross-zone indicator
+  const playerZone = useMemo(
+    () => getZoneAt(playerX, playerY),
+    [playerX, playerY],
+  );
+  const isCrossZone = useMemo(() => {
+    if (targetX === undefined || targetY === undefined) return false;
+    return getZoneAt(targetX, targetY) !== playerZone;
+  }, [targetX, targetY, playerZone]);
 
   const handleInteract = useCallback(() => {
     if (!activeJob || !isNear) return;
@@ -87,14 +114,37 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
               </span>
             </div>
             <span className="text-sm font-bold text-white">{targetName}</span>
+            {/* Zone tag */}
+            {targetZone && (
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[10px] text-white/40">
+                  📍 {targetZone.name}
+                </span>
+                {isCrossZone && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    CROSS-ZONE
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Distance */}
           <div className="flex flex-col items-end ml-4">
             <span className="text-lg font-mono font-black text-white">
-              {Math.round(distance)}
+              {formatDistance(distance)}
             </span>
-            <span className="text-[10px] text-white/50 uppercase">units</span>
+            <span className="text-[10px] text-white/50 uppercase">
+              {distance >= 1000 ? "k units" : "units"}
+            </span>
+          </div>
+
+          {/* Reward */}
+          <div className="flex flex-col items-end ml-2 pl-3 border-l border-white/10">
+            <span className="text-sm font-mono font-bold text-emerald-400">
+              +${activeJob.reward}
+            </span>
+            <span className="text-[10px] text-white/40">reward</span>
           </div>
         </div>
 

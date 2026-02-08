@@ -3,12 +3,15 @@
 
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { FoodType } from "@/convex/foodConfig";
+import { FoodType, FOOD_ITEMS } from "@/convex/foodConfig";
 import { toast } from "sonner";
+import { useCallback, useMemo } from "react";
+import { usePlayer } from "./use-player";
 
 export function useFood() {
   const buyFoodMutation = useMutation(api.food.buyFood);
   const consumeFoodMutation = useMutation(api.food.consumeFood);
+  const { playerInfo, getItemQuantity } = usePlayer();
 
   const buyFood = async (foodType: FoodType) => {
     try {
@@ -40,5 +43,37 @@ export function useFood() {
     }
   };
 
-  return { buyFood, consumeFood };
+  /** Check if the player can afford a given food type */
+  const canAfford = useCallback(
+    (foodType: FoodType): boolean => {
+      if (!playerInfo) return false;
+      const food = FOOD_ITEMS[foodType];
+      return (playerInfo.cash ?? 0) >= food.price;
+    },
+    [playerInfo],
+  );
+
+  /** Check how many of a food type the player has in inventory */
+  const foodCount = useCallback(
+    (foodType: FoodType): number => {
+      return getItemQuantity(foodType);
+    },
+    [getItemQuantity],
+  );
+
+  /** Summary of food in inventory */
+  const foodInventory = useMemo(() => {
+    return (Object.keys(FOOD_ITEMS) as FoodType[]).map((key) => ({
+      ...FOOD_ITEMS[key],
+      quantity: getItemQuantity(key),
+    }));
+  }, [getItemQuantity]);
+
+  return {
+    buyFood,
+    consumeFood,
+    canAfford,
+    foodCount,
+    foodInventory,
+  };
 }

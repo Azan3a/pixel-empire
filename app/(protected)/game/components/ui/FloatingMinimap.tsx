@@ -1,3 +1,4 @@
+// components/game/ui/FloatingMinimap.tsx
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
@@ -9,7 +10,16 @@ import {
   ROAD_WIDTH,
   SIDEWALK_W,
 } from "@/convex/gameConstants";
-
+import {
+  ZONES,
+  ZONE_VISUALS,
+  WATER_LINE_Y,
+  BOARDWALK_Y,
+  BOARDWALK_HEIGHT,
+  getZoneAt,
+  getZoneList,
+} from "@/convex/mapZones";
+import { hexToStr } from "@/lib/utils";
 interface MinimapPlayer {
   _id: string;
   x: number;
@@ -31,6 +41,14 @@ const MINIMAP_SIZE = 240;
 const SCALE = MINIMAP_SIZE / MAP_SIZE;
 const HALF_ROAD = ROAD_WIDTH / 2;
 const FULL_SW = HALF_ROAD + SIDEWALK_W;
+
+// Minimap category colors
+const CATEGORY_COLORS: Record<string, { owned: string; unowned: string }> = {
+  residential: { owned: "#f97316", unowned: "rgba(249,115,22,0.5)" },
+  commercial: { owned: "#3b82f6", unowned: "rgba(59,130,246,0.5)" },
+  shop: { owned: "#a855f7", unowned: "rgba(168,85,247,0.5)" },
+  service: { owned: "#d4a017", unowned: "#d4a01780" },
+};
 
 export function FloatingMinimap({
   playerX,
@@ -65,27 +83,71 @@ export function FloatingMinimap({
 
     ctx.clearRect(0, 0, w, h);
 
-    // Background (grass)
-    ctx.fillStyle = "#3a5a3a";
-    ctx.fillRect(0, 0, w, h);
+    // ── Zone-colored background ──
+    const zoneBlockPx = 20; // resolution in minimap pixels
+    // const zoneBlockWorld = zoneBlockPx / SCALE;
+    for (let bx = 0; bx < w; bx += zoneBlockPx) {
+      for (let by = 0; by < h; by += zoneBlockPx) {
+        const worldX = (bx + zoneBlockPx / 2) / SCALE;
+        const worldY = (by + zoneBlockPx / 2) / SCALE;
+        const zoneId = getZoneAt(worldX, worldY);
+        const vis = ZONE_VISUALS[zoneId];
+        ctx.fillStyle = hexToStr(vis.grassColor);
+        ctx.fillRect(bx, by, zoneBlockPx, zoneBlockPx);
+      }
+    }
 
-    // Roads
+    // ── Beach sand ──
+    const beachBounds = ZONES.beach.bounds;
+    const sandTopPx = beachBounds.y1 * SCALE;
+    const waterLinePx = WATER_LINE_Y * SCALE;
+    ctx.fillStyle = "#d4b483";
+    ctx.fillRect(0, sandTopPx, w, waterLinePx - sandTopPx);
+
+    // ── Boardwalk ──
+    const bwTopPx = (BOARDWALK_Y - BOARDWALK_HEIGHT / 2) * SCALE;
+    const bwHPx = BOARDWALK_HEIGHT * SCALE;
+    ctx.fillStyle = "#8b6b4a";
+    ctx.fillRect(0, bwTopPx, w, bwHPx);
+
+    // ── Ocean ──
+    ctx.fillStyle = "#1a6b8a";
+    ctx.fillRect(0, waterLinePx, w, h - waterLinePx);
+
+    // ── Park pond ──
+    const parkBounds = ZONES.park.bounds;
+    const parkCX = ((parkBounds.x1 + parkBounds.x2) / 2) * SCALE;
+    const parkCY = ((parkBounds.y1 + parkBounds.y2) / 2) * SCALE;
+    const pondX = parkCX + 120 * SCALE;
+    const pondY = parkCY - 100 * SCALE;
+    ctx.beginPath();
+    ctx.ellipse(pondX, pondY, 80 * SCALE, 50 * SCALE, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(58, 138, 170, 0.5)";
+    ctx.fill();
+
+    // ── Roads ──
     ctx.fillStyle = "#555555";
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
+      if (ry - FULL_SW > WATER_LINE_Y) continue;
       const y = (ry - FULL_SW) * SCALE;
-      const roadH = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
-      ctx.fillRect(0, y, w, roadH);
+      const roadH = Math.min(
+        (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+        waterLinePx - y,
+      );
+      if (roadH > 0) ctx.fillRect(0, y, w, roadH);
     }
     for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
       const x = (rx - FULL_SW) * SCALE;
       const roadW = (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE;
-      ctx.fillRect(x, 0, roadW, h);
+      const roadH = Math.min(h, waterLinePx);
+      ctx.fillRect(x, 0, roadW, roadH);
     }
 
-    // Road center lines
+    // ── Road center lines ──
     ctx.strokeStyle = "#777777";
     ctx.lineWidth = 0.5;
     for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
+      if (ry > WATER_LINE_Y) continue;
       ctx.beginPath();
       ctx.moveTo(0, ry * SCALE);
       ctx.lineTo(w, ry * SCALE);
@@ -94,14 +156,15 @@ export function FloatingMinimap({
     for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
       ctx.beginPath();
       ctx.moveTo(rx * SCALE, 0);
-      ctx.lineTo(rx * SCALE, h);
+      ctx.lineTo(rx * SCALE, Math.min(h, waterLinePx));
       ctx.stroke();
     }
 
-    // Intersections
+    // ── Intersections ──
     ctx.fillStyle = "#666666";
     for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
       for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
+        if (iy > WATER_LINE_Y) continue;
         const x = (ix - HALF_ROAD) * SCALE;
         const y = (iy - HALF_ROAD) * SCALE;
         const s = ROAD_WIDTH * SCALE;
@@ -109,18 +172,17 @@ export function FloatingMinimap({
       }
     }
 
-    // Properties
+    // ── Properties ──
     for (const prop of properties) {
       const px = prop.x * SCALE;
       const py = prop.y * SCALE;
       const pw = Math.max(2, prop.width * SCALE);
       const ph = Math.max(2, prop.height * SCALE);
 
-      if (prop.type === "commercial") {
-        ctx.fillStyle = prop.ownerId ? "#3b82f6" : "#60a5fa80";
-      } else {
-        ctx.fillStyle = prop.ownerId ? "#f97316" : "#f9731680";
-      }
+      const colors =
+        CATEGORY_COLORS[prop.category] ?? CATEGORY_COLORS.commercial;
+
+      ctx.fillStyle = prop.isOwned ? colors.owned : colors.unowned;
       ctx.fillRect(px, py, pw, ph);
 
       ctx.strokeStyle = "#00000040";
@@ -128,7 +190,24 @@ export function FloatingMinimap({
       ctx.strokeRect(px, py, pw, ph);
     }
 
-    // Delivery markers
+    // ── Zone boundary lines ──
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = "#ffffff18";
+    ctx.lineWidth = 1;
+    const zoneList = getZoneList();
+    for (const zone of zoneList) {
+      if (zone.id === "suburbs") continue; // suburbs is the fallback, no boundary
+      const b = zone.bounds;
+      ctx.strokeRect(
+        b.x1 * SCALE,
+        b.y1 * SCALE,
+        (b.x2 - b.x1) * SCALE,
+        (b.y2 - b.y1) * SCALE,
+      );
+    }
+    ctx.setLineDash([]);
+
+    // ── Delivery markers ──
     if (activeJob) {
       const pulse = Math.sin(pulseRef.current) * 0.5 + 0.5;
       const markerSize = 3 + pulse * 2;
@@ -168,6 +247,7 @@ export function FloatingMinimap({
       ctx.lineWidth = isDropoffActive ? 1 : 0.5;
       ctx.stroke();
 
+      // Route line
       if (activeJob.status === "accepted") {
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = "#ffffff30";
@@ -180,7 +260,7 @@ export function FloatingMinimap({
       }
     }
 
-    // Other players
+    // ── Other players ──
     for (const p of otherPlayers) {
       ctx.beginPath();
       ctx.arc(p.x * SCALE, p.y * SCALE, 2.5, 0, Math.PI * 2);
@@ -191,7 +271,7 @@ export function FloatingMinimap({
       ctx.stroke();
     }
 
-    // Local player
+    // ── Local player ──
     const lpx = playerX * SCALE;
     const lpy = playerY * SCALE;
     ctx.beginPath();
@@ -206,7 +286,7 @@ export function FloatingMinimap({
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Viewport rectangle
+    // ── Viewport rectangle ──
     const vpX = (playerX - viewportWidth / 2) * SCALE;
     const vpY = (playerY - viewportHeight / 2) * SCALE;
     const vpW = viewportWidth * SCALE;
@@ -240,12 +320,21 @@ export function FloatingMinimap({
     ctx.lineTo(vpX + vpW, vpY + vpH - tick);
     ctx.stroke();
 
-    // Border
+    // ── Border ──
     ctx.strokeStyle = "#ffffff15";
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 0, w, h);
 
-    // Coordinates
+    // ── Zone label at player position ──
+    const currentZone = getZoneAt(playerX, playerY);
+    const zoneName = ZONES[currentZone].name;
+
+    ctx.fillStyle = "#ffffffcc";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(zoneName, 4, 11);
+
+    // ── Coordinates ──
     ctx.fillStyle = "#ffffff90";
     ctx.font = "bold 9px monospace";
     ctx.textAlign = "right";
@@ -281,7 +370,6 @@ export function FloatingMinimap({
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1">
-      {/* Canvas */}
       <div className="rounded-sm overflow-hidden border border-white/10 shadow-2xl bg-black/30 backdrop-blur-sm">
         <canvas ref={canvasRef} style={{ imageRendering: "pixelated" }} />
       </div>
