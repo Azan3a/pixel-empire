@@ -39,13 +39,23 @@ export const buyFood = mutation({
     const food = FOOD_ITEMS[args.foodType as FoodType];
     if (!food) throw new ConvexError("Unknown food type");
 
-    if (player.cash < food.price) {
-      throw new ConvexError(`Not enough cash. Need $${food.price}`);
+    // Check if player owns this shop for 50% discount
+    const ownership = await ctx.db
+      .query("propertyOwnership")
+      .withIndex("by_player_property", (q) =>
+        q.eq("playerId", player._id).eq("propertyId", args.shopPropertyId),
+      )
+      .unique();
+
+    const price = ownership ? Math.floor(food.price * 0.5) : food.price;
+
+    if (player.cash < price) {
+      throw new ConvexError(`Not enough cash. Need $${price}`);
     }
 
     // Deduct cash
     await ctx.db.patch(player._id, {
-      cash: player.cash - food.price,
+      cash: player.cash - price,
     });
 
     // Add to inventory (or increment quantity)
@@ -70,7 +80,7 @@ export const buyFood = mutation({
     return {
       food: food.name,
       emoji: food.emoji,
-      newCash: player.cash - food.price,
+      newCash: player.cash - price,
     };
   },
 });

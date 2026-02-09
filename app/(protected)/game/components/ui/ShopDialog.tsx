@@ -25,6 +25,7 @@ import {
   Users,
   Building2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ShopDialogProps {
   property: Property | null;
@@ -67,16 +68,19 @@ const SHOP_CONFIG = {
 function FoodShopContent({
   playerCash,
   shopPropertyId,
+  isOwned,
 }: {
   playerCash: number;
   shopPropertyId: Id<"properties">;
+  isOwned: boolean;
 }) {
   const { buyFood } = useFood();
 
   return (
     <div className="grid grid-cols-1 gap-3">
       {FOOD_LIST.map((food) => {
-        const canAfford = playerCash >= food.price;
+        const price = isOwned ? Math.floor(food.price * 0.5) : food.price;
+        const canAfford = playerCash >= price;
 
         return (
           <div
@@ -98,7 +102,7 @@ function FoodShopContent({
               </div>
             </div>
 
-            <button
+            <Button
               onClick={() => buyFood(food.key, shopPropertyId)}
               disabled={!canAfford}
               className={cn(
@@ -109,8 +113,10 @@ function FoodShopContent({
               )}
             >
               <ShoppingCart className="size-3.5" />
-              <span className="font-mono">${food.price}</span>
-            </button>
+              <div className="flex flex-col items-end">
+                <span className="font-mono">${price}</span>
+              </div>
+            </Button>
           </div>
         );
       })}
@@ -265,6 +271,7 @@ export function ShopDialog({
               <FoodShopContent
                 playerCash={playerCash}
                 shopPropertyId={property._id}
+                isOwned={!!property.isOwned}
               />
             )}
             {property.subType === "supply_store" && (
