@@ -2,15 +2,14 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Property } from "@game/types/property";
 import {
   DollarSign,
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SELL_RATE } from "@/convex/gameConstants";
+import { Button } from "@/components/ui/button";
 import { ZONES } from "@/convex/mapZones";
 import type { PropertyCategory, ZoneId } from "@/convex/mapZones";
 
@@ -83,10 +83,10 @@ export function PropertyDialog({
   const zoneDef = ZONES[property.zoneId];
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}  >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             {CATEGORY_ICONS[property.category]}
             {property.name}
             {isOwned && (
@@ -99,9 +99,9 @@ export function PropertyDialog({
                 Public
               </span>
             )}
-          </AlertDialogTitle>
+          </DialogTitle>
 
-          <AlertDialogDescription asChild>
+          <DialogDescription asChild>
             <div className="space-y-4">
               {/* Property details */}
               <div className="grid grid-cols-2 gap-3 pt-2">
@@ -244,22 +244,24 @@ export function PropertyDialog({
                 </div>
               )}
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>{isOwned ? "Keep" : "Cancel"}</AlertDialogCancel>
+        <DialogFooter>
+          <DialogClose>
+            <Button variant={"outline"}>{isOwned ? "Keep" : "Cancel"}</Button>
+          </DialogClose>
 
           {isService ? null : isOwned ? (
-            <AlertDialogAction
+            <Button
               onClick={onSell}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               <TrendingDown className="size-4 mr-1" />
               Sell for ${sellPrice.toLocaleString()}
-            </AlertDialogAction>
+            </Button>
           ) : (
-            <AlertDialogAction
+            <Button
               onClick={onBuy}
               disabled={!canAfford || isFull}
               className={cn(
@@ -274,10 +276,10 @@ export function PropertyDialog({
                 : canAfford
                   ? `Buy for $${property.price.toLocaleString()}`
                   : "Can't Afford"}
-            </AlertDialogAction>
+            </Button>
           )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
