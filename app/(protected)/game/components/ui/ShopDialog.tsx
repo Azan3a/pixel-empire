@@ -166,6 +166,11 @@ function PropertySection({
               +${property.income}/cycle
             </span>
           </div>
+          {isOwned && property.totalEarned !== undefined && (
+            <div className="text-[10px] font-bold text-emerald-600/80 mt-0.5">
+              Total Earned: ${property.totalEarned.toLocaleString()}
+            </div>
+          )}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Users className="size-3" />
             <span>

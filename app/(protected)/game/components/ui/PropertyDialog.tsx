@@ -148,6 +148,18 @@ export function PropertyDialog({
                         +${property.income.toLocaleString()}/cycle
                       </span>
                     </div>
+
+                    {isOwned && property.totalEarned !== undefined && (
+                      <div className="flex flex-col gap-1 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70">
+                          Total Earned
+                        </span>
+                        <span className="text-sm font-bold text-emerald-600 flex items-center gap-1">
+                          <DollarSign className="size-3.5" />
+                          {property.totalEarned.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>

@@ -10,6 +10,7 @@
 
 import type * as CustomPassword from "../CustomPassword.js";
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as food from "../food.js";
 import type * as foodConfig from "../foodConfig.js";
 import type * as gameConstants from "../gameConstants.js";
@@ -31,6 +32,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   CustomPassword: typeof CustomPassword;
   auth: typeof auth;
+  crons: typeof crons;
   food: typeof food;
   foodConfig: typeof foodConfig;
   gameConstants: typeof gameConstants;

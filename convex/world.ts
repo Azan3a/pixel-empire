@@ -147,7 +147,7 @@ export const getProperties = query({
 
     // Get current user's ownership info
     const userId = await getAuthUserId(ctx);
-    let playerOwnedSet: Set<string> = new Set();
+    const playerOwnershipMap: Map<string, number> = new Map();
     const ownerCountMap: Map<string, number> = new Map();
 
     // Build owner counts for all properties
@@ -167,16 +167,17 @@ export const getProperties = query({
           .query("propertyOwnership")
           .withIndex("by_player", (q) => q.eq("playerId", player._id))
           .collect();
-        playerOwnedSet = new Set(
-          myOwnership.map((o) => o.propertyId as string),
-        );
+        for (const o of myOwnership) {
+          playerOwnershipMap.set(o.propertyId as string, o.totalEarned ?? 0);
+        }
       }
     }
 
     return properties.map((p) => ({
       ...p,
-      isOwned: playerOwnedSet.has(p._id as string),
+      isOwned: playerOwnershipMap.has(p._id as string),
       ownerCount: ownerCountMap.get(p._id as string) ?? 0,
+      totalEarned: playerOwnershipMap.get(p._id as string),
     }));
   },
 });
@@ -244,6 +245,7 @@ export const buyProperty = mutation({
       level: 1,
       purchasedAt: now,
       lastCollectedAt: now,
+      totalEarned: 0,
     });
   },
 });
@@ -328,6 +330,7 @@ export async function processIncomeCollection(
     // Update last collected time (snap to cycle boundaries to avoid drift)
     await ctx.db.patch(ownership._id, {
       lastCollectedAt: ownership.lastCollectedAt + cycles * INCOME_COOLDOWN_MS,
+      totalEarned: (ownership.totalEarned ?? 0) + earned,
     });
   }
 

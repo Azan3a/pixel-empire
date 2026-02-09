@@ -24,4 +24,6 @@ export interface Property {
   isOwned: boolean;
   /** Total number of players who own this property */
   ownerCount: number;
+  /** Total income earned from this property by the current player */
+  totalEarned?: number;
 }

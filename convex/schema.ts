@@ -48,6 +48,7 @@ export default defineSchema({
     level: v.number(), // upgrade level (1 = base)
     purchasedAt: v.number(),
     lastCollectedAt: v.number(), // last income collection timestamp
+    totalEarned: v.optional(v.number()), // Total income earned from this property
   })
     .index("by_property", ["propertyId"])
     .index("by_player", ["playerId"])
