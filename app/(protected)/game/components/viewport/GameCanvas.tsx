@@ -14,11 +14,6 @@ import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import {
-  //  getZoneAt,
-  ZONES,
-} from "@/convex/mapZones";
-
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/player/PlayerCharacter";
@@ -30,7 +25,6 @@ import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
-import { ZoneIndicator } from "../ui/ZoneIndicator";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -54,7 +48,7 @@ export function GameCanvas() {
     buyProperty,
     sellProperty,
     // collectIncome,
-    getPlayerZone,
+    // getPlayerZone,
     // ownedCount,
     // totalIncomePerCycle,
   } = useWorld();
@@ -82,13 +76,6 @@ export function GameCanvas() {
   useEffect(() => {
     renderPosRef.current = renderPos;
   }, [renderPos]);
-
-  // Current zone for the player
-  const currentZone = useMemo(
-    () => getPlayerZone(renderPos.x, renderPos.y),
-    [getPlayerZone, renderPos.x, renderPos.y],
-  );
-  const currentZoneName = ZONES[currentZone].name;
 
   useEffect(() => {
     initPlayer().then((p) => {
@@ -223,9 +210,6 @@ export function GameCanvas() {
           </p>
         </div>
       )}
-
-      {/* Zone indicator */}
-      <ZoneIndicator zoneName={currentZoneName} />
 
       <div className="absolute top-4 right-4 z-30 pointer-events-none flex flex-col items-end gap-3">
         <FloatingMinimap
