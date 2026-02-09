@@ -30,6 +30,7 @@ import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
+import { ZoneIndicator } from "../ui/ZoneIndicator";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -224,13 +225,7 @@ export function GameCanvas() {
       )}
 
       {/* Zone indicator */}
-      <div className="absolute top-20 left-4 z-30 pointer-events-none">
-        <div className="px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-sm border border-white/10 shadow-lg">
-          <span className="text-xs font-bold text-foreground/80">
-            📍 {currentZoneName}
-          </span>
-        </div>
-      </div>
+      <ZoneIndicator zoneName={currentZoneName} />
 
       <div className="absolute top-4 right-4 z-30 pointer-events-none flex flex-col items-end gap-3">
         <FloatingMinimap
