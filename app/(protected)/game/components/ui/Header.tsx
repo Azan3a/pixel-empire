@@ -31,7 +31,7 @@ export function Header() {
   const isStarving = hunger <= 0;
 
   return (
-    <header className="fixed top-4 left-4 z-50 flex items-center gap-1 p-1 pr-3 h-12 bg-background backdrop-blur-md border rounded-full shadow-2xl">
+    <header className="flex items-center gap-1 p-1 pr-3 h-12 bg-background backdrop-blur-md border rounded-full shadow-2xl pointer-events-auto">
       {/* Avatar + Rank */}
       <div className="flex items-center gap-2 pl-2">
         <UserAvatar />

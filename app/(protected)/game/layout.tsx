@@ -1,4 +1,5 @@
 import { Header } from "@/app/(protected)/game/components/ui/Header";
+import { GameMenu } from "@/app/(protected)/game/components/ui/menu/GameMenu";
 
 export default function Layout({
   children,
@@ -11,9 +12,10 @@ export default function Layout({
       <div className="absolute inset-0 z-0 overflow-hidden">{children}</div>
 
       {/* HUD Overlay - Stays on top but doesn't block mouse on the canvas unless clicking UI */}
-      <div className="pointer-events-none relative z-10 flex h-full w-full flex-col items-center">
-        {/* Top HUD: Floating Stats */}
-        <div className="pointer-events-auto h-20 w-full flex justify-center pt-4">
+      <div className="pointer-events-none absolute inset-0 z-10">
+        {/* Top Left HUD: Menu + Stats */}
+        <div className="flex items-center gap-3 p-4">
+          <GameMenu />
           <Header />
         </div>
       </div>

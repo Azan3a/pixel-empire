@@ -392,13 +392,13 @@ export function GameMenu() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "pointer-events-auto relative size-14 rounded-full shadow-lg",
+          "pointer-events-auto relative size-12 rounded-full shadow-lg",
           "flex items-center justify-center",
           "transition-all duration-200 hover:scale-110 active:scale-95",
           "ring-2 ring-white/10",
           open
-            ? "bg-muted text-foreground ring-primary/30"
-            : "bg-primary text-primary-foreground hover:ring-primary/40",
+            ? " ring-primary/30 bg-primary text-primary-foreground"
+            : "bg-muted text-foreground  hover:ring-primary/40",
         )}
         aria-label={open ? "Close menu" : "Open menu"}
       >

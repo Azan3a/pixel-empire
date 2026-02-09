@@ -22,7 +22,6 @@ import { DayNightOverlay } from "./world/daynight/DayNightOverlay";
 
 import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
-import { GameMenu } from "../ui/menu/GameMenu";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
 import Loading from "../ui/Loading";
@@ -233,10 +232,6 @@ export function GameCanvas() {
           viewportHeight={vh}
         />
         <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
-      </div>
-
-      <div className="absolute bottom-6 left-6 z-40 pointer-events-none flex flex-col items-end">
-        <GameMenu />
       </div>
 
       <PropertyDialog
