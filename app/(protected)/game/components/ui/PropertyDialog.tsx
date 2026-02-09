@@ -84,7 +84,7 @@ export function PropertyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}  >
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {CATEGORY_ICONS[property.category]}
@@ -248,8 +248,10 @@ export function PropertyDialog({
         </DialogHeader>
 
         <DialogFooter>
-          <DialogClose>
-            <Button variant={"outline"}>{isOwned ? "Keep" : "Cancel"}</Button>
+          <DialogClose asChild>
+            <Button variant={"outline"} type="button">
+              {isOwned ? "Keep" : "Cancel"}
+            </Button>
           </DialogClose>
 
           {isService ? null : isOwned ? (
