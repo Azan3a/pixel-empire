@@ -34,6 +34,7 @@ export const CONTROL_MAP = {
   open_properties: { keys: ["p"], action: "Properties", group: "menu" },
   open_rankings: { keys: ["r"], action: "Rankings", group: "menu" },
   open_chat: { keys: ["l"], action: "Chat / Log", group: "menu" },
+  open_profile: { keys: ["k"], action: "Profile", group: "menu" },
   open_controls: { keys: ["h"], action: "Controls", group: "menu" },
   open_food: { keys: ["e"], action: "Food Menu", group: "gameplay" },
 } as const;

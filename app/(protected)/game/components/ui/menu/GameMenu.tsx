@@ -11,6 +11,7 @@ import {
   X,
   Menu,
   Building2,
+  User,
 } from "lucide-react";
 
 import {
@@ -47,6 +48,7 @@ import { PropertiesTab } from "./PropertiesTab";
 import { MapTab } from "./MapTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
+import { ProfileTab } from "./ProfileTab";
 import { ControlsTab } from "./ControlsTabs";
 import { useKeyboard } from "@game/hooks/use-keyboard";
 
@@ -85,6 +87,13 @@ const NAV_ITEMS = [
     icon: BarChart3,
     shortcut: "R",
     group: "gameplay",
+  },
+  {
+    id: "profile",
+    name: "Profile",
+    icon: User,
+    shortcut: "K",
+    group: "social",
   },
   {
     id: "chat",
@@ -163,6 +172,13 @@ export function GameMenu() {
         onKeyDown: () => {
           setOpen(true);
           setActiveNav("chat");
+        },
+      },
+      {
+        controlId: "open_profile",
+        onKeyDown: () => {
+          setOpen(true);
+          setActiveNav("profile");
         },
       },
       {
@@ -381,6 +397,7 @@ export function GameMenu() {
                 {activeNav === "chat" && (
                   <ChatTab playerName={playerInfo.name} />
                 )}
+                {activeNav === "profile" && <ProfileTab />}
                 {activeNav === "controls" && <ControlsTab />}
               </div>
             </main>

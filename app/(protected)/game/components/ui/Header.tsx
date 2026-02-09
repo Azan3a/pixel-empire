@@ -4,7 +4,6 @@
 import { DollarSign, AlertTriangle, Building2, TrendingUp } from "lucide-react";
 import { usePlayer } from "@game/hooks/use-player";
 import { useWorld } from "@game/hooks/use-world";
-import { UserAvatar } from "@/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
@@ -32,21 +31,6 @@ export function Header() {
 
   return (
     <header className="flex items-center gap-1 p-1 pr-3 h-12 bg-background backdrop-blur-md border rounded-full shadow-2xl pointer-events-auto">
-      {/* Avatar + Rank */}
-      <div className="flex items-center gap-2 pl-2">
-        <UserAvatar />
-        <div className="flex flex-col pr-2 gap-0.5">
-          <span className="text-[10px] font-bold text-muted-foreground leading-none">
-            RANK
-          </span>
-          <span className="text-xs font-bold leading-none">
-            #{player.rank}/{player.total}
-          </span>
-        </div>
-      </div>
-
-      <Separator orientation="vertical" className="h-6" />
-
       {/* Cash */}
       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400">
         <DollarSign className="h-3.5 w-3.5" />
