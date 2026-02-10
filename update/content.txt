@@ -1,0 +1,297 @@
+I now have a comprehensive understanding of the entire codebase. Here's the full report:
+
+---
+
+# Comprehensive Map Architecture & Expansion Report
+
+## 1. Current Architecture Summary
+
+### Key Files & Data Flow
+
+| Layer | File(s) | Role |
+|-------|---------|------|
+| **Map Data** | [convex/mapZones.ts](convex/mapZones.ts) | Zone definitions (bounds, speed, visuals), building templates, service buildings, zone resolver |
+| **Constants** | [convex/gameConstants.ts](convex/gameConstants.ts) | `MAP_SIZE=4000`, road spacing/width, block edge calc, spawn point |
+| **Schema** | [convex/schema.ts](convex/schema.ts) | DB tables: `players`, `properties`, `propertyOwnership`, `inventory`, `jobs`, `worldConfig` |
+| **World Gen** | [convex/world.ts](convex/world.ts) | `initCity` mutation (procedural building placement), buy/sell/income mutations |
+| **Players** | [convex/players.ts](convex/players.ts) | Player CRUD, position updates with hunger decay, auto-income on move |
+| **Jobs** | [convex/jobs.ts](convex/jobs.ts) | Delivery job spawning (road-based points), accept/pickup/deliver flow |
+| **Food** | [convex/food.ts](convex/food.ts) | Buy/consume food at proximity-validated shops |
+| **Time** | [convex/time.ts](convex/time.ts) + [convex/timeConstants.ts](convex/timeConstants.ts) | 20-min game day cycle, ambient lighting calc |
+| **Crons** | [convex/crons.ts](convex/crons.ts) | Stale job cleanup (5min), job spawning (2min) |
+| **Rendering** | [WorldGrid.tsx](app/(protected)/game/components/viewport/world/WorldGrid.tsx) | Single PixiJS `<pixiGraphics>` composing 6 draw functions |
+| **Canvas** | [GameCanvas.tsx](app/(protected)/game/components/viewport/GameCanvas.tsx) | Main game view: camera, property nodes, players, delivery markers, day/night |
+| **Movement** | [use-movement.ts](app/(protected)/game/hooks/use-movement.ts) | Client-side tick (16ms), zone speed multiplier, AABB collision, ocean boundary |
+
+### Data Flow
+
+```
+convex/mapZones.ts  ──defines──→  ZONES, BUILDING_TEMPLATES, SERVICE_BUILDINGS
+         │                                    │
+         ▼                                    ▼
+convex/world.ts (initCity)  ──generates──→  DB: properties table
+         │                                    │
+         ▼                                    ▼
+use-world.ts (queries)  ──feeds──→  GameCanvas.tsx  ──renders──→  PropertyNode[]
+         │                              │
+         ▼                              ▼
+use-movement.ts  ──reads zones for──→  speed multiplier + collision
+```
+
+---
+
+## 2. Current Zone System (6 Zones)
+
+Defined in [convex/mapZones.ts](convex/mapZones.ts) on a **4000×4000** map:
+
+| Zone | Bounds | Roads | Speed | Skip% | Description |
+|------|--------|-------|-------|-------|-------------|
+| **Downtown** | (1216,1250)→(2750,2750) | Yes | 1.0× | 10% | Dense urban core |
+| **Suburbs** | (0,0)→(4000,4000) fallback | Yes | 1.0× | 35% | Default everywhere else |
+| **Industrial** | (0,0)→(1250,1284) | Yes | 1.0× | 25% | Warehouses/factories |
+| **Park** | (0,1284)→(1216,2716) | No | 0.9× | 100% | No buildings, decorative |
+| **Forest** | (2784,0)→(4000,1216) | No | 0.7× | 85% | Dense trees, sparse buildings |
+| **Beach** | (0,3550)→(4000,4000) | No | 0.8× | 50% | Sand + boardwalk, ocean at y=3750 |
+
+Zone priority: `downtown > industrial > forest > park > beach > suburbs`  
+Resolution: `getZoneAt(x, y)` checks bounds in priority order; suburbs is fallback.
+
+---
+
+## 3. Procedural Generation (`initCity`)
+
+In [convex/world.ts lines 37-131](convex/world.ts#L37-L131):
+
+1. **Block grid**: `getCityBlocks(4000)` creates rectangular blocks between road grid lines (`ROAD_SPACING=250`, corridors of 68px)
+2. **Seeded RNG**: `seededRandom(42)` — deterministic layout
+3. **Per-block logic**:
+   - Determine zone via `getBlockZone()` (center-point sampling)
+   - Skip block by `zone.skipChance` probability
+   - Skip if overlapping ocean (`y + h > WATER_LINE_Y=3750`)
+   - Pick a random `BuildingTemplate` from `getTemplatesForZone(zoneId)` (zone affinity match)
+   - Size = `template.sizeFactor × jitter` of usable block area, with random offset
+   - Insert into `properties` table with adjusted price/income by area ratio
+4. **Service buildings**: 4 fixed-position buildings (Bank, Casino, Police HQ, Ranger Station) placed if no overlap
+
+**Building templates** (12 total): 3 residential, 5 commercial, 3 shop types — each with `zoneAffinity` restricting where they spawn.
+
+---
+
+## 4. Rendering Architecture
+
+### WorldGrid
+
+[WorldGrid.tsx](app/(protected)/game/components/viewport/world/WorldGrid.tsx) — A single memoized `<pixiGraphics>` component calling 6 draw functions in sequence:
+
+1. **`drawZoneTerrain`** — [drawZoneTerrain.ts](app/(protected)/game/components/viewport/world/drawing/drawZoneTerrain.ts): Adaptive quadtree subdivision at zone boundaries (50px blocks, down to 10px). Fills each rect with `ZONE_VISUALS[zone].grassColor`, then overlays subtle grid texture lines.
+
+2. **`drawBeachAndWater`** — [drawBeachAndWater.ts](app/(protected)/game/components/viewport/world/drawing/drawBeachAndWater.ts): Sand gradient, boardwalk (plank lines), ocean fill, wave lines, shore foam.
+
+3. **`drawParkFeatures`** — [drawParkFeatures.ts](app/(protected)/game/components/viewport/world/drawing/drawParkFeatures.ts): Circular paths, central fountain, 4 flower beds, benches, 2 ponds with lily pads.
+
+4. **`drawRoads`** — [drawRoads.ts](app/(protected)/game/components/viewport/world/drawing/drawRoads.ts): Horizontal/vertical roads with sidewalks, asphalt, lane lines, center dashes, crosswalks at intersections. Only draws in zones with `hasRoads=true`.
+
+5. **`drawTrees`** — [drawTrees.ts](app/(protected)/game/components/viewport/world/drawing/drawTrees.ts): Poisson-like placement per block using hash-based positions, spatial grid for min spacing (28px), avoids roads/park features. Tree count/size per zone from `ZONE_VISUALS`.
+
+6. **`drawMapBorder`** — [drawMapBorder.ts](app/(protected)/game/components/viewport/world/drawing/drawMapBorder.ts): Subtle white border around 4000×4000.
+
+### Buildings
+
+[PropertyNode.tsx](app/(protected)/game/components/viewport/world/PropertyNode.tsx) — Per-building PixiJS component:
+- Resolves color palette by category/subType via [buildingPalettes.ts](app/(protected)/game/components/viewport/world/property/buildingPalettes.ts)
+- Draws base → windows → door/accessories → border via modular functions in `property/base/`, `property/windows/`, `property/doors/`
+- Shows label with name, price, owner count via [PropertyLabel.tsx](app/(protected)/game/components/viewport/world/property/PropertyLabel.tsx)
+- Responds to day/night via `sunlightIntensity`
+
+### Day/Night
+
+Located in `daynight/` directory with:
+- `DayNightOverlay.tsx` — full-map ambient overlay
+- `drawAmbientOverlay.ts`, `drawBoardwalkLights.ts`, `drawForestFireflies.ts`, `drawIntersectionLights.ts`, `drawOceanEffects.ts`, `drawParkLamps.ts`
+
+### Camera & Players
+
+[GameCanvas.tsx](app/(protected)/game/components/viewport/GameCanvas.tsx) — Centers camera on `renderPos`, renders all in a single `<pixiContainer>` with offset `(vw/2 - playerX, vh/2 - playerY)`. **No viewport culling** — draws everything on the 4000×4000 map regardless of visibility.
+
+---
+
+## 5. Movement & Collision
+
+[use-movement.ts](app/(protected)/game/hooks/use-movement.ts):
+- **Tick**: 16ms interval
+- **Speed**: `BASE_SPEED(5) × hungerMultiplier × zoneMultiplier`
+- **Zone speed**: Read via `getZoneAt()` → `ZONES[zone].speedMultiplier`
+- **Boundaries**: Clamped to `[0, MAP_SIZE]`, ocean barrier at `WATER_LINE_Y`
+- **Building collision**: AABB check against all `properties` (40px player hitbox)
+- **Sync**: Position sent to server every 100ms
+
+---
+
+## 6. Files Referencing Zone/Map Data
+
+**Server (`convex/`):**
+- [mapZones.ts](convex/mapZones.ts) — Zone definitions (source of truth)
+- [gameConstants.ts](convex/gameConstants.ts) — MAP_SIZE, road grid, blocks
+- [world.ts](convex/world.ts) — `getBlockZone`, `getTemplatesForZone`, `SERVICE_BUILDINGS`, `WATER_LINE_Y`
+- [jobs.ts](convex/jobs.ts) — `getZoneAt`, `WATER_LINE_Y`, zone-aware job names/titles
+- [players.ts](convex/players.ts) — `MAP_SIZE`, `WATER_LINE_Y`, `getSpawnPoint`
+- [food.ts](convex/food.ts) — `SHOP_INTERACT_RADIUS`
+
+**Client hooks:**
+- [use-movement.ts](app/(protected)/game/hooks/use-movement.ts) — `getZoneAt`, `ZONES`, `WATER_LINE_Y`, `MAP_SIZE`
+- [use-world.ts](app/(protected)/game/hooks/use-world.ts) — `getZoneAt`, `ZONES`, `ZoneId`
+- [use-jobs.ts](app/(protected)/game/hooks/use-jobs.ts) — `getZoneAt`, `ZONES`
+
+**Client rendering:**
+- [drawZoneTerrain.ts](app/(protected)/game/components/viewport/world/drawing/drawZoneTerrain.ts) — `ZONE_VISUALS`, `getZoneAt`
+- [drawRoads.ts](app/(protected)/game/components/viewport/world/drawing/drawRoads.ts) — `ZONES`, `getZoneAt`, `WATER_LINE_Y`
+- [drawBeachAndWater.ts](app/(protected)/game/components/viewport/world/drawing/drawBeachAndWater.ts) — `ZONES.beach`, `WATER_LINE_Y`, `BOARDWALK_Y`
+- [drawParkFeatures.ts](app/(protected)/game/components/viewport/world/drawing/drawParkFeatures.ts) — `ZONES.park`, `ZONE_VISUALS.park`
+- [drawTrees.ts](app/(protected)/game/components/viewport/world/drawing/drawTrees.ts) — `ZONE_VISUALS`, `getZoneAt`, `ZONES.park`, `WATER_LINE_Y`
+
+**Client UI:**
+- [FloatingMinimap.tsx](app/(protected)/game/components/ui/FloatingMinimap.tsx) — `ZONES`, `ZONE_VISUALS`, `getZoneAt`, `getZoneList`, `WATER_LINE_Y`, `BOARDWALK_Y`, `MAP_SIZE`, road constants
+- [PropertyDialog.tsx](app/(protected)/game/components/ui/PropertyDialog.tsx) — `ZONES`, `ZoneId`, `PropertyCategory`
+- [ShopDialog.tsx](app/(protected)/game/components/ui/ShopDialog.tsx) — `ZONES`
+- [DeliveryHUD.tsx](app/(protected)/game/components/ui/DeliveryHUD.tsx) — `getZoneAt`, `ZONES`
+- [Header.tsx](app/(protected)/game/components/ui/Header.tsx) — No direct zone imports (uses `useWorld` hook)
+
+**Types:**
+- [property.ts](app/(protected)/game/types/property.ts) — Imports `PropertyCategory`, `PropertySubType`, `ZoneId` from `convex/mapZones`
+- [player.ts](app/(protected)/game/types/player.ts) — No zone imports
+- [job.ts](app/(protected)/game/types/job.ts) — No zone imports
+
+---
+
+## 7. Planned Expansion Summary
+
+### Map Scale Change
+
+**Current**: 4000×4000 rectangular map  
+**New**: ~8000×8000 **island-shaped** map with coastline polygon and surrounding ocean
+
+### New Zone Layout (14 zones + natural features)
+
+| # | Zone | Bounds | Speed | Key New Features |
+|---|------|--------|-------|-----------------|
+| 1 | Forest | 600,600→3400,3000 | 0.65× | Lumber camps, sawmill, harvestable tree clusters (16 clusters, respawn), trails |
+| 2 | Mountains | 2800,400→5600,2200 | 0.5× | Mining sites (8 deposits), quarry, switchback trails, lookouts |
+| 3 | Old Town | 5000,1400→6800,3600 | 1.0× | Cobblestone streets, museum, town hall, antique shops, town square |
+| 4 | Harbor | 6400,2600→7600,4400 | 1.0× | Docks, fish market, lighthouse, pier fishing (6 spots), warehouses |
+| 5 | Downtown | 4000,2800→6400,4800 | 1.0× | Bank Tower, City Hall, Casino, Stock Exchange, Police HQ, malls |
+| 6 | Park | 2000,2600→4200,4400 | 0.9× | Lake (600×400, 4 fishing spots), botanical garden, event lawn, boat rental |
+| 7 | Suburbs | 600,3200→3200,5800 | 1.0× | Named streets (Elm, Maple, Oak, Cedar, Birch), 20 houses, school, church, clinic |
+| 8 | Commercial Strip | 3400,4200→5400,5200 | 1.0× | Connector zone, farmer's market, wholesale depot, 10 shops |
+| 9 | Farmland | 600,5400→3800,7000 | 0.85× | 8 crop plots (rentable), livestock pens, seed store, farmhouse kitchen |
+| 10 | Industrial | 4600,4600→6800,6600 | 1.0× | Sawmill factory, smelter, food processing, textile mill, 12+ crafting chains |
+| 11 | Wetlands | 5600,5800→7400,7200 | 0.6× | Marshland, boardwalk trail, 2 ponds, herb patches, nature center |
+| 12 | Boardwalk/Resort | 7400,2000→8200,4200 | 1.0× | Luxury hotels, casino, arcade pier, promenade |
+| 13 | Beach | 7400,4200→8200,7200 | 0.8× | Sandy strip, beach club, surf shop, shell collecting |
+| 14 | Small Island | 8200,6000→9000,7200 | 0.8× | Boat-access only, lighthouse, secret treasure |
+| — | River | x≈3400-3800 | 0.7× | Flows mountains→harbor, bridges, freshwater fishing |
+| — | Lake | Center 3400,3500 | — | 600×400, boathouse, rowboat rental, 4 fishing spots |
+
+### New Systems
+
+1. **Resource gathering**: Trees (chop → wood), mines (ore, gems), fishing, crop farming, herb foraging, shell collecting
+2. **Crafting chains**: Wood→planks→furniture, ore→ingots→tools, crops→meals, herbs→potions, wool→cloth→clothing, ore→circuits→gadgets
+3. **Physical shops**: Proximity-based buying at specific shop buildings (not a menu)
+4. **Island coastline**: Polygon boundary replacing rectangular map edge; `isOnLand(x, y)` check
+5. **Boat travel**: Required for small island access; cinematic overlay
+
+### Building Count
+
+**Current**: ~100+ procedurally placed + 4 service = variable total  
+**New**: **87 fixed buildings** (33 housing, 26 shops, 28 service) — no procedural generation
+
+---
+
+## 8. Planned File Structure Changes
+
+From [file_strucuture.md](update/designs/file_strucuture.md):
+
+### Server-side
+
+| Current | New |
+|---------|-----|
+| `convex/gameConstants.ts` | `convex/map/constants.ts` |
+| `convex/mapZones.ts` (monolithic) | `convex/map/zones.ts` + `convex/map/zones/*.ts` (14 per-zone files + river + lake) |
+| — | `convex/map/templates/` (buildings, fish, crops, ore, crafting recipes) |
+| — | `convex/map/islands.ts` (coastline polygon) |
+| — | `convex/resources.ts`, `convex/crafting.ts`, `convex/shops.ts` |
+
+### Client-side
+
+| Current | New |
+|---------|-----|
+| `WorldGrid.tsx` (one draw) | `WorldGrid.tsx` (slim orchestrator) → `zones/ZoneLayer.tsx` per-zone renderers |
+| `drawing/` (6 files) | `zones/` (16 zone renderers: Forest, Mountain, OldTown, etc.) |
+| — | `assets/trees/`, `assets/decorations/`, `assets/terrain/`, `assets/resources/` |
+| — | `resources/` (TreeCluster, MineNode, FishingSpot, CropPlot, etc.) |
+| — | `daynight/` expanded with per-zone lighting |
+| — | New hooks: `use-resources`, `use-crafting`, `use-shop`, `use-viewport` |
+| — | New UI: `ResourceHUD`, `ZoneTransition`, `CraftingTab`, `ResourcesTab`, `BoatTravel` |
+
+---
+
+## 9. Migration Path & Dependencies
+
+From the design doc, the 12-step migration:
+
+| Step | Task | Dependencies |
+|------|------|-------------|
+| 1 | Create `convex/map/`, move constants + zones | None — structural refactor |
+| 2 | Create 14 zone data files with fixed building positions | Step 1 |
+| 3 | Create template tables (buildings, fish, crops, ore) | Step 1 |
+| 4 | Rewrite `initCity` to use fixed positions (not procedural) | Steps 2, 3 |
+| 5 | Extract drawing functions into `assets/` | None — can parallel with 1-4 |
+| 6 | Create per-zone renderers | Steps 1, 5 |
+| 7 | Replace WorldGrid internals with ZoneLayer + culling | Step 6 |
+| 8 | Add `use-viewport` for camera bounds & zone visibility | Step 7 |
+| 9 | Add resource node components + `use-resources` | Steps 2, 3, 6 |
+| 10 | Add server mutations: resources, crafting, shops | Steps 2, 3 |
+| 11 | Update schema for resource nodes, crafting, crops | Step 10 |
+| 12 | Add new UI components | Steps 8, 9, 10 |
+
+### Critical Ordering Constraints
+
+- **Steps 1-4** must complete before the map can be tested (server-side data model change)
+- **Step 4 (rewrite initCity)** is the **breaking change** — existing DB properties won't match new layout
+- **Step 7 (WorldGrid rewrite)** must happen after zone renderers exist to avoid blank screen
+- **Step 8 (viewport culling)** is essential for performance on 8000×8000 — without it, PixiJS will try to draw 4× the area
+
+---
+
+## 10. Risks & Blockers
+
+### Critical Risks
+
+1. **Database migration**: The `properties` table is currently procedurally generated. Switching to fixed positions requires either a DB wipe or a migration mutation that deletes old properties and creates new ones. All `propertyOwnership` records become orphaned.
+
+2. **Performance on 8000×8000**: The current renderer draws the entire 4000×4000 map in a single `<pixiGraphics>` pass. Doubling to 8000×8000 is ~4× the draw calls. **Viewport culling is mandatory** — the design doc calls for `ZoneLayer.tsx` + `culling.ts` to only render visible zones.
+
+3. **`drawZoneTerrain` adaptive subdivision**: Currently iterates every 50px block across the whole map (6400 blocks). At 8000×8000 that's 25,600 blocks with recursive subdivision at boundaries between 14 zones. Must switch to per-zone rendering.
+
+4. **`drawTrees` full-map generation**: Currently generates tree placements for the entire map each render cycle (memoized but still computed once). At 8000×8000 with denser forests, this grows significantly.
+
+5. **Road grid assumption**: Current road system is a uniform grid (`ROAD_SPACING=250`). New zones have varied road styles — cobblestone (Old Town, 30px), farm roads (gravel, 36px), no roads (forest/mountains/wetlands). The road drawing system needs a complete overhaul.
+
+6. **Island coastline**: Movement currently uses rectangular bounds (`MAP_SIZE`). The island shape requires polygon-based boundary checking in both server (player position validation in [players.ts](convex/players.ts#L119)) and client (movement in [use-movement.ts](app/(protected)/game/hooks/use-movement.ts#L85)).
+
+7. **Job spawning**: Currently uses `getRoadPoints()` which generates points along a uniform grid. For the new map, delivery points need to be aware of zone-specific roads and walkable paths.
+
+8. **Minimap rewrite**: [FloatingMinimap.tsx](app/(protected)/game/components/ui/FloatingMinimap.tsx) hardcodes the grid-based road drawing, beaches, and ponds. Must be rebuilt for 14 zones + irregular coastline + river + lake.
+
+### Lower Risks
+
+9. **`PropertyDialog`/`ShopDialog` zone icons**: Currently hardcode zone icon mapping for only 6 zones — needs expansion to 14.
+
+10. **Types re-export path**: `ZoneId` union type in [mapZones.ts](convex/mapZones.ts#L6) currently has 6 members. Expanding to 14 requires updating all switch/map statements that use it.
+
+11. **`WATER_LINE_Y` removal**: Currently hardcoded at 3750 as a horizontal line. The new island shape has water all around — this constant becomes the coastline polygon `isOnLand()` check.
+
+12. **Spawn point**: Currently `(2000, 2000)` in downtown. The new downtown is at (4000,2800)→(6400,4800), so spawn point must move.
+
+### Tools Directory
+
+The [tools/](tools/) directory currently contains only a README for a map-splitting script. No other tooling files exist.
