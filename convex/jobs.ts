@@ -7,54 +7,13 @@ import {
   type MutationCtx,
 } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { ROAD_SPACING, MAP_SIZE, HALF_CORRIDOR } from "./gameConstants";
 import { HUNGER_PER_DELIVERY } from "./foodConfig";
-import { getZoneAt, WATER_LINE_Y, type ZoneId } from "./mapZones";
+import { getZoneAt, type ZoneId } from "./map/zones";
+import { getJobSpawnPoints } from "./map/generate/jobPoints";
 
 // ── Helpers ──
 
 const JOB_TIMEOUT = 1000 * 60 * 30; // 30 minutes until a job is considered stale
-
-/** All road intersection centers (safe spawn points on roads) */
-function getIntersections(): { x: number; y: number }[] {
-  const points: { x: number; y: number }[] = [];
-  for (let x = ROAD_SPACING; x < MAP_SIZE; x += ROAD_SPACING) {
-    for (let y = ROAD_SPACING; y < MAP_SIZE; y += ROAD_SPACING) {
-      // Skip points in ocean
-      if (y > WATER_LINE_Y) continue;
-      points.push({ x, y });
-    }
-  }
-  return points;
-}
-
-/** Points along road edges (sidewalk locations) for variety */
-function getRoadPoints(): { x: number; y: number }[] {
-  const points: { x: number; y: number }[] = [];
-
-  // Points along horizontal roads
-  for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
-    if (ry > WATER_LINE_Y) continue;
-    for (let px = 80; px < MAP_SIZE; px += 120) {
-      points.push({ x: px, y: ry + HALF_CORRIDOR + 8 });
-      points.push({ x: px, y: ry - HALF_CORRIDOR - 8 });
-    }
-  }
-
-  // Points along vertical roads
-  for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
-    for (let py = 80; py < MAP_SIZE; py += 120) {
-      if (py > WATER_LINE_Y) continue;
-      points.push({ x: rx + HALF_CORRIDOR + 8, y: py });
-      points.push({ x: rx - HALF_CORRIDOR - 8, y: py });
-    }
-  }
-
-  // Include intersections
-  points.push(...getIntersections());
-
-  return points;
-}
 
 /** Simple hash for deterministic naming */
 function hashCoord(x: number, y: number, seed: number): number {
@@ -116,6 +75,59 @@ const ZONE_PREFIXES: Record<ZoneId, string[]> = {
     "Hill",
   ],
   beach: ["Shore", "Pier", "Boardwalk", "Surf", "Tide", "Sand", "Cove", "Wave"],
+  mountains: [
+    "Summit",
+    "Peak",
+    "Ridge",
+    "Cliff",
+    "Boulder",
+    "Alpine",
+    "Stone",
+    "Crest",
+  ],
+  oldtown: [
+    "Old",
+    "Heritage",
+    "Clock",
+    "Market",
+    "Cobble",
+    "Brick",
+    "Chapel",
+    "Square",
+  ],
+  harbor: ["Port", "Wharf", "Dock", "Anchor", "Pier", "Quay", "Marina", "Bay"],
+  commercial: [
+    "Trade",
+    "Market",
+    "Strip",
+    "Mall",
+    "Plaza",
+    "Outlet",
+    "Shop",
+    "Retail",
+  ],
+  farmland: [
+    "Farm",
+    "Barn",
+    "Field",
+    "Harvest",
+    "Meadow",
+    "Pasture",
+    "Ranch",
+    "Mill",
+  ],
+  wetlands: ["Marsh", "Swamp", "Reed", "Bog", "Mire", "Fern", "Heron", "Lily"],
+  boardwalk: [
+    "Promenade",
+    "Resort",
+    "Luxury",
+    "Casino",
+    "Grand",
+    "Seaside",
+    "Riviera",
+    "Vista",
+  ],
+  smallisland: ["Island", "Cove", "Lagoon", "Atoll", "Isle", "Shoal"],
 };
 
 const PLACES = [
@@ -142,7 +154,7 @@ const PLACES = [
 /** Generate a zone-aware landmark name from coordinates */
 function getLandmarkName(x: number, y: number): string {
   const zoneId = getZoneAt(x, y);
-  const prefixes = ZONE_PREFIXES[zoneId];
+  const prefixes = zoneId ? ZONE_PREFIXES[zoneId] : ["Unknown"];
 
   const h = hashCoord(x, y, 42);
   const prefix = prefixes[h % prefixes.length];
@@ -197,6 +209,55 @@ const ZONE_JOB_TITLES: Record<ZoneId, string[]> = {
     "Seafood Express",
     "Boardwalk Restock",
   ],
+  mountains: [
+    "Mining Gear",
+    "Summit Supplies",
+    "Expedition Load",
+    "Ore Delivery",
+    "Lodge Provisions",
+  ],
+  oldtown: [
+    "Antique Delivery",
+    "Bakery Flour",
+    "Clock Parts",
+    "Heritage Goods",
+    "Tavern Barrels",
+  ],
+  harbor: [
+    "Ship Cargo",
+    "Fresh Catch",
+    "Dock Supplies",
+    "Import Goods",
+    "Marine Equipment",
+  ],
+  commercial: [
+    "Wholesale Order",
+    "Retail Stock",
+    "Market Goods",
+    "Store Inventory",
+    "Bulk Purchase",
+  ],
+  farmland: [
+    "Produce Delivery",
+    "Feed Run",
+    "Harvest Transport",
+    "Livestock Supplies",
+    "Seed Order",
+  ],
+  wetlands: [
+    "Research Samples",
+    "Field Equipment",
+    "Nature Specimens",
+    "Conservation Gear",
+  ],
+  boardwalk: [
+    "Casino Chips",
+    "Hotel Linens",
+    "Resort Supplies",
+    "Luxury Goods",
+    "Event Tickets",
+  ],
+  smallisland: ["Island Supplies", "Lighthouse Parts", "Boat Cargo"],
 };
 
 const FALLBACK_TITLES = [
@@ -217,7 +278,9 @@ const FALLBACK_TITLES = [
 /** Generate a job title based on pickup zone */
 function getJobTitle(seed: number, pickupX: number, pickupY: number): string {
   const zoneId = getZoneAt(pickupX, pickupY);
-  const titles = ZONE_JOB_TITLES[zoneId] ?? FALLBACK_TITLES;
+  const titles = zoneId
+    ? (ZONE_JOB_TITLES[zoneId] ?? FALLBACK_TITLES)
+    : FALLBACK_TITLES;
   return titles[seed % titles.length];
 }
 
@@ -295,39 +358,40 @@ async function spawnJobsInternalLogic(ctx: MutationCtx) {
 
   if (available.length >= 10) return;
 
-  const roadPoints = getRoadPoints();
+  const spawnPoints = getJobSpawnPoints();
+  if (spawnPoints.length < 2) return;
   const toSpawn = 12 - available.length;
 
   for (let i = 0; i < toSpawn; i++) {
-    const pickupIdx = Math.floor(Math.random() * roadPoints.length);
-    let dropoffIdx = Math.floor(Math.random() * roadPoints.length);
+    const pickupIdx = Math.floor(Math.random() * spawnPoints.length);
+    let dropoffIdx = Math.floor(Math.random() * spawnPoints.length);
 
     // Ensure different point and minimum distance
     let attempts = 0;
     while (
       (dropoffIdx === pickupIdx ||
         dist(
-          roadPoints[pickupIdx].x,
-          roadPoints[pickupIdx].y,
-          roadPoints[dropoffIdx].x,
-          roadPoints[dropoffIdx].y,
+          spawnPoints[pickupIdx].x,
+          spawnPoints[pickupIdx].y,
+          spawnPoints[dropoffIdx].x,
+          spawnPoints[dropoffIdx].y,
         ) < 300) &&
       attempts < 30
     ) {
-      dropoffIdx = Math.floor(Math.random() * roadPoints.length);
+      dropoffIdx = Math.floor(Math.random() * spawnPoints.length);
       attempts++;
     }
 
-    const pickup = roadPoints[pickupIdx];
-    const dropoff = roadPoints[dropoffIdx];
+    const pickup = spawnPoints[pickupIdx];
+    const dropoff = spawnPoints[dropoffIdx];
 
-    // Reward scales with distance — tuned for larger 4000px map
+    // Reward scales with distance — tuned for 8000px map
     const distance = dist(pickup.x, pickup.y, dropoff.x, dropoff.y);
-    const baseReward = 30 + Math.round(distance * 0.12);
+    const baseReward = 30 + Math.round(distance * 0.08);
 
     // Cross-zone bonus: reward bump if pickup and dropoff are in different zones
-    const pickupZone = getZoneAt(pickup.x, pickup.y);
-    const dropoffZone = getZoneAt(dropoff.x, dropoff.y);
+    const pickupZone = pickup.zoneId;
+    const dropoffZone = dropoff.zoneId;
     const crossZoneBonus = pickupZone !== dropoffZone ? 20 : 0;
 
     const variance = Math.floor(Math.random() * 30) - 10;

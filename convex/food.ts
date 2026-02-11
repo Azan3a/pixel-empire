@@ -3,7 +3,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { FOOD_ITEMS, FoodType, MAX_HUNGER } from "./foodConfig";
-import { SHOP_INTERACT_RADIUS } from "./gameConstants";
+import { SHOP_INTERACT_RADIUS } from "./map/constants";
 
 export const buyFood = mutation({
   args: {
