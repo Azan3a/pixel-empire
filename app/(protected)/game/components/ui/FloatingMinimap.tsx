@@ -13,6 +13,7 @@ import {
 } from "@/convex/map/zones";
 import { ALL_ZONE_DATA } from "@/convex/map/zones/index";
 import { COASTLINE_POLYGON, SMALL_ISLAND_POLYGON } from "@/convex/map/islands";
+import { RIVER, LAKE } from "@/convex/map/water";
 import { hexToStr } from "@/lib/utils";
 interface MinimapPlayer {
   _id: string;
@@ -106,6 +107,28 @@ export function FloatingMinimap({
       ctx.stroke();
     }
     ctx.globalAlpha = 1.0;
+
+    // ── Lake ──
+    if (LAKE.points.length >= 3) {
+      ctx.beginPath();
+      ctx.moveTo(LAKE.points[0].x * SCALE, LAKE.points[0].y * SCALE);
+      for (let i = 1; i < LAKE.points.length; i++)
+        ctx.lineTo(LAKE.points[i].x * SCALE, LAKE.points[i].y * SCALE);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(42, 122, 154, 0.6)";
+      ctx.fill();
+    }
+
+    // ── River ──
+    if (RIVER.points.length >= 2) {
+      ctx.beginPath();
+      ctx.moveTo(RIVER.points[0].x * SCALE, RIVER.points[0].y * SCALE);
+      for (let i = 1; i < RIVER.points.length; i++)
+        ctx.lineTo(RIVER.points[i].x * SCALE, RIVER.points[i].y * SCALE);
+      ctx.strokeStyle = "rgba(42, 122, 154, 0.7)";
+      ctx.lineWidth = Math.max(1.5, RIVER.width * SCALE);
+      ctx.stroke();
+    }
 
     // ── Park Ponds ──
     const parkBounds = ZONES.park.bounds;

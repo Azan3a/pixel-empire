@@ -9,6 +9,12 @@ import { drawBoardwalkLights } from "./drawBoardwalkLights";
 import { drawIntersectionLights } from "./drawIntersectionLights";
 import { drawParkLamps } from "./drawParkLamps";
 import { drawForestFireflies } from "./drawForestFireflies";
+import { drawMountainCampfires } from "./drawMountainCampfires";
+import { drawOldTownLanterns } from "./drawOldTownLanterns";
+import { drawHarborLights } from "./drawHarborLights";
+import { drawFarmPorchLights } from "./drawFarmPorchLights";
+import { drawWetlandGlow } from "./drawWetlandGlow";
+import { drawIndustrialFloodlights } from "./drawIndustrialFloodlights";
 
 interface DayNightOverlayProps {
   overlayColor: number;
@@ -30,6 +36,12 @@ function DayNightOverlayInner({
       drawIntersectionLights(g, streetLightAlpha);
       drawParkLamps(g, streetLightAlpha);
       drawForestFireflies(g, streetLightAlpha);
+      drawMountainCampfires(g, streetLightAlpha);
+      drawOldTownLanterns(g, streetLightAlpha);
+      drawHarborLights(g, streetLightAlpha);
+      drawFarmPorchLights(g, streetLightAlpha);
+      drawWetlandGlow(g, streetLightAlpha);
+      drawIndustrialFloodlights(g, streetLightAlpha);
     },
     [overlayColor, overlayAlpha, streetLightAlpha],
   );

@@ -12,7 +12,7 @@ import {
 } from "@/convex/map/zones";
 import { ALL_ZONE_DATA } from "@/convex/map/zones/index";
 import { COASTLINE_POLYGON, SMALL_ISLAND_POLYGON } from "@/convex/map/islands";
-import { LAKE } from "@/convex/map/water";
+import { LAKE, RIVER } from "@/convex/map/water";
 import { hexToStr } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -130,6 +130,17 @@ export function MapTab({
       ctx.closePath();
       ctx.fillStyle = "rgba(42, 122, 154, 0.6)";
       ctx.fill();
+    }
+
+    // ── River ──
+    if (RIVER.points.length >= 2) {
+      ctx.beginPath();
+      ctx.moveTo(RIVER.points[0].x * SCALE, RIVER.points[0].y * SCALE);
+      for (let i = 1; i < RIVER.points.length; i++)
+        ctx.lineTo(RIVER.points[i].x * SCALE, RIVER.points[i].y * SCALE);
+      ctx.strokeStyle = "rgba(42, 122, 154, 0.7)";
+      ctx.lineWidth = Math.max(2, RIVER.width * SCALE);
+      ctx.stroke();
     }
 
     // ── Park features ──
