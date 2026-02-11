@@ -24,6 +24,7 @@ import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
+import { ZoneTransition } from "../ui/ZoneTransition";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -233,6 +234,8 @@ export function GameCanvas() {
         />
         <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
       </div>
+
+      <ZoneTransition playerX={renderPos.x} playerY={renderPos.y} />
 
       <PropertyDialog
         property={selectedProperty}

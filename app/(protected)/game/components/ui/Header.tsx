@@ -9,10 +9,36 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { MAX_HUNGER } from "@/convex/foodConfig";
+import { getZoneAt, ZONES, type ZoneId } from "@/convex/map/zones";
+import { useMemo } from "react";
+
+const ZONE_ICONS: Record<ZoneId, string> = {
+  forest: "🌲",
+  mountains: "⛰️",
+  oldtown: "🏛️",
+  harbor: "⚓",
+  downtown: "🏙️",
+  park: "🌳",
+  suburbs: "🏘️",
+  commercial: "🛒",
+  farmland: "🌾",
+  industrial: "🏭",
+  wetlands: "🌿",
+  boardwalk: "🎡",
+  beach: "🏖️",
+  smallisland: "🏝️",
+};
 
 export function Header() {
   const { playerInfo: player } = usePlayer();
   const { ownedCount, totalIncomePerCycle } = useWorld();
+
+  const currentZone = useMemo(() => {
+    if (!player) return null;
+    const zoneId = getZoneAt(player.x, player.y);
+    if (!zoneId) return null;
+    return { id: zoneId, name: ZONES[zoneId].name, icon: ZONE_ICONS[zoneId] };
+  }, [player]);
 
   if (!player) return null;
 
@@ -89,6 +115,17 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Zone indicator */}
+      {currentZone && (
+        <>
+          <Separator orientation="vertical" className="h-6" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-muted/50 text-muted-foreground">
+            <span className="text-sm leading-none">{currentZone.icon}</span>
+            <span className="text-xs font-medium">{currentZone.name}</span>
+          </div>
+        </>
+      )}
     </header>
   );
 }

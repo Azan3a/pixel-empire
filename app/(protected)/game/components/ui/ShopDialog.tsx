@@ -12,11 +12,10 @@ import { useFood } from "@game/hooks/use-food";
 import { FOOD_LIST } from "@/convex/foodConfig";
 import { Id } from "@/convex/_generated/dataModel";
 import { SELL_RATE } from "@/convex/map/constants";
-import { ZONES } from "@/convex/map/zones";
+import { ZONES, type ZoneId } from "@/convex/map/zones";
 import { cn } from "@/lib/utils";
 import {
   ShoppingCart,
-  MapPin,
   UtensilsCrossed,
   Wrench,
   Shirt,
@@ -62,6 +61,23 @@ const SHOP_CONFIG = {
     emoji: "👕",
   },
 } as const;
+
+const ZONE_ICONS: Record<ZoneId, string> = {
+  forest: "🌲",
+  mountains: "⛰️",
+  oldtown: "🏛️",
+  harbor: "⚓",
+  downtown: "🏙️",
+  park: "🌳",
+  suburbs: "🏘️",
+  commercial: "🛒",
+  farmland: "🌾",
+  industrial: "🏭",
+  wetlands: "🌿",
+  boardwalk: "🎡",
+  beach: "🏖️",
+  smallisland: "🏝️",
+};
 
 /* ── Sub-components ─────────────────────────────────────────── */
 
@@ -257,7 +273,9 @@ export function ShopDialog({
             )}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
-            <MapPin className="size-3" />
+            <span className="text-sm leading-none">
+              {ZONE_ICONS[property.zoneId]}
+            </span>
             <span>{zoneDef.name}</span>
             <span>·</span>
             <span>{config.description}</span>
