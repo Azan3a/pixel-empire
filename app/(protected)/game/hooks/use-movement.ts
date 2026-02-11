@@ -97,6 +97,7 @@ export function useMovement({
       }
 
       // ── Building collision (AABB) ──
+      const halfSize = PLAYER_HITBOX / 2;
       const pLeft = newX - halfSize;
       const pTop = newY - halfSize;
 

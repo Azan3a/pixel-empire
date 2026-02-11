@@ -1,209 +1,240 @@
 // components/game/viewport/world/drawing/drawRoads.ts
+// Draws road segments from zone data using per-zone road styles.
 
 import { Graphics } from "pixi.js";
-import {
-  MAP_SIZE,
-  ROAD_SPACING,
-  ROAD_WIDTH,
-  SIDEWALK_W,
-} from "@/convex/gameConstants";
-import { getZoneAt, ZONES } from \"@/convex/map/zones\";\nimport { WATER_LINE_Y } from \"@/convex/mapZones\";
+import { ROAD_STYLES, type RoadStyle } from "@/convex/map/constants";
+import { ALL_ZONE_DATA, type ZoneRoad } from "@/convex/map/zones/index";
+import type { ZoneId } from "@/convex/map/zones";
+import { ZONES } from "@/convex/map/zones";
 import type { TintFn } from "../utils/tintFactory";
 
-const HALF = ROAD_WIDTH / 2;
-const FULL_SIDEWALK = HALF + SIDEWALK_W;
+// ── Cached road list with resolved styles ──
 
-function drawHorizontalRoads(g: Graphics, t: TintFn): void {
-  for (let y = ROAD_SPACING; y < MAP_SIZE; y += ROAD_SPACING) {
-    if (y - FULL_SIDEWALK > WATER_LINE_Y) continue;
-
-    const roadBottom = Math.min(y + FULL_SIDEWALK, WATER_LINE_Y);
-    const roadH = roadBottom - (y - FULL_SIDEWALK);
-    const asphaltBottom = Math.min(y + HALF, WATER_LINE_Y);
-
-    let segmentStart = -1;
-
-    // Helper to draw segment
-    const drawSegment = (start: number, end: number) => {
-      // Sidewalk
-      g.rect(start, y - FULL_SIDEWALK, end - start, roadH);
-      g.fill({ color: t(0x9e9e9e) });
-
-      g.setStrokeStyle({ color: t(0x777777), width: 1, alpha: 0.6 });
-      g.moveTo(start, y - FULL_SIDEWALK).lineTo(end, y - FULL_SIDEWALK);
-      if (roadBottom === y + FULL_SIDEWALK) {
-        g.moveTo(start, y + FULL_SIDEWALK).lineTo(end, y + FULL_SIDEWALK);
-      }
-      g.stroke();
-
-      // Asphalt
-      if (asphaltBottom > y - HALF) {
-        g.rect(start, y - HALF, end - start, asphaltBottom - (y - HALF));
-        g.fill({ color: t(0x3a3a3a) });
-
-        // Lane lines
-        g.setStrokeStyle({ color: 0xffffff, width: 1.5, alpha: 0.3 });
-        g.moveTo(start, y - HALF + 3).lineTo(end, y - HALF + 3);
-        if (asphaltBottom === y + HALF) {
-          g.moveTo(start, y + HALF - 3).lineTo(end, y + HALF - 3);
-        }
-        g.stroke();
-
-        // Center dashes
-        for (let dx = start; dx < end; dx += 28) {
-          if (y - 1.5 < WATER_LINE_Y) {
-            g.rect(dx, y - 1.5, 14, 3);
-            g.fill({ color: 0xe8b930, alpha: 0.85 });
-          }
-        }
-      }
-    };
-
-    for (let x = 0; x < MAP_SIZE; x += ROAD_SPACING) {
-      // Check if either side of the road line allows roads
-      const zUp = getZoneAt(x + ROAD_SPACING / 2, y - 1);
-      const zDown = getZoneAt(x + ROAD_SPACING / 2, y + 1);
-      const hasRoads = (zUp && ZONES[zUp].hasRoads) || (zDown && ZONES[zDown].hasRoads);
-
-      if (hasRoads) {
-        if (segmentStart === -1) segmentStart = x;
-      } else {
-        if (segmentStart !== -1) {
-          drawSegment(segmentStart, x);
-          segmentStart = -1;
-        }
-      }
-    }
-
-    if (segmentStart !== -1) {
-      drawSegment(segmentStart, MAP_SIZE);
-    }
-  }
+interface ResolvedRoad {
+  road: ZoneRoad;
+  style: RoadStyle;
 }
 
-function drawVerticalRoads(g: Graphics, t: TintFn): void {
-  const roadBottomMap = Math.min(MAP_SIZE, WATER_LINE_Y);
+let _cache: ResolvedRoad[] | null = null;
+function getResolvedRoads(): ResolvedRoad[] {
+  if (!_cache) {
+    _cache = [];
+    for (const [zoneId, data] of Object.entries(ALL_ZONE_DATA)) {
+      const zone = ZONES[zoneId as ZoneId];
+      for (const road of data.roads) {
+        const style = ROAD_STYLES[road.style] ?? ROAD_STYLES[zone.roadStyle];
+        if (style) _cache.push({ road, style });
+      }
+    }
+  }
+  return _cache;
+}
 
-  for (let x = ROAD_SPACING; x < MAP_SIZE; x += ROAD_SPACING) {
-    let segmentStart = -1;
+// ── Draw a single road segment ──
 
-    const drawSegment = (start: number, end: number) => {
-      const segEnd = Math.min(end, roadBottomMap);
-      if (start >= segEnd) return;
+function drawSegment(
+  g: Graphics,
+  t: TintFn,
+  road: ZoneRoad,
+  style: RoadStyle,
+): void {
+  const halfW = style.width / 2;
+  const halfC = style.corridor / 2;
+  const isH = road.y1 === road.y2;
+  const isV = road.x1 === road.x2;
 
-      // Sidewalk
-      g.rect(
-        x - FULL_SIDEWALK,
-        start,
-        ROAD_WIDTH + SIDEWALK_W * 2,
-        segEnd - start,
-      );
-      g.fill({ color: t(0x9e9e9e) });
+  if (isH) {
+    const minX = Math.min(road.x1, road.x2);
+    const maxX = Math.max(road.x1, road.x2);
+    const len = maxX - minX;
+    const y = road.y1;
 
-      g.setStrokeStyle({ color: t(0x777777), width: 1, alpha: 0.6 });
-      g.moveTo(x - FULL_SIDEWALK, start).lineTo(x - FULL_SIDEWALK, segEnd);
-      g.moveTo(x + FULL_SIDEWALK, start).lineTo(x + FULL_SIDEWALK, segEnd);
+    // Sidewalk
+    if (style.sidewalk > 0) {
+      g.rect(minX, y - halfC, len, style.corridor);
+      g.fill({ color: t(style.sidewalkColor) });
+      // Sidewalk edge lines
+      g.setStrokeStyle({
+        color: t(darken(style.sidewalkColor, 0.15)),
+        width: 1,
+        alpha: 0.5,
+      });
+      g.moveTo(minX, y - halfC).lineTo(maxX, y - halfC);
+      g.moveTo(minX, y + halfC).lineTo(maxX, y + halfC);
       g.stroke();
+    }
 
-      // Asphalt
-      g.rect(x - HALF, start, ROAD_WIDTH, segEnd - start);
-      g.fill({ color: t(0x3a3a3a) });
+    // Asphalt surface
+    g.rect(minX, y - halfW, len, style.width);
+    g.fill({ color: t(style.color) });
 
-      // Lane lines
-      g.setStrokeStyle({ color: 0xffffff, width: 1.5, alpha: 0.3 });
-      g.moveTo(x - HALF + 3, start).lineTo(x - HALF + 3, segEnd);
-      g.moveTo(x + HALF - 3, start).lineTo(x + HALF - 3, segEnd);
+    // Lane markings
+    if (style.laneMarkings) {
+      g.setStrokeStyle({ color: 0xffffff, width: 1.5, alpha: 0.25 });
+      g.moveTo(minX, y - halfW + 3).lineTo(maxX, y - halfW + 3);
+      g.moveTo(minX, y + halfW - 3).lineTo(maxX, y + halfW - 3);
       g.stroke();
-
       // Center dashes
-      for (let dy = start; dy < segEnd; dy += 28) {
+      for (let dx = minX; dx < maxX; dx += 28) {
+        g.rect(dx, y - 1.5, 14, 3);
+        g.fill({ color: 0xe8b930, alpha: 0.75 });
+      }
+    }
+  } else if (isV) {
+    const minY = Math.min(road.y1, road.y2);
+    const maxY = Math.max(road.y1, road.y2);
+    const len = maxY - minY;
+    const x = road.x1;
+
+    // Sidewalk
+    if (style.sidewalk > 0) {
+      g.rect(x - halfC, minY, style.corridor, len);
+      g.fill({ color: t(style.sidewalkColor) });
+      g.setStrokeStyle({
+        color: t(darken(style.sidewalkColor, 0.15)),
+        width: 1,
+        alpha: 0.5,
+      });
+      g.moveTo(x - halfC, minY).lineTo(x - halfC, maxY);
+      g.moveTo(x + halfC, minY).lineTo(x + halfC, maxY);
+      g.stroke();
+    }
+
+    // Asphalt surface
+    g.rect(x - halfW, minY, style.width, len);
+    g.fill({ color: t(style.color) });
+
+    // Lane markings
+    if (style.laneMarkings) {
+      g.setStrokeStyle({ color: 0xffffff, width: 1.5, alpha: 0.25 });
+      g.moveTo(x - halfW + 3, minY).lineTo(x - halfW + 3, maxY);
+      g.moveTo(x + halfW - 3, minY).lineTo(x + halfW - 3, maxY);
+      g.stroke();
+      for (let dy = minY; dy < maxY; dy += 28) {
         g.rect(x - 1.5, dy, 3, 14);
-        g.fill({ color: 0xe8b930, alpha: 0.85 });
-      }
-    };
-
-    for (let y = 0; y < MAP_SIZE; y += ROAD_SPACING) {
-      // Check if either side of the road line allows roads
-      const zLeft = getZoneAt(x - 1, y + ROAD_SPACING / 2);
-      const zRight = getZoneAt(x + 1, y + ROAD_SPACING / 2);
-      const hasRoads = (zLeft && ZONES[zLeft].hasRoads) || (zRight && ZONES[zRight].hasRoads);
-
-      if (hasRoads) {
-        if (segmentStart === -1) segmentStart = y;
-      } else {
-        if (segmentStart !== -1) {
-          drawSegment(segmentStart, y);
-          segmentStart = -1;
-        }
+        g.fill({ color: 0xe8b930, alpha: 0.75 });
       }
     }
-
-    if (segmentStart !== -1) {
-      drawSegment(segmentStart, MAP_SIZE);
-    }
+  } else {
+    // Diagonal road — draw as thick line
+    g.setStrokeStyle({ color: t(style.color), width: style.width, alpha: 1 });
+    g.moveTo(road.x1, road.y1).lineTo(road.x2, road.y2);
+    g.stroke();
   }
 }
+
+// ── Find & draw intersections where roads cross ──
+
+interface Intersection {
+  x: number;
+  y: number;
+  size: number;
+  style: RoadStyle;
+}
+
+function findIntersections(): Intersection[] {
+  const roads = getResolvedRoads();
+  const intersections: Intersection[] = [];
+
+  for (let i = 0; i < roads.length; i++) {
+    const a = roads[i];
+    const isAH = a.road.y1 === a.road.y2;
+    const isAV = a.road.x1 === a.road.x2;
+    if (!isAH && !isAV) continue;
+
+    for (let j = i + 1; j < roads.length; j++) {
+      const b = roads[j];
+      const isBH = b.road.y1 === b.road.y2;
+      const isBV = b.road.x1 === b.road.x2;
+      if (!isBH && !isBV) continue;
+
+      // Need one H + one V
+      const h = isAH ? a : isBH ? b : null;
+      const v = isAV ? a : isBV ? b : null;
+      if (!h || !v || h === v) continue;
+
+      // Check if they cross
+      const hy = h.road.y1;
+      const hMinX = Math.min(h.road.x1, h.road.x2);
+      const hMaxX = Math.max(h.road.x1, h.road.x2);
+      const vx = v.road.x1;
+      const vMinY = Math.min(v.road.y1, v.road.y2);
+      const vMaxY = Math.max(v.road.y1, v.road.y2);
+
+      if (vx >= hMinX && vx <= hMaxX && hy >= vMinY && hy <= vMaxY) {
+        const bigStyle = h.style.width >= v.style.width ? h.style : v.style;
+        intersections.push({
+          x: vx,
+          y: hy,
+          size: Math.max(h.style.width, v.style.width),
+          style: bigStyle,
+        });
+      }
+    }
+  }
+  return intersections;
+}
+
+let _ixCache: Intersection[] | null = null;
 
 function drawIntersections(g: Graphics, t: TintFn): void {
+  if (!_ixCache) _ixCache = findIntersections();
   const stripeW = 5;
   const stripeGap = 9;
 
-  for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
-    for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
-      if (iy - HALF > WATER_LINE_Y) continue;
+  for (const ix of _ixCache) {
+    const half = ix.size / 2;
 
-      const hUp = getZoneAt(ix, iy - 1);
-      const hDown = getZoneAt(ix, iy + 1);
-      const hasH =
-        (hUp ? ZONES[hUp].hasRoads : false) ||
-        (hDown ? ZONES[hDown].hasRoads : false);
-      const vLeft = getZoneAt(ix - 1, iy);
-      const vRight = getZoneAt(ix + 1, iy);
-      const hasV =
-        (vLeft ? ZONES[vLeft].hasRoads : false) ||
-        (vRight ? ZONES[vRight].hasRoads : false);
-      if (!hasH || !hasV) continue;
+    // Intersection fill
+    g.rect(ix.x - half, ix.y - half, ix.size, ix.size);
+    g.fill({ color: t(ix.style.color) });
 
-      // Intersection fill
-      g.rect(ix - HALF, iy - HALF, ROAD_WIDTH, ROAD_WIDTH);
-      g.fill({ color: t(0x3a3a3a) });
+    // Crosswalks
+    if (!ix.style.crosswalks) continue;
+    const sw = ix.style.sidewalk;
+    if (sw <= 0) continue;
 
-      // Top crosswalk
-      if (iy - FULL_SIDEWALK >= 0) {
-        for (let s = -HALF + 6; s < HALF - 6; s += stripeGap) {
-          g.rect(ix + s, iy - FULL_SIDEWALK, stripeW, SIDEWALK_W);
-          g.fill({ color: 0xffffff, alpha: 0.65 });
-        }
-      }
-
-      // Bottom crosswalk
-      if (iy + HALF < WATER_LINE_Y) {
-        for (let s = -HALF + 6; s < HALF - 6; s += stripeGap) {
-          g.rect(ix + s, iy + HALF, stripeW, SIDEWALK_W);
-          g.fill({ color: 0xffffff, alpha: 0.65 });
-        }
-      }
-
-      // Left crosswalk
-      for (let s = -HALF + 6; s < HALF - 6; s += stripeGap) {
-        g.rect(ix - FULL_SIDEWALK, iy + s, SIDEWALK_W, stripeW);
-        g.fill({ color: 0xffffff, alpha: 0.65 });
-      }
-
-      // Right crosswalk
-      for (let s = -HALF + 6; s < HALF - 6; s += stripeGap) {
-        g.rect(ix + HALF, iy + s, SIDEWALK_W, stripeW);
-        g.fill({ color: 0xffffff, alpha: 0.65 });
-      }
+    // Top
+    for (let s = -half + 6; s < half - 6; s += stripeGap) {
+      g.rect(ix.x + s, ix.y - half - sw, stripeW, sw);
+      g.fill({ color: 0xffffff, alpha: 0.6 });
+    }
+    // Bottom
+    for (let s = -half + 6; s < half - 6; s += stripeGap) {
+      g.rect(ix.x + s, ix.y + half, stripeW, sw);
+      g.fill({ color: 0xffffff, alpha: 0.6 });
+    }
+    // Left
+    for (let s = -half + 6; s < half - 6; s += stripeGap) {
+      g.rect(ix.x - half - sw, ix.y + s, sw, stripeW);
+      g.fill({ color: 0xffffff, alpha: 0.6 });
+    }
+    // Right
+    for (let s = -half + 6; s < half - 6; s += stripeGap) {
+      g.rect(ix.x + half, ix.y + s, sw, stripeW);
+      g.fill({ color: 0xffffff, alpha: 0.6 });
     }
   }
 }
 
+// ── Utility ──
+
+/** Darken a hex color by a fraction (0–1). */
+function darken(hex: number, amount: number): number {
+  const r = Math.max(0, ((hex >> 16) & 0xff) * (1 - amount)) | 0;
+  const gn = Math.max(0, ((hex >> 8) & 0xff) * (1 - amount)) | 0;
+  const b = Math.max(0, (hex & 0xff) * (1 - amount)) | 0;
+  return (r << 16) | (gn << 8) | b;
+}
+
+// ── Public entry point ──
+
 /**
- * Draw all roads: horizontal, vertical, and intersections with crosswalks.
+ * Draw all zone-defined road segments with per-zone styling + intersections.
  */
 export function drawRoads(g: Graphics, t: TintFn): void {
-  drawHorizontalRoads(g, t);
-  drawVerticalRoads(g, t);
+  for (const { road, style } of getResolvedRoads()) {
+    drawSegment(g, t, road, style);
+  }
   drawIntersections(g, t);
 }
