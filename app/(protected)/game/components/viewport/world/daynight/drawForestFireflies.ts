@@ -1,6 +1,6 @@
 // components/game/viewport/world/daynight/drawForestFireflies.ts
 import { Graphics } from "pixi.js";
-import { ZONES } from "@/convex/mapZones";
+import { ZONES } from "@/convex/map/zones";
 
 export function drawForestFireflies(g: Graphics, streetLightAlpha: number) {
   if (streetLightAlpha <= 0.3) return;

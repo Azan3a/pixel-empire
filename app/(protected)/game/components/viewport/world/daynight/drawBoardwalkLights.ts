@@ -1,6 +1,6 @@
 // components/game/viewport/world/daynight/drawBoardwalkLights.ts
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/gameConstants";
+import { MAP_SIZE } from "@/convex/map/constants";
 import { BOARDWALK_Y, BOARDWALK_HEIGHT } from "@/convex/mapZones";
 
 export function drawBoardwalkLights(g: Graphics, streetLightAlpha: number) {

@@ -7,7 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { useEffect, useRef, useMemo } from "react";
 import { Job } from "@game/types/job";
-import { getZoneAt, ZONES } from "@/convex/mapZones";
+import { getZoneAt, ZONES } from "@/convex/map/zones";
 
 export function useJobs() {
   const rawAvailableJobs = useQuery(api.jobs.getAvailableJobs);
@@ -96,8 +96,8 @@ export function useJobs() {
     const dropoffZoneId = getZoneAt(activeJob.dropoffX, activeJob.dropoffY);
 
     return {
-      pickupZone: ZONES[pickupZoneId],
-      dropoffZone: ZONES[dropoffZoneId],
+      pickupZone: pickupZoneId ? ZONES[pickupZoneId] : null,
+      dropoffZone: dropoffZoneId ? ZONES[dropoffZoneId] : null,
       isCrossZone: pickupZoneId !== dropoffZoneId,
     };
   }, [activeJob]);
@@ -113,8 +113,8 @@ export function useJobs() {
 
       return {
         ...job,
-        pickupZone: ZONES[pickupZoneId],
-        dropoffZone: ZONES[dropoffZoneId],
+        pickupZone: pickupZoneId ? ZONES[pickupZoneId] : null,
+        dropoffZone: dropoffZoneId ? ZONES[dropoffZoneId] : null,
         isCrossZone: pickupZoneId !== dropoffZoneId,
         distance,
       };

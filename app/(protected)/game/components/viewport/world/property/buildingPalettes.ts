@@ -1,6 +1,6 @@
 // components/game/viewport/world/property/buildingPalettes.ts
 
-import type { PropertyCategory, PropertySubType } from "@/convex/mapZones";
+import type { PropertyCategory, PropertySubType } from "@/convex/map/zones";
 
 export interface BuildingPalette {
   wall: number;

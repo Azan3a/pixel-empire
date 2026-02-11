@@ -1,6 +1,6 @@
 // components/game/viewport/world/daynight/drawOceanEffects.ts
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/gameConstants";
+import { MAP_SIZE } from "@/convex/map/constants";
 import { WATER_LINE_Y } from "@/convex/mapZones";
 
 export function drawOceanEffects(

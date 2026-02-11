@@ -11,8 +11,8 @@ import { Property } from "@game/types/property";
 import { useFood } from "@game/hooks/use-food";
 import { FOOD_LIST } from "@/convex/foodConfig";
 import { Id } from "@/convex/_generated/dataModel";
-import { SELL_RATE } from "@/convex/gameConstants";
-import { ZONES } from "@/convex/mapZones";
+import { SELL_RATE } from "@/convex/map/constants";
+import { ZONES } from "@/convex/map/zones";
 import { cn } from "@/lib/utils";
 import {
   ShoppingCart,

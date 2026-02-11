@@ -8,7 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useMemo } from "react";
-import { getZoneAt, ZONES, type ZoneId } from "@/convex/mapZones";
+import { getZoneAt, ZONES, type ZoneId } from "@/convex/map/zones";
 
 export function useWorld() {
   const queryProperties = useQuery(api.world.getProperties);
@@ -116,7 +116,7 @@ export function useWorld() {
   const getZoneInfo = useMemo(() => {
     return (x: number, y: number) => {
       const zoneId = getZoneAt(x, y);
-      return ZONES[zoneId];
+      return zoneId ? ZONES[zoneId] : null;
     };
   }, []);
 
@@ -134,7 +134,7 @@ export function useWorld() {
 
   /** Get a player's current zone based on position */
   const getPlayerZone = useMemo(() => {
-    return (x: number, y: number): ZoneId => getZoneAt(x, y);
+    return (x: number, y: number): ZoneId | null => getZoneAt(x, y);
   }, []);
 
   return {

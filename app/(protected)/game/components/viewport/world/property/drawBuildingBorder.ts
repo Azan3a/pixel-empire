@@ -2,7 +2,7 @@
 
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "./buildingPalettes";
-import type { PropertyCategory } from "@/convex/mapZones";
+import type { PropertyCategory } from "@/convex/map/zones";
 
 /**
  * Draw building outline and ownership/status glow effects.

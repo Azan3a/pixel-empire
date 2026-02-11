@@ -4,7 +4,7 @@ import type {
   PropertyCategory,
   PropertySubType,
   ZoneId,
-} from "@/convex/mapZones";
+} from "@/convex/map/zones";
 
 export interface Property {
   _id: Id<"properties">;

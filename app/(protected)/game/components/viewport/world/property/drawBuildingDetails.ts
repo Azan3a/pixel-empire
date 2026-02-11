@@ -3,7 +3,7 @@
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "./buildingPalettes";
 import { tintColor } from "./propertyDrawHelpers";
-import type { PropertySubType } from "@/convex/mapZones";
+import type { PropertySubType } from "@/convex/map/zones";
 
 const INSET = 4;
 

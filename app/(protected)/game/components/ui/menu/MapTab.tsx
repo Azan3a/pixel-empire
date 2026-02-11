@@ -3,21 +3,15 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { Property } from "@game/types/property";
 import { Job } from "@game/types/job";
-import {
-  MAP_SIZE,
-  ROAD_SPACING,
-  ROAD_WIDTH,
-  SIDEWALK_W,
-} from "@/convex/gameConstants";
+import { ROAD_SPACING, ROAD_WIDTH, SIDEWALK_W } from "@/convex/gameConstants";
+import { MAP_SIZE } from "@/convex/map/constants";
 import {
   ZONES,
   ZONE_VISUALS,
-  WATER_LINE_Y,
-  BOARDWALK_Y,
-  BOARDWALK_HEIGHT,
   getZoneAt,
   getZoneList,
-} from "@/convex/mapZones";
+} from "@/convex/map/zones";
+import { WATER_LINE_Y, BOARDWALK_Y, BOARDWALK_HEIGHT } from "@/convex/mapZones";
 import { hexToStr } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -104,8 +98,12 @@ export function MapTab({
         const worldX = (bx + zoneBlockPx / 2) / SCALE;
         const worldY = (by + zoneBlockPx / 2) / SCALE;
         const zoneId = getZoneAt(worldX, worldY);
-        const vis = ZONE_VISUALS[zoneId];
-        ctx.fillStyle = hexToStr(vis.grassColor);
+        if (!zoneId) {
+          ctx.fillStyle = "#1a6b8a";
+        } else {
+          const vis = ZONE_VISUALS[zoneId];
+          ctx.fillStyle = hexToStr(vis.grassColor);
+        }
         ctx.fillRect(bx, by, zoneBlockPx, zoneBlockPx);
       }
     }
@@ -224,7 +222,7 @@ export function MapTab({
       for (let rx = 0; rx < MAP_SIZE; rx += ROAD_SPACING) {
         const zUp = getZoneAt(rx + ROAD_SPACING / 2, ry - 1);
         const zDown = getZoneAt(rx + ROAD_SPACING / 2, ry + 1);
-        if (ZONES[zUp].hasRoads || ZONES[zDown].hasRoads) {
+        if ((zUp && ZONES[zUp].hasRoads) || (zDown && ZONES[zDown].hasRoads)) {
           if (segmentStart === -1) segmentStart = rx;
         } else if (segmentStart !== -1) {
           drawRoadSegment(ctx, segmentStart, ry, rx - segmentStart, true);
@@ -242,7 +240,10 @@ export function MapTab({
       for (let ry = 0; ry < MAP_SIZE; ry += ROAD_SPACING) {
         const zLeft = getZoneAt(rx - 1, ry + ROAD_SPACING / 2);
         const zRight = getZoneAt(rx + 1, ry + ROAD_SPACING / 2);
-        if (ZONES[zLeft].hasRoads || ZONES[zRight].hasRoads) {
+        if (
+          (zLeft && ZONES[zLeft].hasRoads) ||
+          (zRight && ZONES[zRight].hasRoads)
+        ) {
           if (segmentStart === -1) segmentStart = ry;
         } else if (segmentStart !== -1) {
           drawRoadSegment(ctx, rx, segmentStart, ry - segmentStart, false);
@@ -327,12 +328,16 @@ export function MapTab({
     for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
       for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
         if (iy - HALF_ROAD > WATER_LINE_Y) continue;
+        const hUp = getZoneAt(ix, iy - 1);
+        const hDown = getZoneAt(ix, iy + 1);
         const hasH =
-          ZONES[getZoneAt(ix, iy - 1)].hasRoads ||
-          ZONES[getZoneAt(ix, iy + 1)].hasRoads;
+          (hUp ? ZONES[hUp].hasRoads : false) ||
+          (hDown ? ZONES[hDown].hasRoads : false);
+        const vLeft = getZoneAt(ix - 1, iy);
+        const vRight = getZoneAt(ix + 1, iy);
         const hasV =
-          ZONES[getZoneAt(ix - 1, iy)].hasRoads ||
-          ZONES[getZoneAt(ix + 1, iy)].hasRoads;
+          (vLeft ? ZONES[vLeft].hasRoads : false) ||
+          (vRight ? ZONES[vRight].hasRoads : false);
         if (!hasH || !hasV) continue;
 
         const x = (ix - ROAD_WIDTH / 2) * SCALE;
@@ -482,7 +487,7 @@ export function MapTab({
   }, [draw]);
 
   const currentZone = getZoneAt(playerX, playerY);
-  const zoneName = ZONES[currentZone]?.name || "Unknown";
+  const zoneName = currentZone ? ZONES[currentZone].name : "Ocean";
 
   return (
     <div className="flex flex-col h-full gap-4 min-h-100" ref={containerRef}>

@@ -1,13 +1,9 @@
 // components/game/viewport/world/drawing/drawBeachAndWater.ts
 
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/gameConstants";
-import {
-  ZONES,
-  WATER_LINE_Y,
-  BOARDWALK_Y,
-  BOARDWALK_HEIGHT,
-} from "@/convex/mapZones";
+import { MAP_SIZE } from "@/convex/map/constants";
+import { ZONES } from "@/convex/map/zones";
+import { WATER_LINE_Y, BOARDWALK_Y, BOARDWALK_HEIGHT } from "@/convex/mapZones";
 import { lerpColor } from "../utils/colorUtils";
 import type { TintFn } from "../utils/tintFactory";
 

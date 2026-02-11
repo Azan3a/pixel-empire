@@ -24,10 +24,10 @@ import {
   TreePine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SELL_RATE } from "@/convex/gameConstants";
+import { SELL_RATE } from "@/convex/map/constants";
 import { Button } from "@/components/ui/button";
-import { ZONES } from "@/convex/mapZones";
-import type { PropertyCategory, ZoneId } from "@/convex/mapZones";
+import { ZONES } from "@/convex/map/zones";
+import type { PropertyCategory, ZoneId } from "@/convex/map/zones";
 
 interface PropertyDialogProps {
   property: Property | null;

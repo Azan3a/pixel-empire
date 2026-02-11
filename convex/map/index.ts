@@ -25,12 +25,19 @@ export {
 // ─── Zone Registry ───────────────────────────────────────────────
 export {
   ZONES,
+  ZONE_VISUALS,
   getZoneAt,
   getZoneDefAt,
   getZoneList,
   getZoneDisplayName,
 } from "./zones";
-export type { ZoneId, PropertyCategory, PropertySubType } from "./zones";
+export type {
+  ZoneId,
+  PropertyCategory,
+  PropertySubType,
+  ZoneVisualConfig,
+  ZoneDefinition,
+} from "./zones";
 
 // ─── Water Features ──────────────────────────────────────────────
 export {

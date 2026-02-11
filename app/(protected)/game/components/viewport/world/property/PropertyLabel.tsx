@@ -2,7 +2,7 @@
 "use client";
 
 import { memo } from "react";
-import type { PropertyCategory } from "@/convex/mapZones";
+import type { PropertyCategory } from "@/convex/map/zones";
 
 interface PropertyLabelProps {
   name: string;

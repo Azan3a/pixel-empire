@@ -4,7 +4,7 @@
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "../buildingPalettes";
 import { tintColor } from "../propertyDrawHelpers";
-import type { PropertyCategory, PropertySubType } from "@/convex/mapZones";
+import type { PropertyCategory, PropertySubType } from "@/convex/map/zones";
 import {
   drawHouseBase,
   drawDuplexBase,

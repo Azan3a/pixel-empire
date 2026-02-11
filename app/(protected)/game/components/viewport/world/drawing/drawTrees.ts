@@ -9,11 +9,11 @@ import {
 } from "@/convex/gameConstants";
 import {
   ZONE_VISUALS,
-  WATER_LINE_Y,
   getZoneAt,
   type ZoneId,
   ZONES,
-} from "@/convex/mapZones";
+} from "@/convex/map/zones";
+import { WATER_LINE_Y } from "@/convex/mapZones";
 import { isOnRoad } from "../utils/gridHelpers";
 import type { TintFn } from "../utils/tintFactory";
 
@@ -105,6 +105,7 @@ function generateTreePlacements(): TreePlacement[] {
       const centerX = bx + ROAD_SPACING / 2;
       const centerY = by + ROAD_SPACING / 2;
       const zoneId = getZoneAt(centerX, centerY);
+      if (!zoneId) continue;
       const vis = ZONE_VISUALS[zoneId];
 
       if (vis.treeCount === 0) continue;

@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getZoneAt, ZONES } from "@/convex/mapZones";
+import { getZoneAt, ZONES } from "@/convex/map/zones";
 
 /** Format distance for the larger 4000px map */
 function formatDistance(d: number): string {
@@ -31,10 +31,11 @@ export function JobsTab() {
     const isPickup = activeJob.status === "accepted";
     const isDelivery = activeJob.status === "picked_up";
 
-    const pickupZone = ZONES[getZoneAt(activeJob.pickupX, activeJob.pickupY)];
-    const dropoffZone =
-      ZONES[getZoneAt(activeJob.dropoffX, activeJob.dropoffY)];
-    const isCrossZone = pickupZone.id !== dropoffZone.id;
+    const pickupZoneId = getZoneAt(activeJob.pickupX, activeJob.pickupY);
+    const dropoffZoneId = getZoneAt(activeJob.dropoffX, activeJob.dropoffY);
+    const pickupZone = pickupZoneId ? ZONES[pickupZoneId] : null;
+    const dropoffZone = dropoffZoneId ? ZONES[dropoffZoneId] : null;
+    const isCrossZone = pickupZoneId !== dropoffZoneId;
 
     return (
       <div className="space-y-6">
@@ -99,7 +100,7 @@ export function JobsTab() {
               </div>
               <p className="text-base font-medium">{activeJob.pickupName}</p>
               <span className="text-[10px] text-muted-foreground">
-                📍 {pickupZone.name}
+                📍 {pickupZone?.name ?? "Unknown"}
               </span>
             </div>
 
@@ -126,7 +127,7 @@ export function JobsTab() {
               </div>
               <p className="text-base font-medium">{activeJob.dropoffName}</p>
               <span className="text-[10px] text-muted-foreground">
-                📍 {dropoffZone.name}
+                📍 {dropoffZone?.name ?? "Unknown"}
               </span>
             </div>
           </div>
@@ -175,9 +176,11 @@ export function JobsTab() {
               ),
             );
 
-            const pickupZone = ZONES[getZoneAt(job.pickupX, job.pickupY)];
-            const dropoffZone = ZONES[getZoneAt(job.dropoffX, job.dropoffY)];
-            const isCrossZone = pickupZone.id !== dropoffZone.id;
+            const pickupZoneId = getZoneAt(job.pickupX, job.pickupY);
+            const dropoffZoneId = getZoneAt(job.dropoffX, job.dropoffY);
+            const pickupZone = pickupZoneId ? ZONES[pickupZoneId] : null;
+            const dropoffZone = dropoffZoneId ? ZONES[dropoffZoneId] : null;
+            const isCrossZone = pickupZoneId !== dropoffZoneId;
 
             return (
               <div
@@ -212,7 +215,7 @@ export function JobsTab() {
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">{job.pickupName}</span>
                       <span className="text-[10px] opacity-60">
-                        {pickupZone.name}
+                        {pickupZone?.name ?? "Unknown"}
                       </span>
                     </div>
                   </div>
@@ -221,7 +224,7 @@ export function JobsTab() {
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">{job.dropoffName}</span>
                       <span className="text-[10px] opacity-60">
-                        {dropoffZone.name}
+                        {dropoffZone?.name ?? "Unknown"}
                       </span>
                     </div>
                   </div>

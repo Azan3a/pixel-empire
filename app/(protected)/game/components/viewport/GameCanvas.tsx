@@ -9,7 +9,7 @@ import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { useMovement } from "@game/hooks/use-movement";
 import { useGameTime } from "@game/hooks/use-game-time";
-import { getSpawnPoint, SHOP_INTERACT_RADIUS } from "@/convex/gameConstants";
+import { getSpawnPoint, SHOP_INTERACT_RADIUS } from "@/convex/map/constants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";

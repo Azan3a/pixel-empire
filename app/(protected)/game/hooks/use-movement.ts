@@ -1,9 +1,10 @@
 // hooks/use-movement.ts
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Property } from "@game/types/property";
-import { MAP_SIZE } from "@/convex/gameConstants";
+import { MAP_SIZE } from "@/convex/map/constants";
 import { HUNGER_SLOW_THRESHOLD } from "@/convex/foodConfig";
-import { getZoneAt, ZONES, WATER_LINE_Y } from "@/convex/mapZones";
+import { getZoneAt, ZONES } from "@/convex/map/zones";
+import { isOnLand } from "@/convex/map/islands";
 import { useKeysPressed, isControlPressed } from "@game/hooks/use-keyboard";
 
 const BASE_SPEED = 5;
@@ -56,7 +57,9 @@ export function useMovement({
 
       // ── Zone-based speed scaling ──
       const currentZoneId = getZoneAt(localPos.current.x, localPos.current.y);
-      const zoneMultiplier = ZONES[currentZoneId].speedMultiplier;
+      const zoneMultiplier = currentZoneId
+        ? ZONES[currentZoneId].speedMultiplier
+        : 1.0;
 
       const speed = Math.max(
         1,
@@ -88,10 +91,9 @@ export function useMovement({
       newY = Math.max(0, Math.min(MAP_SIZE, newY));
 
       // ── Ocean boundary — can't walk into water ──
-      const halfSize = PLAYER_HITBOX / 2;
-      const playerBottom = newY + halfSize;
-      if (playerBottom > WATER_LINE_Y) {
-        newY = WATER_LINE_Y - halfSize;
+      if (!isOnLand(newX, newY)) {
+        // Revert to previous position if moving into water
+        return;
       }
 
       // ── Building collision (AABB) ──

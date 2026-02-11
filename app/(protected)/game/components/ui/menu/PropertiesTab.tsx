@@ -14,9 +14,9 @@ import {
   Factory,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ZONES } from "@/convex/mapZones";
-import type { PropertyCategory } from "@/convex/mapZones";
-import { INCOME_COOLDOWN_MS } from "@/convex/gameConstants";
+import { ZONES } from "@/convex/map/zones";
+import type { PropertyCategory } from "@/convex/map/zones";
+import { INCOME_COOLDOWN_MS } from "@/convex/map/constants";
 
 const CATEGORY_ICONS: Record<PropertyCategory, React.ReactNode> = {
   residential: <Home className="size-4 text-orange-500" />,
@@ -33,8 +33,7 @@ function formatCooldown(ms: number): string {
 }
 
 export function PropertiesTab() {
-  const { properties, ownedCount, totalIncomePerCycle } =
-    useWorld();
+  const { properties, ownedCount, totalIncomePerCycle } = useWorld();
   const { playerInfo } = usePlayer();
 
   if (!playerInfo) return null;

@@ -1,17 +1,9 @@
 // components/game/viewport/world/daynight/drawIntersectionLights.ts
 import { Graphics } from "pixi.js";
-import {
-  MAP_SIZE,
-  ROAD_SPACING,
-  ROAD_WIDTH,
-  SIDEWALK_W,
-} from "@/convex/gameConstants";
-import {
-  ZONE_VISUALS,
-  WATER_LINE_Y,
-  getZoneAt,
-  ZONES,
-} from "@/convex/mapZones";
+import { ROAD_SPACING, ROAD_WIDTH, SIDEWALK_W } from "@/convex/gameConstants";
+import { MAP_SIZE } from "@/convex/map/constants";
+import { ZONE_VISUALS, getZoneAt, ZONES } from "@/convex/map/zones";
+import { WATER_LINE_Y } from "@/convex/mapZones";
 
 export function drawIntersectionLights(g: Graphics, streetLightAlpha: number) {
   if (streetLightAlpha <= 0.02) return;
@@ -26,6 +18,7 @@ export function drawIntersectionLights(g: Graphics, streetLightAlpha: number) {
 
       // Check if this intersection's zone has street lights and roads
       const zoneId = getZoneAt(ix, iy);
+      if (!zoneId) continue;
       const zone = ZONES[zoneId];
       const vis = ZONE_VISUALS[zoneId];
 

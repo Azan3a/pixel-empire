@@ -7,7 +7,7 @@ import {
   ROAD_WIDTH,
   SIDEWALK_W,
 } from "@/convex/gameConstants";
-import { WATER_LINE_Y, getZoneAt, ZONES } from "@/convex/mapZones";
+import { getZoneAt, ZONES } from \"@/convex/map/zones\";\nimport { WATER_LINE_Y } from \"@/convex/mapZones\";
 import type { TintFn } from "../utils/tintFactory";
 
 const HALF = ROAD_WIDTH / 2;
@@ -63,7 +63,7 @@ function drawHorizontalRoads(g: Graphics, t: TintFn): void {
       // Check if either side of the road line allows roads
       const zUp = getZoneAt(x + ROAD_SPACING / 2, y - 1);
       const zDown = getZoneAt(x + ROAD_SPACING / 2, y + 1);
-      const hasRoads = ZONES[zUp].hasRoads || ZONES[zDown].hasRoads;
+      const hasRoads = (zUp && ZONES[zUp].hasRoads) || (zDown && ZONES[zDown].hasRoads);
 
       if (hasRoads) {
         if (segmentStart === -1) segmentStart = x;
@@ -126,7 +126,7 @@ function drawVerticalRoads(g: Graphics, t: TintFn): void {
       // Check if either side of the road line allows roads
       const zLeft = getZoneAt(x - 1, y + ROAD_SPACING / 2);
       const zRight = getZoneAt(x + 1, y + ROAD_SPACING / 2);
-      const hasRoads = ZONES[zLeft].hasRoads || ZONES[zRight].hasRoads;
+      const hasRoads = (zLeft && ZONES[zLeft].hasRoads) || (zRight && ZONES[zRight].hasRoads);
 
       if (hasRoads) {
         if (segmentStart === -1) segmentStart = y;
@@ -152,13 +152,16 @@ function drawIntersections(g: Graphics, t: TintFn): void {
     for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
       if (iy - HALF > WATER_LINE_Y) continue;
 
-      // An intersection exists if both horizontal and vertical roads connect here
+      const hUp = getZoneAt(ix, iy - 1);
+      const hDown = getZoneAt(ix, iy + 1);
       const hasH =
-        ZONES[getZoneAt(ix, iy - 1)].hasRoads ||
-        ZONES[getZoneAt(ix, iy + 1)].hasRoads;
+        (hUp ? ZONES[hUp].hasRoads : false) ||
+        (hDown ? ZONES[hDown].hasRoads : false);
+      const vLeft = getZoneAt(ix - 1, iy);
+      const vRight = getZoneAt(ix + 1, iy);
       const hasV =
-        ZONES[getZoneAt(ix - 1, iy)].hasRoads ||
-        ZONES[getZoneAt(ix + 1, iy)].hasRoads;
+        (vLeft ? ZONES[vLeft].hasRoads : false) ||
+        (vRight ? ZONES[vRight].hasRoads : false);
       if (!hasH || !hasV) continue;
 
       // Intersection fill

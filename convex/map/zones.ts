@@ -513,3 +513,10 @@ export function getZoneDisplayName(zoneId: ZoneId): string {
   };
   return `${icons[zoneId]} ${ZONES[zoneId].name}`;
 }
+
+// ── Compat: ZONE_VISUALS lookup (derived from ZONES[id].visuals) ──
+
+export const ZONE_VISUALS: Record<ZoneId, ZoneVisualConfig> =
+  Object.fromEntries(
+    Object.values(ZONES).map((z) => [z.id, z.visuals]),
+  ) as Record<ZoneId, ZoneVisualConfig>;

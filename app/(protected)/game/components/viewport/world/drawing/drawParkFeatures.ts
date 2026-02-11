@@ -1,7 +1,7 @@
 // components/game/viewport/world/drawing/drawParkFeatures.ts
 
 import { Graphics } from "pixi.js";
-import { ZONES, ZONE_VISUALS } from "@/convex/mapZones";
+import { ZONES, ZONE_VISUALS } from "@/convex/map/zones";
 import type { TintFn } from "../utils/tintFactory";
 
 /**

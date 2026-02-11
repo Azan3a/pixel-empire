@@ -2,7 +2,7 @@
 
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "../buildingPalettes";
-import type { PropertyCategory, PropertySubType } from "@/convex/mapZones";
+import type { PropertyCategory, PropertySubType } from "@/convex/map/zones";
 import { drawGridWindows } from "./windowHelpers";
 import {
   drawHouseWindows,
