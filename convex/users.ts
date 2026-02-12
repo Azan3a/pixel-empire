@@ -103,6 +103,18 @@ export const updateProfile = mutation({
     }
 
     await ctx.db.patch(userId, updates);
+
+    // Sync name to players table if it changed
+    if (args.name !== undefined) {
+      const player = await ctx.db
+        .query("players")
+        .withIndex("by_userId", (q) => q.eq("userId", userId))
+        .unique();
+      if (player) {
+        await ctx.db.patch(player._id, { name: args.name });
+      }
+    }
+
     return await ctx.db.get(userId);
   },
 });

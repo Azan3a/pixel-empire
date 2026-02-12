@@ -20,9 +20,26 @@ export const getOrCreatePlayer = mutation({
 
     if (existingPlayer) {
       const now = Date.now();
-      const patches: Record<string, number> = { lastSeen: now };
+      const user = await ctx.db.get(userId);
+
+      interface PlayerPatch {
+        lastSeen: number;
+        hunger?: number;
+        walkDistance?: number;
+        name?: string;
+        x?: number;
+        y?: number;
+        lastIncomeCheckAt?: number;
+      }
+
+      const patches: PlayerPatch = { lastSeen: now };
       if (existingPlayer.hunger === undefined) patches.hunger = MAX_HUNGER;
       if (existingPlayer.walkDistance === undefined) patches.walkDistance = 0;
+
+      // Sync name if it changed in users table
+      if (user?.name && user.name !== existingPlayer.name) {
+        patches.name = user.name;
+      }
 
       // Migrate players stuck outside new map boundaries
       let needsReposition = false;
