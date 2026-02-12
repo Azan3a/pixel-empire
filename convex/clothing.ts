@@ -126,9 +126,11 @@ export const unequipClothing = mutation({
       .unique();
     if (!player) throw new ConvexError("Player not found");
 
-    const current = player.equippedClothing ?? {};
+    const newEquipped = { ...(player.equippedClothing ?? {}) };
+    delete newEquipped[args.slot as keyof typeof newEquipped];
+
     await ctx.db.patch(player._id, {
-      equippedClothing: { ...current, [args.slot]: undefined },
+      equippedClothing: newEquipped,
     });
 
     return { slot: args.slot };

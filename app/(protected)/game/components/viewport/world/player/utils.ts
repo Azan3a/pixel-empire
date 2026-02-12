@@ -19,6 +19,21 @@ export function lighten(color: number, factor: number): number {
   return (r << 16) | (g << 8) | b;
 }
 
+export function getAvatarColor(avatar?: string): number {
+  switch (avatar) {
+    case "avatar1":
+      return 0x3b82f6; // Blue 500
+    case "avatar2":
+      return 0xef4444; // Red 500
+    case "avatar3":
+      return 0xf59e0b; // Amber 500
+    case "avatar4":
+      return 0xa855f7; // Purple 500
+    default:
+      return 0x71717a; // Zinc 500
+  }
+}
+
 /**
  * Draw a single "pixel" in the character grid.
  * gx/gy are grid coordinates (0-based from top-left of character).

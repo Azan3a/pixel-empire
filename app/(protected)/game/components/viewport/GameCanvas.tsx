@@ -23,6 +23,7 @@ import { PlayerCharacter } from "./world/player/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
 import { DayNightOverlay } from "./world/daynight/DayNightOverlay";
 import { OtherPlayers } from "./world/OtherPlayers";
+import { getAvatarColor } from "./world/player/utils";
 
 import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
@@ -243,7 +244,7 @@ export function GameCanvas() {
   const camY = vh / 2 - renderPos.y;
 
   const otherPlayers = alivePlayers
-    .filter((p) => p._id !== me._id)
+    .filter((p) => String(p._id) !== String(me._id))
     .map((p) => ({ _id: p._id, x: p.x, y: p.y, name: p.name }));
 
   return (
@@ -378,7 +379,7 @@ export function GameCanvas() {
           )}
 
           <OtherPlayers
-            players={alivePlayers.filter((p) => p._id !== me._id)}
+            players={alivePlayers.filter((p) => String(p._id) !== String(me._id))}
             sunlightIntensity={sunlightIntensity}
           />
 
@@ -386,7 +387,7 @@ export function GameCanvas() {
             x={renderPos.x}
             y={renderPos.y}
             name={me.name}
-            color={0x10b981}
+            color={getAvatarColor(me.avatar)}
             isMe={true}
             sunlightIntensity={sunlightIntensity}
             equippedClothing={playerInfo?.equippedClothing}

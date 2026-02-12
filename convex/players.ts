@@ -172,10 +172,15 @@ export const getAlivePlayers = query({
   args: {},
   handler: async (ctx) => {
     const threshold = Date.now() - 10000;
-    return await ctx.db
+    const players = await ctx.db
       .query("players")
       .filter((q) => q.gt(q.field("lastSeen"), threshold))
       .collect();
+
+    return players.map((p) => ({
+      ...p,
+      equippedClothing: p.equippedClothing ?? {},
+    }));
   },
 });
 

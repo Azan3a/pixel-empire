@@ -3,6 +3,7 @@
 import { useInterpolatedPlayers } from "@game/hooks/use-interpolated-players";
 import { PlayerCharacter } from "./player/PlayerCharacter";
 import { Player } from "@game/types/player";
+import { getAvatarColor } from "./player/utils";
 
 interface OtherPlayersProps {
   players: Player[];
@@ -20,7 +21,7 @@ export function OtherPlayers({ players, sunlightIntensity }: OtherPlayersProps) 
           x={p.displayX}
           y={p.displayY}
           name={p.name}
-          color={0xef4444}
+          color={getAvatarColor(p.avatar)}
           isMe={false}
           sunlightIntensity={sunlightIntensity}
           equippedClothing={p.equippedClothing}
