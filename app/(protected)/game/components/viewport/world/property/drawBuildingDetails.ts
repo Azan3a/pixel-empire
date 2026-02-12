@@ -3,7 +3,7 @@
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "./buildingPalettes";
 import { tintColor } from "./propertyDrawHelpers";
-import type { PropertySubType } from "@/convex/map/zones";
+import type { PropertySubType } from "@/convex/mapZones";
 
 const INSET = 4;
 
@@ -20,7 +20,7 @@ export function drawBuildingDetails(
   isNight: boolean,
   px: number,
 ): void {
-  if (subType === "bank_tower" && width > 40) {
+  if (subType === "bank" && width > 40) {
     drawBankColumns(g, width, height, bf);
   }
 
@@ -28,7 +28,7 @@ export function drawBuildingDetails(
     drawCasinoNeon(g, width, height, px);
   }
 
-  if (subType === "police_hq") {
+  if (subType === "police_station") {
     drawPoliceLight(g, width, isNight);
   }
 }

@@ -3,7 +3,7 @@
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "../buildingPalettes";
 import { tintColor } from "../propertyDrawHelpers";
-import type { PropertySubType } from "@/convex/map/zones";
+import type { PropertySubType } from "@/convex/mapZones";
 
 export function drawShopBase(
   g: Graphics,
@@ -87,27 +87,11 @@ function drawDisplayContent(
   bf: number,
   subType: PropertySubType,
 ): void {
-  if (
-    subType === "bakery" ||
-    subType === "coffee_shop" ||
-    subType === "food_court" ||
-    subType === "park_cafe" ||
-    subType === "farmhouse_kitchen" ||
-    subType === "fish_market" ||
-    subType === "ice_cream_stand" ||
-    subType === "grocery_store" ||
-    subType === "inn" ||
-    subType === "tavern"
-  ) {
+  if (subType === "food_shop") {
     drawFoodDisplay(g, dx, dy, dw, dh, bf);
-  } else if (subType === "clothing_store" || subType === "tailor") {
+  } else if (subType === "clothing_store") {
     drawClothingDisplay(g, dx, dy, dw, dh, bf);
-  } else if (
-    subType === "hardware_store" ||
-    subType === "ship_supply" ||
-    subType === "seed_store" ||
-    subType === "bait_shop"
-  ) {
+  } else if (subType === "supply_store") {
     drawSupplyDisplay(g, dx, dy, dw, dh, bf);
   } else {
     drawGenericDisplay(g, dx, dy, dw, dh, bf);

@@ -11,11 +11,12 @@ import { Property } from "@game/types/property";
 import { useFood } from "@game/hooks/use-food";
 import { FOOD_LIST } from "@/convex/foodConfig";
 import { Id } from "@/convex/_generated/dataModel";
-import { SELL_RATE } from "@/convex/map/constants";
-import { ZONES, type ZoneId } from "@/convex/map/zones";
+import { SELL_RATE } from "@/convex/gameConstants";
+import { ZONES } from "@/convex/mapZones";
 import { cn } from "@/lib/utils";
 import {
   ShoppingCart,
+  MapPin,
   UtensilsCrossed,
   Wrench,
   Shirt,
@@ -61,23 +62,6 @@ const SHOP_CONFIG = {
     emoji: "👕",
   },
 } as const;
-
-const ZONE_ICONS: Record<ZoneId, string> = {
-  forest: "🌲",
-  mountains: "⛰️",
-  oldtown: "🏛️",
-  harbor: "⚓",
-  downtown: "🏙️",
-  park: "🌳",
-  suburbs: "🏘️",
-  commercial: "🛒",
-  farmland: "🌾",
-  industrial: "🏭",
-  wetlands: "🌿",
-  boardwalk: "🎡",
-  beach: "🏖️",
-  smallisland: "🏝️",
-};
 
 /* ── Sub-components ─────────────────────────────────────────── */
 
@@ -273,9 +257,7 @@ export function ShopDialog({
             )}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
-            <span className="text-sm leading-none">
-              {ZONE_ICONS[property.zoneId]}
-            </span>
+            <MapPin className="size-3" />
             <span>{zoneDef.name}</span>
             <span>·</span>
             <span>{config.description}</span>
@@ -285,28 +267,17 @@ export function ShopDialog({
         {/* Shop inventory — type-specific content */}
         <div className="mt-2">
           <div className="no-scrollbar -mx-4 max-h-[48vh] overflow-y-auto px-4">
-            {(property.subType === "bakery" ||
-              property.subType === "coffee_shop" ||
-              property.subType === "food_court" ||
-              property.subType === "park_cafe" ||
-              property.subType === "farmhouse_kitchen" ||
-              property.subType === "fish_market" ||
-              property.subType === "ice_cream_stand" ||
-              property.subType === "grocery_store") && (
+            {property.subType === "food_shop" && (
               <FoodShopContent
                 playerCash={playerCash}
                 shopPropertyId={property._id}
                 isOwned={!!property.isOwned}
               />
             )}
-            {(property.subType === "hardware_store" ||
-              property.subType === "ship_supply" ||
-              property.subType === "seed_store" ||
-              property.subType === "bait_shop") && (
+            {property.subType === "supply_store" && (
               <ComingSoonContent label="Supply Store" emoji="🔧" />
             )}
-            {(property.subType === "clothing_store" ||
-              property.subType === "tailor") && (
+            {property.subType === "clothing_store" && (
               <ComingSoonContent label="Clothing Store" emoji="👕" />
             )}
           </div>

@@ -5,7 +5,7 @@ import { useJobs } from "@game/hooks/use-jobs";
 import { useCallback, useMemo } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getZoneAt, ZONES } from "@/convex/map/zones";
+import { getZoneAt, ZONES } from "@/convex/mapZones";
 import { useKeyboard } from "@game/hooks/use-keyboard";
 
 interface DeliveryHUDProps {
@@ -49,7 +49,7 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
   const targetZone = useMemo(() => {
     if (targetX === undefined || targetY === undefined) return null;
     const zoneId = getZoneAt(targetX, targetY);
-    return zoneId ? ZONES[zoneId] : null;
+    return ZONES[zoneId];
   }, [targetX, targetY]);
 
   // Cross-zone indicator
@@ -121,7 +121,7 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
             {targetZone && (
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-[10px] text-white/40">
-                  📍 {targetZone?.name ?? "Unknown"}
+                  📍 {targetZone.name}
                 </span>
                 {isCrossZone && (
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">

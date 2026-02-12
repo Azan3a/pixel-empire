@@ -2,7 +2,7 @@
 
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "../buildingPalettes";
-import type { PropertyCategory, PropertySubType } from "@/convex/map/zones";
+import type { PropertyCategory, PropertySubType } from "@/convex/mapZones";
 import {
   drawResidentialDoor,
   drawDuplexDoors,
@@ -24,34 +24,21 @@ export function drawDoorAndAccessories(
 ): void {
   switch (subType) {
     case "house":
-    case "farmhouse":
       drawResidentialDoor(g, width, height, palette, bf, isNight, false);
       break;
     case "duplex":
       drawDuplexDoors(g, width, height, palette, bf, isNight);
       break;
     case "apartment":
-    case "luxury_apartment":
-    case "condo_tower":
       drawApartmentEntrance(g, width, height, palette, bf, isNight);
       break;
-    case "office_tower":
-    case "tech_hub":
-    case "investment_firm":
-    case "law_office":
-    case "insurance":
-    case "news_tower":
+    case "office":
       drawOfficeDoor(g, width, height, palette, bf, isNight);
       break;
-    case "sawmill_factory":
-    case "smelter":
-    case "food_processing":
-    case "chemical_plant":
-    case "textile_mill":
-    case "electronics_factory":
+    case "factory":
       drawFactoryDoor(g, width, height, palette, bf, isNight);
       break;
-    case "bank_tower":
+    case "bank":
       drawBankEntrance(g, width, height, palette, bf, isNight);
       break;
     case "casino":
@@ -61,12 +48,14 @@ export function drawDoorAndAccessories(
       drawResidentialDoor(g, width, height, palette, bf, isNight, true);
       break;
     case "warehouse":
-    case "wholesale":
-    case "mega_mall":
-    case "mega_mart":
-    case "police_hq":
+    case "mall":
+    case "police_station":
       // Doors drawn in base for these types
       break;
+    case "corner_store":
+    case "food_shop":
+    case "supply_store":
+    case "clothing_store":
     default:
       drawShopDoor(g, width, height, palette, bf, isNight);
       break;

@@ -4,16 +4,21 @@
 import { useRef, useEffect, useCallback } from "react";
 import { Property } from "@game/types/property";
 import { Job } from "@game/types/job";
-import { MAP_SIZE, ROAD_STYLES } from "@/convex/map/constants";
+import {
+  MAP_SIZE,
+  ROAD_SPACING,
+  ROAD_WIDTH,
+  SIDEWALK_W,
+} from "@/convex/gameConstants";
 import {
   ZONES,
   ZONE_VISUALS,
+  WATER_LINE_Y,
+  BOARDWALK_Y,
+  BOARDWALK_HEIGHT,
   getZoneAt,
   getZoneList,
-} from "@/convex/map/zones";
-import { ALL_ZONE_DATA } from "@/convex/map/zones/index";
-import { COASTLINE_POLYGON, SMALL_ISLAND_POLYGON } from "@/convex/map/islands";
-import { RIVER, LAKE } from "@/convex/map/water";
+} from "@/convex/mapZones";
 import { hexToStr } from "@/lib/utils";
 interface MinimapPlayer {
   _id: string;
@@ -34,6 +39,8 @@ interface FloatingMinimapProps {
 
 const MINIMAP_SIZE = 240;
 const SCALE = MINIMAP_SIZE / MAP_SIZE;
+const HALF_ROAD = ROAD_WIDTH / 2;
+const FULL_SW = HALF_ROAD + SIDEWALK_W;
 
 // Minimap category colors
 const CATEGORY_COLORS: Record<string, { owned: string; unowned: string }> = {
@@ -84,51 +91,32 @@ export function FloatingMinimap({
         const worldX = (bx + zoneBlockPx / 2) / SCALE;
         const worldY = (by + zoneBlockPx / 2) / SCALE;
         const zoneId = getZoneAt(worldX, worldY);
-        if (!zoneId) {
-          ctx.fillStyle = "#1a6b8a";
-        } else {
-          const vis = ZONE_VISUALS[zoneId];
-          ctx.fillStyle = hexToStr(vis.grassColor);
-        }
+        const vis = ZONE_VISUALS[zoneId];
+        ctx.fillStyle = hexToStr(vis.grassColor);
         ctx.fillRect(bx, by, zoneBlockPx, zoneBlockPx);
       }
     }
 
-    // ── Coastline outline ──
-    ctx.strokeStyle = "#ddeeff";
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.3;
-    for (const poly of [COASTLINE_POLYGON, SMALL_ISLAND_POLYGON]) {
-      ctx.beginPath();
-      ctx.moveTo(poly[0].x * SCALE, poly[0].y * SCALE);
-      for (let i = 1; i < poly.length; i++)
-        ctx.lineTo(poly[i].x * SCALE, poly[i].y * SCALE);
-      ctx.closePath();
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1.0;
+    // ── Beach sand ──
+    const beachBounds = ZONES.beach.bounds;
+    const waterLinePx = WATER_LINE_Y * SCALE;
+    const sandTopPx = beachBounds.y1 * SCALE;
 
-    // ── Lake ──
-    if (LAKE.points.length >= 3) {
-      ctx.beginPath();
-      ctx.moveTo(LAKE.points[0].x * SCALE, LAKE.points[0].y * SCALE);
-      for (let i = 1; i < LAKE.points.length; i++)
-        ctx.lineTo(LAKE.points[i].x * SCALE, LAKE.points[i].y * SCALE);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(42, 122, 154, 0.6)";
-      ctx.fill();
-    }
+    const sandGradient = ctx.createLinearGradient(0, sandTopPx, 0, waterLinePx);
+    sandGradient.addColorStop(0, "#d4b483");
+    sandGradient.addColorStop(1, "#f0e4c8");
+    ctx.fillStyle = sandGradient;
+    ctx.fillRect(0, sandTopPx, w, waterLinePx - sandTopPx);
 
-    // ── River ──
-    if (RIVER.points.length >= 2) {
-      ctx.beginPath();
-      ctx.moveTo(RIVER.points[0].x * SCALE, RIVER.points[0].y * SCALE);
-      for (let i = 1; i < RIVER.points.length; i++)
-        ctx.lineTo(RIVER.points[i].x * SCALE, RIVER.points[i].y * SCALE);
-      ctx.strokeStyle = "rgba(42, 122, 154, 0.7)";
-      ctx.lineWidth = Math.max(1.5, RIVER.width * SCALE);
-      ctx.stroke();
-    }
+    // ── Boardwalk ──
+    const bwTopPx = (BOARDWALK_Y - BOARDWALK_HEIGHT / 2) * SCALE;
+    const bwHPx = BOARDWALK_HEIGHT * SCALE;
+    ctx.fillStyle = "#8b6b4a";
+    ctx.fillRect(0, bwTopPx, w, bwHPx);
+
+    // ── Ocean ──
+    ctx.fillStyle = "#1a6b8a";
+    ctx.fillRect(0, waterLinePx, w, h - waterLinePx);
 
     // ── Park Ponds ──
     const parkBounds = ZONES.park.bounds;
@@ -152,33 +140,92 @@ export function FloatingMinimap({
     drawPond(parkCX + 420, parkCY - 100, 110, 70);
     drawPond(parkCX - 380, parkCY + 280, 90, 60);
 
-    // ── Zone Roads ──
-    const allRoads = Object.values(ALL_ZONE_DATA).flatMap((z) => z.roads);
-    for (const road of allRoads) {
-      const style = ROAD_STYLES[road.style];
-      if (!style) continue;
-      const hw = (style.width / 2) * SCALE;
+    // ── Roads ──
+    const asphaltColor = "#555555";
 
-      ctx.fillStyle = "#555555";
+    // Horizontal Roads
+    for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
+      if (ry - FULL_SW > WATER_LINE_Y) continue;
 
-      if (road.y1 === road.y2) {
-        // Horizontal
-        const x = Math.min(road.x1, road.x2) * SCALE;
-        const len = Math.abs(road.x2 - road.x1) * SCALE;
-        ctx.fillRect(x, road.y1 * SCALE - hw, len, hw * 2);
-      } else if (road.x1 === road.x2) {
-        // Vertical
-        const y = Math.min(road.y1, road.y2) * SCALE;
-        const len = Math.abs(road.y2 - road.y1) * SCALE;
-        ctx.fillRect(road.x1 * SCALE - hw, y, hw * 2, len);
-      } else {
-        // Diagonal — draw as thick line
-        ctx.beginPath();
-        ctx.lineWidth = style.width * SCALE;
-        ctx.strokeStyle = "#555555";
-        ctx.moveTo(road.x1 * SCALE, road.y1 * SCALE);
-        ctx.lineTo(road.x2 * SCALE, road.y2 * SCALE);
-        ctx.stroke();
+      let segmentStart = -1;
+      for (let rx = 0; rx < MAP_SIZE; rx += ROAD_SPACING) {
+        const zUp = getZoneAt(rx + ROAD_SPACING / 2, ry - 1);
+        const zDown = getZoneAt(rx + ROAD_SPACING / 2, ry + 1);
+        if (ZONES[zUp].hasRoads || ZONES[zDown].hasRoads) {
+          if (segmentStart === -1) segmentStart = rx;
+        } else if (segmentStart !== -1) {
+          ctx.fillStyle = asphaltColor;
+          ctx.fillRect(
+            segmentStart * SCALE,
+            (ry - FULL_SW) * SCALE,
+            (rx - segmentStart) * SCALE,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+          );
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        ctx.fillStyle = asphaltColor;
+        ctx.fillRect(
+          segmentStart * SCALE,
+          (ry - FULL_SW) * SCALE,
+          (MAP_SIZE - segmentStart) * SCALE,
+          (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+        );
+      }
+    }
+
+    // Vertical Roads
+    for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
+      let segmentStart = -1;
+      for (let ry = 0; ry < MAP_SIZE; ry += ROAD_SPACING) {
+        const zLeft = getZoneAt(rx - 1, ry + ROAD_SPACING / 2);
+        const zRight = getZoneAt(rx + 1, ry + ROAD_SPACING / 2);
+        if (ZONES[zLeft].hasRoads || ZONES[zRight].hasRoads) {
+          if (segmentStart === -1) segmentStart = ry;
+        } else if (segmentStart !== -1) {
+          ctx.fillStyle = asphaltColor;
+          ctx.fillRect(
+            (rx - FULL_SW) * SCALE,
+            segmentStart * SCALE,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+            (ry - segmentStart) * SCALE,
+          );
+          segmentStart = -1;
+        }
+      }
+      if (segmentStart !== -1) {
+        ctx.fillStyle = asphaltColor;
+        const rTop = segmentStart * SCALE;
+        const rH = Math.min(MAP_SIZE, WATER_LINE_Y) * SCALE - rTop;
+        if (rH > 0) {
+          ctx.fillRect(
+            (rx - FULL_SW) * SCALE,
+            rTop,
+            (ROAD_WIDTH + SIDEWALK_W * 2) * SCALE,
+            rH,
+          );
+        }
+      }
+    }
+
+    // ── Intersections ──
+    ctx.fillStyle = "#666666";
+    for (let ix = ROAD_SPACING; ix < MAP_SIZE; ix += ROAD_SPACING) {
+      for (let iy = ROAD_SPACING; iy < MAP_SIZE; iy += ROAD_SPACING) {
+        if (iy > WATER_LINE_Y) continue;
+        const hasH =
+          ZONES[getZoneAt(ix, iy - 1)].hasRoads ||
+          ZONES[getZoneAt(ix, iy + 1)].hasRoads;
+        const hasV =
+          ZONES[getZoneAt(ix - 1, iy)].hasRoads ||
+          ZONES[getZoneAt(ix + 1, iy)].hasRoads;
+        if (!hasH || !hasV) continue;
+
+        const x = (ix - HALF_ROAD) * SCALE;
+        const y = (iy - HALF_ROAD) * SCALE;
+        const s = ROAD_WIDTH * SCALE;
+        ctx.fillRect(x, y, s, s);
       }
     }
 
@@ -337,7 +384,7 @@ export function FloatingMinimap({
 
     // ── Zone label at player position ──
     const currentZone = getZoneAt(playerX, playerY);
-    const zoneName = currentZone ? ZONES[currentZone].name : "Ocean";
+    const zoneName = ZONES[currentZone].name;
 
     ctx.fillStyle = "#ffffffcc";
     ctx.font = "bold 9px sans-serif";

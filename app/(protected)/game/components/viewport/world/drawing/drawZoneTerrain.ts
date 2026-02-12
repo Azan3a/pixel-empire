@@ -1,8 +1,8 @@
 // components/game/viewport/world/drawing/drawZoneTerrain.ts
 
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/map/constants";
-import { ZONE_VISUALS, getZoneAt } from "@/convex/map/zones";
+import { MAP_SIZE } from "@/convex/gameConstants";
+import { ZONE_VISUALS, getZoneAt } from "@/convex/mapZones";
 import type { TintFn } from "../utils/tintFactory";
 
 /**
@@ -54,12 +54,6 @@ function paintZoneRect(
     isUniformZone(cx, cy, cw, ch) ||
     (cw <= MIN_BLOCK_SIZE && ch <= MIN_BLOCK_SIZE)
   ) {
-    if (!zoneId) {
-      // Ocean — paint water
-      g.rect(cx, cy, cw, ch);
-      g.fill({ color: t(0x1a6b8a) });
-      return;
-    }
     const vis = ZONE_VISUALS[zoneId];
     g.rect(cx, cy, cw, ch);
     g.fill({ color: t(vis.grassColor) });
@@ -96,7 +90,6 @@ export function drawZoneTerrain(g: Graphics, t: TintFn): void {
       const w = Math.min(BLOCK_SIZE, MAP_SIZE - bx);
       const h = Math.min(BLOCK_SIZE, MAP_SIZE - by);
       const zoneId = getZoneAt(bx + w / 2, by + h / 2);
-      if (!zoneId) continue;
       const vis = ZONE_VISUALS[zoneId];
 
       g.setStrokeStyle({

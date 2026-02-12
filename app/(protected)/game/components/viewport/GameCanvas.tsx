@@ -9,11 +9,11 @@ import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { useMovement } from "@game/hooks/use-movement";
 import { useGameTime } from "@game/hooks/use-game-time";
-import { getSpawnPoint } from "@/convex/map/constants";
+import { getSpawnPoint, SHOP_INTERACT_RADIUS } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
 import { Id } from "@/convex/_generated/dataModel";
-
+import { toast } from "sonner";
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/player/PlayerCharacter";
@@ -24,7 +24,6 @@ import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
-import { ZoneTransition } from "../ui/ZoneTransition";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -101,8 +100,22 @@ export function GameCanvas() {
       if (!prop) return;
 
       if (prop.category === "shop") {
-        setSelectedShop(prop);
-        setShopDialogOpen(true);
+        // Compute distance from player to building center
+        const centerX = prop.x + prop.width / 2;
+        const centerY = prop.y + prop.height / 2;
+        const pos = renderPosRef.current;
+        const distance = Math.sqrt(
+          (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
+        );
+
+        if (distance <= SHOP_INTERACT_RADIUS) {
+          setSelectedShop(prop);
+          setShopDialogOpen(true);
+        } else {
+          toast("Walk closer to enter this shop", {
+            description: `You need to be near ${prop.name} to shop here.`,
+          });
+        }
       } else {
         setSelectedProperty(prop);
         setPurchaseDialogOpen(true);
@@ -220,8 +233,6 @@ export function GameCanvas() {
         />
         <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
       </div>
-
-      <ZoneTransition playerX={renderPos.x} playerY={renderPos.y} />
 
       <PropertyDialog
         property={selectedProperty}

@@ -1,7 +1,7 @@
 // components/game/viewport/world/drawing/drawMapBorder.ts
 
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/map/constants";
+import { MAP_SIZE } from "@/convex/gameConstants";
 
 /**
  * Draw a subtle white border around the entire map.

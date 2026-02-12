@@ -3,8 +3,8 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "./foodConfig";
-import { MAP_SIZE, getSpawnPoint } from "./map/constants";
-import { isOnLand } from "./map/islands";
+import { getSpawnPoint, MAP_SIZE } from "./gameConstants";
+import { WATER_LINE_Y } from "./mapZones";
 import { processIncomeCollection } from "./world";
 
 export const getOrCreatePlayer = mutation({
@@ -30,8 +30,7 @@ export const getOrCreatePlayer = mutation({
         existingPlayer.x < 0 ||
         existingPlayer.x > MAP_SIZE ||
         existingPlayer.y < 0 ||
-        existingPlayer.y > MAP_SIZE ||
-        !isOnLand(existingPlayer.x, existingPlayer.y)
+        existingPlayer.y > WATER_LINE_Y
       ) {
         needsReposition = true;
       }
@@ -107,7 +106,7 @@ export const updatePosition = mutation({
 
     // ── Clamp position to valid world bounds ──
     const clampedX = Math.max(0, Math.min(MAP_SIZE, args.x));
-    const clampedY = Math.max(0, Math.min(MAP_SIZE, args.y));
+    const clampedY = Math.max(0, Math.min(WATER_LINE_Y, args.y));
 
     // ── Calculate distance moved ──
     const dx = clampedX - player.x;

@@ -1,6 +1,6 @@
 // components/game/viewport/world/daynight/drawParkLamps.ts
 import { Graphics } from "pixi.js";
-import { ZONES } from "@/convex/map/zones";
+import { ZONES } from "@/convex/mapZones";
 
 export function drawParkLamps(g: Graphics, streetLightAlpha: number) {
   if (streetLightAlpha <= 0.02) return;

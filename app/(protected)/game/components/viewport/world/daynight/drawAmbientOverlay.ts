@@ -1,6 +1,6 @@
 // components/game/viewport/world/daynight/drawAmbientOverlay.ts
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/map/constants";
+import { MAP_SIZE } from "@/convex/gameConstants";
 
 export function drawAmbientOverlay(
   g: Graphics,

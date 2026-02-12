@@ -20,12 +20,14 @@ import {
   Store,
   Landmark,
   Users,
+  Factory,
+  TreePine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SELL_RATE } from "@/convex/map/constants";
+import { SELL_RATE } from "@/convex/gameConstants";
 import { Button } from "@/components/ui/button";
-import { ZONES } from "@/convex/map/zones";
-import type { PropertyCategory, ZoneId } from "@/convex/map/zones";
+import { ZONES } from "@/convex/mapZones";
+import type { PropertyCategory, ZoneId } from "@/convex/mapZones";
 
 interface PropertyDialogProps {
   property: Property | null;
@@ -50,22 +52,18 @@ const CATEGORY_COLORS: Record<PropertyCategory, string> = {
   service: "text-amber-600",
 };
 
-const ZONE_ICONS: Record<ZoneId, string> = {
-  forest: "🌲",
-  mountains: "⛰️",
-  oldtown: "🏛️",
-  harbor: "⚓",
-  downtown: "🏙️",
-  park: "🌳",
-  suburbs: "🏘️",
-  commercial: "🛒",
-  farmland: "🌾",
-  industrial: "🏭",
-  wetlands: "🌿",
-  boardwalk: "🎡",
-  beach: "🏖️",
-  smallisland: "🏝️",
-};
+function getZoneIcon(zoneId: ZoneId): React.ReactNode {
+  switch (zoneId) {
+    case "downtown":
+      return <Building2 className="size-3 text-muted-foreground" />;
+    case "industrial":
+      return <Factory className="size-3 text-muted-foreground" />;
+    case "forest":
+      return <TreePine className="size-3 text-muted-foreground" />;
+    default:
+      return <MapPin className="size-3 text-muted-foreground" />;
+  }
+}
 
 export function PropertyDialog({
   property,
@@ -176,9 +174,7 @@ export function PropertyDialog({
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="text-sm leading-none">
-                      {ZONE_ICONS[property.zoneId]}
-                    </span>
+                    {getZoneIcon(property.zoneId)}
                     <span>{zoneDef.name}</span>
                   </div>
                 </div>

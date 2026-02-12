@@ -1,16 +1,19 @@
 // components/game/viewport/world/drawing/drawTrees.ts
 
 import { Graphics } from "pixi.js";
-import { MAP_SIZE } from "@/convex/map/constants";
+import {
+  MAP_SIZE,
+  ROAD_SPACING,
+  ROAD_WIDTH,
+  SIDEWALK_W,
+} from "@/convex/gameConstants";
 import {
   ZONE_VISUALS,
+  WATER_LINE_Y,
   getZoneAt,
-  getZoneList,
   type ZoneId,
   ZONES,
-} from "@/convex/map/zones";
-import { isOnLand } from "@/convex/map/islands";
-import { isInWater } from "@/convex/map/water";
+} from "@/convex/mapZones";
 import { isOnRoad } from "../utils/gridHelpers";
 import type { TintFn } from "../utils/tintFactory";
 
@@ -20,10 +23,10 @@ import type { TintFn } from "../utils/tintFactory";
 const MIN_TREE_SPACING = 28;
 
 /** Margin from road edges where trees cannot be placed */
-const ROAD_MARGIN = 36;
+const ROAD_MARGIN = ROAD_WIDTH / 2 + SIDEWALK_W + 12;
 
-/** Sub-cell size for iterating within each zone's bounds */
-const CELL_SIZE = 250;
+/** Margin from block edges */
+const BLOCK_MARGIN = 20;
 
 // ── Deterministic hash for tree positions ──
 
@@ -51,7 +54,7 @@ interface TreePlacement {
 
 /**
  * Generate all tree positions across the map using Poisson-like placement.
- * Trees are placed per zone using each zone's bounds as the iteration area.
+ * Trees are placed per block but checked globally for minimum spacing.
  */
 function generateTreePlacements(): TreePlacement[] {
   const trees: TreePlacement[] = [];
@@ -93,72 +96,65 @@ function generateTreePlacements(): TreePlacement[] {
     spatialGrid.get(key)!.push(tree);
   }
 
-  // Iterate over each zone's bounds in CELL_SIZE sub-blocks
-  const zones = getZoneList();
-  for (const zone of zones) {
-    const vis = ZONE_VISUALS[zone.id];
-    if (vis.treeCount === 0) continue;
+  // Iterate over each block between road grid lines
+  for (let bx = 0; bx < MAP_SIZE; bx += ROAD_SPACING) {
+    for (let by = 0; by < MAP_SIZE; by += ROAD_SPACING) {
+      // Skip blocks fully below waterline
+      if (by >= WATER_LINE_Y) continue;
 
-    const b = zone.bounds;
+      const centerX = bx + ROAD_SPACING / 2;
+      const centerY = by + ROAD_SPACING / 2;
+      const zoneId = getZoneAt(centerX, centerY);
+      const vis = ZONE_VISUALS[zoneId];
 
-    for (let bx = b.x1; bx < b.x2; bx += CELL_SIZE) {
-      for (let by = b.y1; by < b.y2; by += CELL_SIZE) {
-        const centerX = bx + CELL_SIZE / 2;
-        const centerY = by + CELL_SIZE / 2;
+      if (vis.treeCount === 0) continue;
 
-        // Skip if center isn't on land or is in water
-        if (!isOnLand(centerX, centerY)) continue;
-        if (isInWater(centerX, centerY)) continue;
+      // Usable area within the block (avoiding roads and edges)
+      const minX = bx + BLOCK_MARGIN;
+      const maxX = Math.min(bx + ROAD_SPACING - BLOCK_MARGIN, MAP_SIZE);
+      const minY = by + BLOCK_MARGIN;
+      const maxY = Math.min(
+        by + ROAD_SPACING - BLOCK_MARGIN,
+        WATER_LINE_Y - 10,
+      );
 
-        // Verify zone matches (bounds can overlap)
-        const actualZone = getZoneAt(centerX, centerY);
-        if (actualZone !== zone.id) continue;
+      if (maxX - minX < 20 || maxY - minY < 20) continue;
 
-        const minX = bx + 10;
-        const maxX = Math.min(bx + CELL_SIZE - 10, b.x2);
-        const minY = by + 10;
-        const maxY = Math.min(by + CELL_SIZE - 10, b.y2);
+      // Attempt to place the zone's target tree count
+      // Try multiple candidates per slot to find valid positions
+      const maxAttempts = vis.treeCount * 6;
+      let placed = 0;
 
-        if (maxX - minX < 20 || maxY - minY < 20) continue;
+      for (
+        let attempt = 0;
+        attempt < maxAttempts && placed < vis.treeCount;
+        attempt++
+      ) {
+        const tx = minX + hashPosition(bx, by, attempt * 3 + 0) * (maxX - minX);
+        const ty = minY + hashPosition(bx, by, attempt * 3 + 1) * (maxY - minY);
 
-        // Attempt to place the zone's target tree count per sub-cell
-        const maxAttempts = vis.treeCount * 6;
-        let placed = 0;
+        // Skip if on or too close to a road
+        if (isOnRoad(tx, ty)) continue;
 
-        for (
-          let attempt = 0;
-          attempt < maxAttempts && placed < vis.treeCount;
-          attempt++
-        ) {
-          const tx =
-            minX + hashPosition(bx, by, attempt * 3 + 0) * (maxX - minX);
-          const ty =
-            minY + hashPosition(bx, by, attempt * 3 + 1) * (maxY - minY);
+        // Extra margin check: ensure tree is far enough from road edges
+        if (isNearRoadEdge(tx, ty)) continue;
 
-          // Must be on land and not in water
-          if (!isOnLand(tx, ty)) continue;
-          if (isInWater(tx, ty)) continue;
+        // Skip if overlapping with park features
+        if (isNearParkFeature(tx, ty)) continue;
 
-          // Skip if on or too close to a road
-          if (isOnRoad(tx, ty)) continue;
+        // Skip if below waterline
+        if (ty >= WATER_LINE_Y) continue;
 
-          // Extra margin check from road edges
-          if (isNearRoadEdge(tx, ty)) continue;
+        // Minimum spacing depends on tree size — larger trees need more room
+        const sizeRaw = hashPosition(bx, by, attempt * 3 + 2);
+        const size =
+          vis.treeSizeMin + sizeRaw * (vis.treeSizeMax - vis.treeSizeMin);
+        const requiredSpacing = MIN_TREE_SPACING + size * 0.5;
 
-          // Skip if overlapping with park features
-          if (isNearParkFeature(tx, ty)) continue;
+        if (isTooClose(tx, ty, requiredSpacing)) continue;
 
-          // Minimum spacing depends on tree size
-          const sizeRaw = hashPosition(bx, by, attempt * 3 + 2);
-          const size =
-            vis.treeSizeMin + sizeRaw * (vis.treeSizeMax - vis.treeSizeMin);
-          const requiredSpacing = MIN_TREE_SPACING + size * 0.5;
-
-          if (isTooClose(tx, ty, requiredSpacing)) continue;
-
-          addTree({ x: tx, y: ty, size, zoneId: zone.id });
-          placed++;
-        }
+        addTree({ x: tx, y: ty, size, zoneId });
+        placed++;
       }
     }
   }
@@ -167,21 +163,17 @@ function generateTreePlacements(): TreePlacement[] {
 }
 
 /**
- * Check if a point is within ROAD_MARGIN of any zone road center line.
- * Uses the cached road list from getAllRoads (already cached in gridHelpers).
- * We re-use isOnRoad which checks the full corridor, so this adds extra margin.
+ * Check if a point is within ROAD_MARGIN of any road center line.
+ * This provides a buffer zone beyond the road+sidewalk check in isOnRoad.
  */
 function isNearRoadEdge(px: number, py: number): boolean {
-  // isOnRoad already checks the corridor width for each zone road.
-  // This function adds extra buffer beyond the corridor.
-  // We sample 4 cardinal offsets at ROAD_MARGIN distance.
-  const m = ROAD_MARGIN;
-  return (
-    isOnRoad(px - m, py) ||
-    isOnRoad(px + m, py) ||
-    isOnRoad(px, py - m) ||
-    isOnRoad(px, py + m)
-  );
+  for (let ry = ROAD_SPACING; ry < MAP_SIZE; ry += ROAD_SPACING) {
+    if (Math.abs(py - ry) < ROAD_MARGIN) return true;
+  }
+  for (let rx = ROAD_SPACING; rx < MAP_SIZE; rx += ROAD_SPACING) {
+    if (Math.abs(px - rx) < ROAD_MARGIN) return true;
+  }
+  return false;
 }
 
 /**

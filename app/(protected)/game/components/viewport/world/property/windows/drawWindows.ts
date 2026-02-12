@@ -2,7 +2,7 @@
 
 import { Graphics } from "pixi.js";
 import type { BuildingPalette } from "../buildingPalettes";
-import type { PropertyCategory, PropertySubType } from "@/convex/map/zones";
+import type { PropertyCategory, PropertySubType } from "@/convex/mapZones";
 import { drawGridWindows } from "./windowHelpers";
 import {
   drawHouseWindows,
@@ -50,32 +50,21 @@ export function drawWindows(
         py,
       );
       break;
-    case "office_tower":
-    case "tech_hub":
-    case "investment_firm":
-    case "law_office":
-    case "insurance":
-    case "news_tower":
-    case "mega_mall":
-    case "mega_mart":
+    case "office":
+    case "mall":
     case "casino":
       // These have their visual style drawn in base
       break;
     case "warehouse":
       drawWarehouseWindows(g, width, height, palette, bf, isNight, px, py);
       break;
-    case "sawmill_factory":
-    case "smelter":
-    case "food_processing":
-    case "chemical_plant":
-    case "textile_mill":
-    case "electronics_factory":
+    case "factory":
       drawFactoryWindows(g, width, height, palette, bf, isNight, px, py);
       break;
-    case "bank_tower":
+    case "bank":
       drawBankWindows(g, width, height, palette, bf, isNight, isDusk, px, py);
       break;
-    case "police_hq":
+    case "police_station":
       drawInstitutionalWindows(
         g,
         width,
