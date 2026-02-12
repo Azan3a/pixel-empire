@@ -19,6 +19,7 @@ import { PropertyNode } from "./world/PropertyNode";
 import { PlayerCharacter } from "./world/player/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
 import { DayNightOverlay } from "./world/daynight/DayNightOverlay";
+import { OtherPlayers } from "./world/OtherPlayers";
 
 import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
@@ -284,20 +285,10 @@ export function GameCanvas() {
             </>
           )}
 
-          {alivePlayers
-            .filter((p) => p._id !== me._id)
-            .map((p) => (
-              <PlayerCharacter
-                key={p._id}
-                x={p.x}
-                y={p.y}
-                name={p.name}
-                color={0xef4444}
-                isMe={false}
-                sunlightIntensity={sunlightIntensity}
-                equippedClothing={p.equippedClothing}
-              />
-            ))}
+          <OtherPlayers
+            players={alivePlayers.filter((p) => p._id !== me._id)}
+            sunlightIntensity={sunlightIntensity}
+          />
 
           <PlayerCharacter
             x={renderPos.x}

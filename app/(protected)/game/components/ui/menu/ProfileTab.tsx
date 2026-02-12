@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   LogOut,
-  User as UserIcon,
   Settings,
   Save,
   Upload,
@@ -25,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePlayer } from "@game/hooks/use-player";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -136,30 +136,22 @@ export function ProfileTab() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-center gap-6 pb-2">
         <div className="relative group">
-          <div className="size-24 rounded-full bg-primary/10 flex items-center justify-center text-4xl border-4 border-primary/20 shadow-inner overflow-hidden">
+          <Avatar className="size-24 border-4 border-primary/20 shadow-inner">
             {avatarSrc ? (
               isStorageId ? (
-                <StorageImage storageId={avatarSrc} />
+                <AvatarStorageImage storageId={avatarSrc} />
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AvatarImage
                   src={avatarSrc}
                   alt={user?.name ?? "Avatar"}
-                  className="size-full object-cover"
+                  className="object-cover"
                 />
               )
-            ) : playerInfo.avatar === "avatar1" ? (
-              "🧑‍🚀"
-            ) : playerInfo.avatar === "avatar2" ? (
-              "👩‍🚀"
-            ) : playerInfo.avatar === "avatar3" ? (
-              "🕵️"
-            ) : playerInfo.avatar === "avatar4" ? (
-              "👮"
-            ) : (
-              "👤"
-            )}
-          </div>
+            ) : null}
+            <AvatarFallback className="bg-primary/10 text-4xl">
+              {(user?.name || playerInfo.name)?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -271,22 +263,11 @@ export function ProfileTab() {
   );
 }
 
-/** Renders an image from a Convex storage ID */
-function StorageImage({ storageId }: { storageId: string }) {
+/** Renders an AvatarImage from a Convex storage ID */
+function AvatarStorageImage({ storageId }: { storageId: string }) {
   const url = useQuery(api.users.getImageUrl, {
     storageId: storageId as Id<"_storage">,
   });
 
-  if (!url) {
-    return (
-      <div className="size-full flex items-center justify-center bg-muted animate-pulse">
-        <UserIcon className="size-8 text-muted-foreground" />
-      </div>
-    );
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="Avatar" className="size-full object-cover" />
-  );
+  return <AvatarImage src={url ?? ""} className="object-cover" />;
 }
