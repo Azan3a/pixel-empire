@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { toast } from "sonner";
@@ -45,29 +52,32 @@ export function useTrees({
     }
   };
 
-  const chopTree = async (treeId: Id<"trees">) => {
-    try {
-      const res = await chopTreeMutation({ treeId });
-      toast.success(`Chopped tree! +${res.woodGained} wood ${res.woodEmoji}`);
-      return { success: true };
-    } catch (e: unknown) {
-      const msg =
-        e instanceof ConvexError
-          ? (e.data as string)
-          : e instanceof Error
-            ? e.message
-            : "Failed to chop tree";
-      toast.error(msg);
-      return { success: false, error: msg };
-    }
-  };
+  const chopTree = useCallback(
+    async (treeId: Id<"trees">) => {
+      try {
+        const res = await chopTreeMutation({ treeId });
+        toast.success(`Chopped tree! +${res.woodGained} wood ${res.woodEmoji}`);
+        return { success: true };
+      } catch (e: unknown) {
+        const msg =
+          e instanceof ConvexError
+            ? (e.data as string)
+            : e instanceof Error
+              ? e.message
+              : "Failed to chop tree";
+        toast.error(msg);
+        return { success: false, error: msg };
+      }
+    },
+    [chopTreeMutation],
+  );
 
-  const cancelChopping = () => {
+  const cancelChopping = useCallback(() => {
     chopStartAtRef.current = null;
     chopDurationMsRef.current = 0;
     setChoppingTreeId(null);
     setChopProgress(0);
-  };
+  }, []);
 
   const startChopping = (treeId: Id<"trees">) => {
     if (choppingTreeId) return;
@@ -150,7 +160,7 @@ export function useTrees({
     }, 50);
 
     return () => clearInterval(interval);
-  }, [choppingTreeId, playerPosRef, trees]);
+  }, [choppingTreeId, playerPosRef, trees, chopTree, cancelChopping]);
 
   const buyAxe = async () => {
     try {
