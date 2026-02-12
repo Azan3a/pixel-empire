@@ -659,13 +659,25 @@ export function MapTab({
           <div className="flex items-center gap-1.5">
             <div className="size-2 rounded-sm bg-[#f97316]" />
             <span className="text-muted-foreground uppercase tracking-wider font-semibold">
-              Owned
+              Residential
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="size-2 rounded-sm bg-[#3b82f6]" />
             <span className="text-muted-foreground uppercase tracking-wider font-semibold">
               Commercial
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="size-2 rounded-sm bg-[#a855f7]" />
+            <span className="text-muted-foreground uppercase tracking-wider font-semibold">
+              Shop
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="size-2 rounded-sm bg-[#d4a017]" />
+            <span className="text-muted-foreground uppercase tracking-wider font-semibold">
+              Service
             </span>
           </div>
         </div>
