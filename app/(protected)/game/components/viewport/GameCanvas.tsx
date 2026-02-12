@@ -49,6 +49,8 @@ export function GameCanvas() {
   const [selectedShop, setSelectedShop] = useState<Property | null>(null);
   const [shopDialogOpen, setShopDialogOpen] = useState(false);
 
+  const [selectedRangerStation, setSelectedRangerStation] =
+    useState<Property | null>(null);
   const [rangerDialogOpen, setRangerDialogOpen] = useState(false);
 
   const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
@@ -105,6 +107,52 @@ export function GameCanvas() {
     onSync,
     hunger,
   });
+
+  // Auto-close dialogs if player walks too far away
+  useEffect(() => {
+    const isTooFar = (prop: Property) => {
+      const centerX = prop.x + prop.width / 2;
+      const centerY = prop.y + prop.height / 2;
+      const distance = Math.sqrt(
+        (centerX - renderPos.x) ** 2 + (centerY - renderPos.y) ** 2,
+      );
+      return distance > SHOP_INTERACT_RADIUS + 20; // 20px buffer to prevent flickering
+    };
+
+    if (shopDialogOpen && selectedShop && isTooFar(selectedShop)) {
+      setTimeout(() => {
+        setShopDialogOpen(false);
+        setSelectedShop(null);
+      }, 0);
+    }
+
+    if (purchaseDialogOpen && selectedProperty && isTooFar(selectedProperty)) {
+      setTimeout(() => {
+        setPurchaseDialogOpen(false);
+        setSelectedProperty(null);
+      }, 0);
+    }
+
+    if (
+      rangerDialogOpen &&
+      selectedRangerStation &&
+      isTooFar(selectedRangerStation)
+    ) {
+      setTimeout(() => {
+        setRangerDialogOpen(false);
+        setSelectedRangerStation(null);
+      }, 0);
+    }
+  }, [
+    renderPos,
+    shopDialogOpen,
+    selectedShop,
+    purchaseDialogOpen,
+    selectedProperty,
+    rangerDialogOpen,
+    selectedRangerStation,
+  ]);
+
   useEffect(() => {
     renderPosRef.current = renderPos;
   }, [renderPos]);
@@ -144,43 +192,31 @@ export function GameCanvas() {
       const prop = properties.find((p) => p._id === propertyId);
       if (!prop) return;
 
+      // Compute distance from player to building center
+      const centerX = prop.x + prop.width / 2;
+      const centerY = prop.y + prop.height / 2;
+      const pos = renderPosRef.current;
+      const distance = Math.sqrt(
+        (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
+      );
+
+      if (distance > SHOP_INTERACT_RADIUS) {
+        toast("Walk closer to interact", {
+          description: `You need to be near ${prop.name} to interact.`,
+        });
+        return;
+      }
+
       // Ranger Station (service building) acts like a shop for lumberjacking.
       if (prop.subType === "ranger_station") {
-        const centerX = prop.x + prop.width / 2;
-        const centerY = prop.y + prop.height / 2;
-        const pos = renderPosRef.current;
-        const distance = Math.sqrt(
-          (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
-        );
-
-        if (distance <= SHOP_INTERACT_RADIUS) {
-          setRangerDialogOpen(true);
-        } else {
-          toast("Walk closer to enter the Ranger Station", {
-            description:
-              "You need to be near the building to use its services.",
-          });
-        }
+        setSelectedRangerStation(prop);
+        setRangerDialogOpen(true);
         return;
       }
 
       if (prop.category === "shop") {
-        // Compute distance from player to building center
-        const centerX = prop.x + prop.width / 2;
-        const centerY = prop.y + prop.height / 2;
-        const pos = renderPosRef.current;
-        const distance = Math.sqrt(
-          (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
-        );
-
-        if (distance <= SHOP_INTERACT_RADIUS) {
-          setSelectedShop(prop);
-          setShopDialogOpen(true);
-        } else {
-          toast("Walk closer to enter this shop", {
-            description: `You need to be near ${prop.name} to shop here.`,
-          });
-        }
+        setSelectedShop(prop);
+        setShopDialogOpen(true);
       } else {
         setSelectedProperty(prop);
         setPurchaseDialogOpen(true);
@@ -334,7 +370,10 @@ export function GameCanvas() {
         property={selectedProperty}
         playerCash={playerCash}
         open={purchaseDialogOpen}
-        onOpenChange={setPurchaseDialogOpen}
+        onOpenChange={(open) => {
+          setPurchaseDialogOpen(open);
+          if (!open) setSelectedProperty(null);
+        }}
         onBuy={handleBuyConfirm}
         onSell={handleSellConfirm}
       />
@@ -343,14 +382,20 @@ export function GameCanvas() {
         property={selectedShop}
         playerCash={playerCash}
         open={shopDialogOpen}
-        onOpenChange={setShopDialogOpen}
+        onOpenChange={(open) => {
+          setShopDialogOpen(open);
+          if (!open) setSelectedShop(null);
+        }}
         onBuyProperty={handleShopBuyProperty}
         onSellProperty={handleShopSellProperty}
       />
 
       <RangerStationDialog
         open={rangerDialogOpen}
-        onOpenChange={setRangerDialogOpen}
+        onOpenChange={(open) => {
+          setRangerDialogOpen(open);
+          if (!open) setSelectedRangerStation(null);
+        }}
         playerCash={playerCash}
         axeQty={axeQty}
         woodQty={woodQty}
