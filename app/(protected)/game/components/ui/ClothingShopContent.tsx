@@ -12,6 +12,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ClothingPreview } from "./ClothingPreview";
 
 interface ClothingShopContentProps {
   playerCash: number;
@@ -57,22 +58,17 @@ export function ClothingShopContent({
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.emoji}</span>
+                      <div className="size-10 flex items-center justify-center bg-muted/30 rounded-lg">
+                        <ClothingPreview
+                          slot={slot}
+                          color={item.color}
+                          size={32}
+                        />
+                      </div>
                       <div>
                         <span className="font-bold text-sm block">
                           {item.name}
                         </span>
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className="inline-block size-3 rounded-full border"
-                            style={{
-                              backgroundColor: `#${item.color.toString(16).padStart(6, "0")}`,
-                            }}
-                          />
-                          <span className="text-[10px] text-muted-foreground capitalize">
-                            {slot}
-                          </span>
-                        </div>
                       </div>
                     </div>
 

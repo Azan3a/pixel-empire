@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ClothingPreview } from "../ClothingPreview";
 
 const SLOTS: ClothingSlot[] = ["hat", "shirt", "pants", "shoes"];
 
@@ -56,9 +57,13 @@ export function WardrobeTab() {
                     : "bg-muted/20 border-dashed",
                 )}
               >
-                <span className="text-2xl mb-1">
-                  {item ? item.emoji : emoji}
-                </span>
+                <div className="size-10 flex items-center justify-center mb-1">
+                  {item ? (
+                    <ClothingPreview slot={slot} color={item.color} size={32} />
+                  ) : (
+                    <span className="text-2xl">{emoji}</span>
+                  )}
+                </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   {label}
                 </span>
@@ -115,7 +120,13 @@ export function WardrobeTab() {
                       : "bg-card/50 hover:bg-card/80",
                   )}
                 >
-                  <span className="text-3xl mb-1">{item.emoji}</span>
+                  <div className="size-12 flex items-center justify-center mb-1">
+                    <ClothingPreview
+                      slot={item.slot as ClothingSlot}
+                      color={item.color}
+                      size={40}
+                    />
+                  </div>
                   <span className="text-xs font-bold">{item.name}</span>
                   <span className="text-[10px] text-muted-foreground capitalize mb-1">
                     {item.slot}

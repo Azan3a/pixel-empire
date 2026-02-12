@@ -13,9 +13,11 @@ import {
   CLOTHING_KEYS,
   CLOTHING_ITEMS,
   ClothingType,
+  ClothingSlot,
 } from "@/convex/clothingConfig";
 import { cn } from "@/lib/utils";
 import { UtensilsCrossed, Shirt } from "lucide-react";
+import { ClothingPreview } from "../ClothingPreview";
 
 interface InventoryItem {
   item: string;
@@ -139,18 +141,27 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {clothingItems.map((item) => (
-              <div
-                key={item.item}
-                className="flex flex-col items-center justify-center p-4 rounded-xl border bg-card/50 hover:bg-card/80 transition-colors"
-              >
-                <span className="text-3xl mb-1">{getItemIcon(item.item)}</span>
-                <span className="text-xs font-bold">
-                  {getItemLabel(item.item)}
-                </span>
-                <span className="text-lg font-black">x{item.quantity}</span>
-              </div>
-            ))}
+            {clothingItems.map((item) => {
+              const clothing = CLOTHING_ITEMS[item.item as ClothingType];
+              return (
+                <div
+                  key={item.item}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border bg-card/50 hover:bg-card/80 transition-colors"
+                >
+                  <div className="size-12 flex items-center justify-center mb-1">
+                    <ClothingPreview
+                      slot={clothing.slot as ClothingSlot}
+                      color={clothing.color}
+                      size={40}
+                    />
+                  </div>
+                  <span className="text-xs font-bold">
+                    {getItemLabel(item.item)}
+                  </span>
+                  <span className="text-lg font-black">x{item.quantity}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
