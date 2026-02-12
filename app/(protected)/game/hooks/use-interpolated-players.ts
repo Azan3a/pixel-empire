@@ -10,6 +10,8 @@ interface InterpolatedPlayer extends Player {
 }
 // controls how quickly the displayed position catches up to the server position. Adjust for smoother or snappier movement.
 const LERP_SPEED = 0.15; // Adjust for smoothness (0.1 = smoother, 0.3 = snappier)
+/** Only trigger a React re-render when cumulative position drift exceeds this threshold */
+const DIRTY_THRESHOLD = 0.5;
 
 export function useInterpolatedPlayers(
   serverPlayers: Player[],
@@ -32,6 +34,7 @@ export function useInterpolatedPlayers(
       }
     }
 
+    let dirty = false;
     const results: InterpolatedPlayer[] = [];
 
     for (const player of serverPlayers) {
@@ -41,7 +44,11 @@ export function useInterpolatedPlayers(
         // First time seeing this player — snap to their position
         display = { x: player.x, y: player.y };
         positions.set(player._id, display);
+        dirty = true;
       } else {
+        const prevX = display.x;
+        const prevY = display.y;
+
         // Lerp toward the server position
         display.x += (player.x - display.x) * LERP_SPEED;
         display.y += (player.y - display.y) * LERP_SPEED;
@@ -54,6 +61,14 @@ export function useInterpolatedPlayers(
           display.x = player.x;
           display.y = player.y;
         }
+
+        // Only mark dirty if display position actually moved meaningfully
+        if (
+          Math.abs(display.x - prevX) > DIRTY_THRESHOLD ||
+          Math.abs(display.y - prevY) > DIRTY_THRESHOLD
+        ) {
+          dirty = true;
+        }
       }
 
       results.push({
@@ -63,7 +78,10 @@ export function useInterpolatedPlayers(
       });
     }
 
-    setInterpolatedPlayers(results);
+    // Only trigger a React re-render when positions actually changed
+    if (dirty) {
+      setInterpolatedPlayers(results);
+    }
   });
 
   // On first render (before any tick), return server positions directly

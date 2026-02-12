@@ -2,7 +2,8 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useRef, memo } from "react";
+import { useTick } from "@pixi/react";
 
 interface DeliveryMarkerProps {
   x: number;
@@ -12,30 +13,27 @@ interface DeliveryMarkerProps {
   active: boolean; // is this the current objective?
 }
 
-export function DeliveryMarker({
+function DeliveryMarkerInner({
   x,
   y,
   type,
   label,
   active,
 }: DeliveryMarkerProps) {
-  const [pulse, setPulse] = useState(0);
   const frameRef = useRef(0);
-
-  // Simple pulse animation
-  useEffect(() => {
-    if (!active) return;
-    const interval = setInterval(() => {
-      frameRef.current += 0.08;
-      setPulse(Math.sin(frameRef.current) * 0.5 + 0.5); // 0–1
-    }, 50);
-    return () => clearInterval(interval);
-  }, [active]);
+  const gRef = useRef<Graphics | null>(null);
 
   const color = type === "pickup" ? 0x3b82f6 : 0xf97316; // blue / orange
   const glowColor = type === "pickup" ? 0x60a5fa : 0xfbbf24;
 
-  const drawMarker = useCallback(
+  // Animate via useTick instead of setInterval + setState to avoid React re-renders
+  useTick(() => {
+    if (!active || !gRef.current) return;
+    frameRef.current += 0.08;
+    drawMarkerImperative(gRef.current);
+  });
+
+  const drawMarkerImperative = useCallback(
     (g: Graphics) => {
       g.clear();
 
@@ -48,6 +46,8 @@ export function DeliveryMarker({
         g.stroke();
         return;
       }
+
+      const pulse = Math.sin(frameRef.current) * 0.5 + 0.5;
 
       // ── Ground ellipse shadow ──
       g.ellipse(0, 4, 22, 8);
@@ -118,12 +118,21 @@ export function DeliveryMarker({
       g.circle(0, 0, 14);
       g.stroke();
     },
-    [active, color, glowColor, pulse, type],
+    [active, color, glowColor, type],
+  );
+
+  // Initial draw for static (inactive) markers
+  const drawStatic = useCallback(
+    (g: Graphics) => {
+      gRef.current = g;
+      drawMarkerImperative(g);
+    },
+    [drawMarkerImperative],
   );
 
   return (
-    <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={drawMarker} />
+    <pixiContainer x={x} y={y} interactiveChildren={false}>
+      <pixiGraphics draw={drawStatic} />
       <pixiText
         text={active ? label : ""}
         x={0}
@@ -159,3 +168,5 @@ export function DeliveryMarker({
     </pixiContainer>
   );
 }
+
+export const DeliveryMarker = memo(DeliveryMarkerInner);

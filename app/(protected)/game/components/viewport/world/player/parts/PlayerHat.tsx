@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { Direction, PlayerAppearance } from "../types";
 import { drawPixel, darken } from "../utils";
 
@@ -17,7 +17,7 @@ interface PlayerHatProps {
  * Draws a simple cap/hat above the player's head.
  * Only renders when appearance.hatColor is defined.
  */
-export function PlayerHat({ cx, topY, direction, appearance }: PlayerHatProps) {
+function PlayerHatInner({ cx, topY, direction, appearance }: PlayerHatProps) {
   const draw = useCallback(
     (g: Graphics) => {
       g.clear();
@@ -81,3 +81,5 @@ export function PlayerHat({ cx, topY, direction, appearance }: PlayerHatProps) {
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerHat = memo(PlayerHatInner);

@@ -125,7 +125,7 @@ function PlayerCharacterInner({
   const topY = -21 + offsets.bodyBob;
 
   return (
-    <pixiContainer x={x} y={y}>
+    <pixiContainer x={x} y={y} interactiveChildren={false}>
       {/* Ground shadow */}
       <PlayerShadow topY={topY} isNight={isNight} />
 

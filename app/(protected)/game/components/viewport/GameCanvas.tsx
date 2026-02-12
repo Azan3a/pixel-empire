@@ -34,6 +34,9 @@ import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
 
+/** Padding (px) around viewport for culling — keeps objects visible just before entering view */
+const CULL_PADDING = 200;
+
 export function GameCanvas() {
   const [me, setMe] = useState<Player | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -236,10 +239,41 @@ export function GameCanvas() {
     [bgColor],
   );
 
-  if (!me) return <Loading />;
-
   const vw = typeof window !== "undefined" ? window.innerWidth : 800;
   const vh = typeof window !== "undefined" ? window.innerHeight : 600;
+
+  // ── Viewport culling bounds (world-space) ──
+  const cullLeft = renderPos.x - vw / 2 - CULL_PADDING;
+  const cullRight = renderPos.x + vw / 2 + CULL_PADDING;
+  const cullTop = renderPos.y - vh / 2 - CULL_PADDING;
+  const cullBottom = renderPos.y + vh / 2 + CULL_PADDING;
+
+  const visibleProperties = useMemo(
+    () =>
+      properties.filter(
+        (p) =>
+          p.x + p.width > cullLeft &&
+          p.x < cullRight &&
+          p.y + p.height > cullTop &&
+          p.y < cullBottom,
+      ),
+    [properties, cullLeft, cullRight, cullTop, cullBottom],
+  );
+
+  const visibleTrees = useMemo(
+    () =>
+      trees.filter(
+        (t) =>
+          t.x > cullLeft &&
+          t.x < cullRight &&
+          t.y > cullTop &&
+          t.y < cullBottom,
+      ),
+    [trees, cullLeft, cullRight, cullTop, cullBottom],
+  );
+
+  if (!me) return <Loading />;
+
   const camX = vw / 2 - renderPos.x;
   const camY = vh / 2 - renderPos.y;
 
@@ -325,10 +359,10 @@ export function GameCanvas() {
       />
 
       <Application background={bgColor} resizeTo={containerRef}>
-        <pixiContainer x={camX} y={camY}>
+        <pixiContainer x={camX} y={camY} interactiveChildren={true}>
           <WorldGrid tintR={tintR} tintG={tintG} tintB={tintB} />
 
-          {trees.map((t) => (
+          {visibleTrees.map((t) => (
             <TreeNode
               key={t._id}
               tree={t}
@@ -350,7 +384,7 @@ export function GameCanvas() {
             />
           )}
 
-          {properties.map((p) => (
+          {visibleProperties.map((p) => (
             <PropertyNode
               key={p._id}
               property={p}
@@ -379,7 +413,9 @@ export function GameCanvas() {
           )}
 
           <OtherPlayers
-            players={alivePlayers.filter((p) => String(p._id) !== String(me._id))}
+            players={alivePlayers.filter(
+              (p) => String(p._id) !== String(me._id),
+            )}
             sunlightIntensity={sunlightIntensity}
           />
 

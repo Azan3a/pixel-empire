@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { Direction, PlayerAppearance, WalkCycleOffsets, PX } from "../types";
 import { drawPixel } from "../utils";
 
@@ -14,7 +14,7 @@ interface PlayerArmsProps {
   offsets: WalkCycleOffsets;
 }
 
-export function PlayerArms({
+function PlayerArmsInner({
   cx,
   topY,
   direction,
@@ -60,3 +60,5 @@ export function PlayerArms({
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerArms = memo(PlayerArmsInner);

@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { Direction, PlayerAppearance } from "../types";
 import { drawPixel, darken, lighten } from "../utils";
 
@@ -13,7 +13,7 @@ interface PlayerTorsoProps {
   appearance: PlayerAppearance;
 }
 
-export function PlayerTorso({
+function PlayerTorsoInner({
   cx,
   topY,
   direction,
@@ -62,3 +62,5 @@ export function PlayerTorso({
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerTorso = memo(PlayerTorsoInner);

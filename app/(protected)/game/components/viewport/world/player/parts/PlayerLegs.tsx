@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { Direction, PlayerAppearance, WalkCycleOffsets, PX } from "../types";
 import { drawPixel, darken } from "../utils";
 
@@ -14,7 +14,7 @@ interface PlayerLegsProps {
   offsets: WalkCycleOffsets;
 }
 
-export function PlayerLegs({
+function PlayerLegsInner({
   cx,
   topY,
   direction,
@@ -90,3 +90,5 @@ export function PlayerLegs({
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerLegs = memo(PlayerLegsInner);

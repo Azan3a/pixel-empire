@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { PX } from "../types";
 
 interface PlayerShadowProps {
@@ -10,7 +10,7 @@ interface PlayerShadowProps {
   isNight: boolean;
 }
 
-export function PlayerShadow({ topY, isNight }: PlayerShadowProps) {
+function PlayerShadowInner({ topY, isNight }: PlayerShadowProps) {
   const draw = useCallback(
     (g: Graphics) => {
       g.clear();
@@ -22,3 +22,5 @@ export function PlayerShadow({ topY, isNight }: PlayerShadowProps) {
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerShadow = memo(PlayerShadowInner);

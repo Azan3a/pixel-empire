@@ -92,6 +92,7 @@ function PropertyNodeInner({
       eventMode="static"
       cursor="pointer"
       onPointerTap={() => onInteract(property._id)}
+      interactiveChildren={false}
     >
       <pixiGraphics draw={drawProperty} />
       <PropertyLabel

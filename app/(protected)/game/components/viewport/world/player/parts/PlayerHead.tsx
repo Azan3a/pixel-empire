@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { Direction, PlayerAppearance } from "../types";
 import { drawPixel } from "../utils";
 
@@ -13,12 +13,7 @@ interface PlayerHeadProps {
   appearance: PlayerAppearance;
 }
 
-export function PlayerHead({
-  cx,
-  topY,
-  direction,
-  appearance,
-}: PlayerHeadProps) {
+function PlayerHeadInner({ cx, topY, direction, appearance }: PlayerHeadProps) {
   const draw = useCallback(
     (g: Graphics) => {
       g.clear();
@@ -100,3 +95,5 @@ export function PlayerHead({
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerHead = memo(PlayerHeadInner);

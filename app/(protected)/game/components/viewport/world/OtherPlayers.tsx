@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useInterpolatedPlayers } from "@game/hooks/use-interpolated-players";
 import { PlayerCharacter } from "./player/PlayerCharacter";
 import { Player } from "@game/types/player";
@@ -10,7 +11,7 @@ interface OtherPlayersProps {
   sunlightIntensity: number;
 }
 
-export function OtherPlayers({ players, sunlightIntensity }: OtherPlayersProps) {
+function OtherPlayersInner({ players, sunlightIntensity }: OtherPlayersProps) {
   const interpolated = useInterpolatedPlayers(players);
 
   return (
@@ -30,3 +31,5 @@ export function OtherPlayers({ players, sunlightIntensity }: OtherPlayersProps) 
     </>
   );
 }
+
+export const OtherPlayers = memo(OtherPlayersInner);

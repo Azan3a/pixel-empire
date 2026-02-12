@@ -2,7 +2,7 @@
 "use client";
 
 import { Graphics } from "pixi.js";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { darken } from "../utils";
 
 interface PlayerBadgeProps {
@@ -12,7 +12,7 @@ interface PlayerBadgeProps {
   topY: number;
 }
 
-export function PlayerBadge({ name, color, isMe, topY }: PlayerBadgeProps) {
+function PlayerBadgeInner({ name, color, isMe, topY }: PlayerBadgeProps) {
   const draw = useCallback(
     (g: Graphics) => {
       g.clear();
@@ -47,3 +47,5 @@ export function PlayerBadge({ name, color, isMe, topY }: PlayerBadgeProps) {
 
   return <pixiGraphics draw={draw} />;
 }
+
+export const PlayerBadge = memo(PlayerBadgeInner);
