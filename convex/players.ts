@@ -7,6 +7,17 @@ import { getSpawnPoint, MAP_SIZE } from "./gameConstants";
 import { WATER_LINE_Y } from "./mapZones";
 import { processIncomeCollection } from "./economy";
 
+const MIN_POSITION_UPDATE_INTERVAL_MS = 40;
+const MAX_MOVEMENT_ELAPSED_MS = 500;
+const MAX_PLAYER_SPEED_PX_PER_SEC = 420;
+
+function clampPosition(x: number, y: number) {
+  return {
+    x: Math.max(0, Math.min(MAP_SIZE, x)),
+    y: Math.max(0, Math.min(WATER_LINE_Y, y)),
+  };
+}
+
 export const getOrCreatePlayer = mutation({
   args: {},
   handler: async (ctx) => {
@@ -121,13 +132,46 @@ export const updatePosition = mutation({
       .unique();
     if (!player) throw new Error("Player not found");
 
-    // ── Clamp position to valid world bounds ──
-    const clampedX = Math.max(0, Math.min(MAP_SIZE, args.x));
-    const clampedY = Math.max(0, Math.min(WATER_LINE_Y, args.y));
+    if (!Number.isFinite(args.x) || !Number.isFinite(args.y)) {
+      throw new Error("Invalid position payload");
+    }
 
-    // ── Calculate distance moved ──
-    const dx = clampedX - player.x;
-    const dy = clampedY - player.y;
+    const now = Date.now();
+    const elapsedSinceLastSeen = Math.max(0, now - player.lastSeen);
+
+    if (elapsedSinceLastSeen < MIN_POSITION_UPDATE_INTERVAL_MS) {
+      return { x: player.x, y: player.y, clamped: true };
+    }
+
+    // ── Clamp requested position to valid world bounds ──
+    const requested = clampPosition(args.x, args.y);
+
+    // ── Server-authoritative speed check ──
+    const requestedDx = requested.x - player.x;
+    const requestedDy = requested.y - player.y;
+    const requestedDist = Math.sqrt(
+      requestedDx * requestedDx + requestedDy * requestedDy,
+    );
+
+    const effectiveElapsedMs = Math.min(
+      elapsedSinceLastSeen,
+      MAX_MOVEMENT_ELAPSED_MS,
+    );
+    const maxAllowedDist =
+      (MAX_PLAYER_SPEED_PX_PER_SEC * effectiveElapsedMs) / 1000;
+
+    const clampedBySpeed = requestedDist > maxAllowedDist;
+    const moveScale =
+      clampedBySpeed && requestedDist > 0 ? maxAllowedDist / requestedDist : 1;
+
+    const next = clampPosition(
+      player.x + requestedDx * moveScale,
+      player.y + requestedDy * moveScale,
+    );
+
+    // ── Calculate authoritative distance moved ──
+    const dx = next.x - player.x;
+    const dy = next.y - player.y;
     const distMoved = Math.sqrt(dx * dx + dy * dy);
 
     // ── Hunger decay from walking ──
@@ -140,7 +184,6 @@ export const updatePosition = mutation({
     }
 
     // ── Auto-income collection ──
-    const now = Date.now();
     const INCOME_CHECK_INTERVAL = 30000; // Check every 30 seconds
     let lastIncomeCheck = player.lastIncomeCheckAt ?? 0;
 
@@ -150,13 +193,15 @@ export const updatePosition = mutation({
     }
 
     await ctx.db.patch(player._id, {
-      x: clampedX,
-      y: clampedY,
+      x: next.x,
+      y: next.y,
       lastSeen: now,
       hunger,
       walkDistance: walkDist,
       lastIncomeCheckAt: lastIncomeCheck,
     });
+
+    return { x: next.x, y: next.y, clamped: clampedBySpeed };
   },
 });
 
