@@ -40,6 +40,22 @@ export const buyClothing = mutation({
     const item = CLOTHING_ITEMS[args.itemKey as ClothingType];
     if (!item) throw new ConvexError("Unknown clothing item");
 
+    // Enforce one copy max per clothing item
+    const ownedEntries = await ctx.db
+      .query("inventory")
+      .withIndex("by_player", (q) => q.eq("playerId", player._id))
+      .filter((q) => q.eq(q.field("item"), item.key))
+      .collect();
+
+    const ownedQuantity = ownedEntries.reduce(
+      (total, entry) => total + entry.quantity,
+      0,
+    );
+
+    if (ownedQuantity > 0) {
+      throw new ConvexError(`You already own ${item.name}`);
+    }
+
     // Owner discount
     const ownership = await ctx.db
       .query("propertyOwnership")
@@ -58,14 +74,8 @@ export const buyClothing = mutation({
     await ctx.db.patch(player._id, { cash: player.cash - price });
 
     // Upsert inventory
-    const existing = await ctx.db
-      .query("inventory")
-      .withIndex("by_player", (q) => q.eq("playerId", player._id))
-      .filter((q) => q.eq(q.field("item"), item.key))
-      .first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, { quantity: existing.quantity + 1 });
+    if (ownedEntries.length > 0) {
+      await ctx.db.patch(ownedEntries[0]._id, { quantity: 1 });
     } else {
       await ctx.db.insert("inventory", {
         playerId: player._id,

@@ -25,7 +25,7 @@ export function ClothingShopContent({
   shopPropertyId,
   isOwned,
 }: ClothingShopContentProps) {
-  const { buyClothing } = useClothing();
+  const { buyClothing, clothingCount } = useClothing();
 
   const slots: ClothingSlot[] = ["hat", "shirt", "pants", "shoes"];
 
@@ -45,14 +45,17 @@ export function ClothingShopContent({
                 const price = isOwned
                   ? Math.floor(item.price * 0.5)
                   : item.price;
+                const ownedCount = clothingCount(item.key as ClothingType);
+                const alreadyOwned = ownedCount > 0;
                 const canAfford = playerCash >= price;
+                const canBuy = canAfford && !alreadyOwned;
 
                 return (
                   <div
                     key={item.key}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-xl border transition-colors",
-                      canAfford
+                      canBuy
                         ? "bg-card/50 hover:bg-card/80"
                         : "bg-muted/20 opacity-60",
                     )}
@@ -77,16 +80,18 @@ export function ClothingShopContent({
                       onClick={() =>
                         buyClothing(item.key as ClothingType, shopPropertyId)
                       }
-                      disabled={!canAfford}
+                      disabled={!canBuy}
                       className={cn(
                         "flex items-center gap-1.5 text-sm font-bold",
-                        canAfford
+                        canBuy
                           ? "bg-primary text-primary-foreground hover:bg-primary/90"
                           : "bg-muted text-muted-foreground cursor-not-allowed",
                       )}
                     >
                       <ShoppingCart className="size-3.5" />
-                      <span className="font-mono">${price}</span>
+                      <span className="font-mono">
+                        {alreadyOwned ? "Owned" : `$${price}`}
+                      </span>
                     </Button>
                   </div>
                 );
