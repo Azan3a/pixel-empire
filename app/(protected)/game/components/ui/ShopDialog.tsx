@@ -24,8 +24,10 @@ import {
   TrendingDown,
   Users,
   Building2,
+  BadgeCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface ShopDialogProps {
   property: Property | null;
@@ -159,6 +161,10 @@ function PropertySection({
         <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
           Property
         </h4>
+        <Badge className="ml-auto bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+          <BadgeCheck data-icon="inline-start" />
+          Owned
+        </Badge>
       </div>
 
       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
@@ -238,7 +244,10 @@ export function ShopDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-lg max-h-[80vh] overflow-y-auto"
+        showCloseButton={false}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div
@@ -251,9 +260,16 @@ export function ShopDialog({
             </div>
             {property.name}
             {property.isOwned && (
-              <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                Yours
-              </span>
+              <div className="ml-auto">
+                <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                  <BadgeCheck data-icon="inline-start" />
+                  Owned
+                </Badge>
+                {/* 50% off Badge */}
+                <Badge className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 ml-1">
+                  50% Off
+                </Badge>
+              </div>
             )}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
