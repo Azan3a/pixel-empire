@@ -113,12 +113,25 @@ export function ProfileTab() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    if (trimmedName.length > 20) {
+      toast.error("Name cannot exceed 20 characters");
+      return;
+    }
+
     setIsUpdating(true);
     try {
-      await updateProfile({ name, phone, email });
+      await updateProfile({ name: trimmedName, phone, email });
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile",
+      );
       console.error(error);
     } finally {
       setIsUpdating(false);
@@ -212,12 +225,18 @@ export function ProfileTab() {
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Display Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                />
+                <div className="relative">
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    maxLength={20}
+                  />
+                  <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">
+                    {name.length}/20
+                  </span>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-1.5">

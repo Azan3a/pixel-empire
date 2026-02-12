@@ -90,7 +90,14 @@ export const updateProfile = mutation({
       email?: string;
     } = {};
     if (args.name !== undefined) {
-      updates.name = args.name;
+      const trimmedName = args.name.trim();
+      if (trimmedName === "") {
+        throw new Error("Name cannot be empty");
+      }
+      if (trimmedName.length > 20) {
+        throw new Error("Name cannot exceed 20 characters");
+      }
+      updates.name = trimmedName;
     }
     if (args.image !== undefined) {
       updates.image = args.image;
