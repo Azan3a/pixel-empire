@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  type MouseEvent,
+} from "react";
 import { Property } from "@game/types/property";
 import { Job } from "@game/types/job";
 import {
@@ -43,6 +49,28 @@ const CATEGORY_COLORS: Record<string, { owned: string; unowned: string }> = {
   service: { owned: "#d4a017", unowned: "#d4a01780" },
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  residential: "Residential",
+  commercial: "Commercial",
+  shop: "Shop",
+  service: "Service",
+};
+
+const CATEGORY_BADGE_COLORS: Record<string, string> = {
+  residential: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  commercial: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  shop: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  service: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+};
+
+type HoveredItem =
+  | { type: "property"; data: Property; screenX: number; screenY: number }
+  | { type: "player"; name: string; screenX: number; screenY: number }
+  | null;
+
+const PLAYER_HIT_RADIUS = 20; // world units
+const TOOLTIP_OFFSET = 14;
+
 export function MapTab({
   playerX,
   playerY,
@@ -55,6 +83,9 @@ export function MapTab({
   const [size, setSize] = useState(0);
   const animRef = useRef<number>(0);
   const pulseRef = useRef(0);
+  const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
+  const hoveredIdRef = useRef<string | null>(null);
+  const lastHitCheckRef = useRef(0);
 
   useEffect(() => {
     const updateSize = () => {
@@ -344,6 +375,7 @@ export function MapTab({
     }
 
     // ── Properties ──
+    const currentHoveredId = hoveredIdRef.current;
     for (const prop of properties) {
       const px = prop.x * SCALE;
       const py = prop.y * SCALE;
@@ -353,12 +385,26 @@ export function MapTab({
       const colors =
         CATEGORY_COLORS[prop.category] ?? CATEGORY_COLORS.commercial;
 
+      const isHovered = currentHoveredId === prop._id;
+
       ctx.fillStyle = prop.isOwned ? colors.owned : colors.unowned;
       ctx.fillRect(px, py, pw, ph);
 
-      ctx.strokeStyle = "#00000040";
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(px, py, pw, ph);
+      if (isHovered) {
+        // Bright hover highlight
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px - 1, py - 1, pw + 2, ph + 2);
+        // Glow
+        ctx.shadowColor = "#ffffff";
+        ctx.shadowBlur = 6;
+        ctx.strokeRect(px - 1, py - 1, pw + 2, ph + 2);
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.strokeStyle = "#00000040";
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(px, py, pw, ph);
+      }
     }
 
     // ── Zone boundary lines ──
@@ -435,12 +481,24 @@ export function MapTab({
 
     // ── Other players ──
     for (const p of otherPlayers) {
+      const isPlayerHovered = currentHoveredId === `player-${p._id}`;
+      const baseR = size > 400 ? 3.5 : 2.5;
+      const r = isPlayerHovered ? baseR + 2 : baseR;
+
+      if (isPlayerHovered) {
+        // Hover ring
+        ctx.beginPath();
+        ctx.arc(p.x * SCALE, p.y * SCALE, r + 3, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(239, 68, 68, 0.15)";
+        ctx.fill();
+      }
+
       ctx.beginPath();
-      ctx.arc(p.x * SCALE, p.y * SCALE, size > 400 ? 3.5 : 2.5, 0, Math.PI * 2);
+      ctx.arc(p.x * SCALE, p.y * SCALE, r, 0, Math.PI * 2);
       ctx.fillStyle = "#ef4444";
       ctx.fill();
-      ctx.strokeStyle = "#00000060";
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = isPlayerHovered ? "#ffffff" : "#00000060";
+      ctx.lineWidth = isPlayerHovered ? 1.5 : 0.5;
       ctx.stroke();
     }
 
@@ -465,6 +523,91 @@ export function MapTab({
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 0, size, size);
   }, [playerX, playerY, properties, otherPlayers, activeJob, size]);
+
+  // ── Hit-testing on mouse move ──
+  const handleMouseMove = useCallback(
+    (e: MouseEvent<HTMLCanvasElement>) => {
+      const now = performance.now();
+      if (now - lastHitCheckRef.current < 40) return; // throttle ~25fps
+      lastHitCheckRef.current = now;
+
+      const canvas = canvasRef.current;
+      if (!canvas || size <= 0) return;
+
+      const rect = canvas.getBoundingClientRect();
+      // const dpr = window.devicePixelRatio || 1;
+      // Account for CSS size vs actual rendered bounds
+      const cssW = rect.width;
+      const cssH = rect.height;
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      // Convert screen px to world coordinates
+      const SCALE = size / MAP_SIZE;
+      const worldX = ((mx / cssW) * size) / SCALE;
+      const worldY = ((my / cssH) * size) / SCALE;
+
+      // Tooltip position relative to the canvas wrapper
+      const screenX = mx;
+      const screenY = my;
+
+      // 1. Check properties (rect hit test)
+      for (const prop of properties) {
+        if (
+          worldX >= prop.x &&
+          worldX <= prop.x + prop.width &&
+          worldY >= prop.y &&
+          worldY <= prop.y + prop.height
+        ) {
+          const id = prop._id as string;
+          if (hoveredIdRef.current !== id) {
+            hoveredIdRef.current = id;
+            setHoveredItem({ type: "property", data: prop, screenX, screenY });
+          } else {
+            // Update position only
+            setHoveredItem((prev) =>
+              prev ? { ...prev, screenX, screenY } : prev,
+            );
+          }
+          canvas.style.cursor = "pointer";
+          return;
+        }
+      }
+
+      // 2. Check other players (circle hit test)
+      for (const p of otherPlayers) {
+        const dx = worldX - p.x;
+        const dy = worldY - p.y;
+        if (dx * dx + dy * dy <= PLAYER_HIT_RADIUS * PLAYER_HIT_RADIUS) {
+          const id = `player-${p._id}`;
+          if (hoveredIdRef.current !== id) {
+            hoveredIdRef.current = id;
+            setHoveredItem({ type: "player", name: p.name, screenX, screenY });
+          } else {
+            setHoveredItem((prev) =>
+              prev ? { ...prev, screenX, screenY } : prev,
+            );
+          }
+          canvas.style.cursor = "pointer";
+          return;
+        }
+      }
+
+      // Nothing hovered
+      if (hoveredIdRef.current !== null) {
+        hoveredIdRef.current = null;
+        setHoveredItem(null);
+        canvas.style.cursor = "default";
+      }
+    },
+    [size, properties, otherPlayers],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    hoveredIdRef.current = null;
+    setHoveredItem(null);
+    if (canvasRef.current) canvasRef.current.style.cursor = "default";
+  }, []);
 
   useEffect(() => {
     let running = true;
@@ -531,13 +674,123 @@ export function MapTab({
       <div className="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-muted-foreground/20 overflow-hidden relative">
         {size > 0 ? (
           <div className="relative shadow-2xl rounded-sm border border-white/5 overflow-hidden bg-black/40">
-            <canvas ref={canvasRef} style={{ imageRendering: "pixelated" }} />
+            <canvas
+              ref={canvasRef}
+              style={{ imageRendering: "pixelated" }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            />
+
+            {/* ── Hover Tooltip ── */}
+            {hoveredItem && (
+              <HoverTooltip item={hoveredItem} canvasSize={size} />
+            )}
           </div>
         ) : (
           <div className="text-muted-foreground text-sm animate-pulse">
             Calculating map scale...
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   Hover Tooltip Component
+   ───────────────────────────────────────────────────────── */
+
+function HoverTooltip({
+  item,
+  canvasSize,
+}: {
+  item: NonNullable<HoveredItem>;
+  canvasSize: number;
+}) {
+  // Clamp tooltip so it doesn't overflow the canvas
+  const tooltipW = 220;
+  const tooltipH = item.type === "property" ? 160 : 40;
+  let tx = item.screenX + TOOLTIP_OFFSET;
+  let ty = item.screenY + TOOLTIP_OFFSET;
+
+  if (tx + tooltipW > canvasSize) tx = item.screenX - tooltipW - 6;
+  if (ty + tooltipH > canvasSize) ty = item.screenY - tooltipH - 6;
+  if (tx < 0) tx = 4;
+  if (ty < 0) ty = 4;
+
+  if (item.type === "player") {
+    return (
+      <div
+        className="absolute pointer-events-none z-50 animate-in fade-in-0 zoom-in-95 duration-100"
+        style={{ left: tx, top: ty }}
+      >
+        <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-xl px-3 py-1.5 flex items-center gap-2">
+          <div className="size-2 rounded-full bg-red-500 shrink-0" />
+          <span className="text-xs font-medium text-foreground truncate max-w-45">
+            {item.name}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const prop = item.data;
+  const zoneInfo = ZONES[prop.zoneId];
+  const catLabel = CATEGORY_LABELS[prop.category] ?? prop.category;
+  const badgeColor =
+    CATEGORY_BADGE_COLORS[prop.category] ?? CATEGORY_BADGE_COLORS.commercial;
+
+  return (
+    <div
+      className="absolute pointer-events-none z-50 animate-in fade-in-0 zoom-in-95 duration-100"
+      style={{ left: tx, top: ty, width: tooltipW }}
+    >
+      <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-xl p-3 space-y-2">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="text-xs font-bold text-foreground leading-tight truncate">
+            {prop.name}
+          </h4>
+          {prop.isOwned && (
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5">
+              Owned
+            </span>
+          )}
+        </div>
+
+        {/* Category + Zone */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className={`text-[9px] font-semibold uppercase tracking-wider border rounded px-1.5 py-0.5 ${badgeColor}`}
+          >
+            {catLabel}
+          </span>
+          <span className="text-[9px] text-muted-foreground">
+            📍 {zoneInfo?.name ?? prop.zoneId}
+          </span>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Price</span>
+            <span className="font-semibold text-foreground">
+              ${prop.price.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Income</span>
+            <span className="font-semibold text-emerald-400">
+              ${prop.income.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between col-span-2">
+            <span className="text-muted-foreground">Owners</span>
+            <span className="font-semibold text-foreground">
+              {prop.ownerCount}/{prop.maxOwners}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
