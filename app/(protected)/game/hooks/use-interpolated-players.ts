@@ -9,7 +9,7 @@ interface InterpolatedPlayer extends Player {
   displayY: number;
 }
 // controls how quickly the displayed position catches up to the server position. Adjust for smoother or snappier movement.
-const LERP_SPEED = 0.2; // Adjust for smoothness (0.1 = smoother, 0.3 = snappier)
+const LERP_SPEED = 0.15; // Adjust for smoothness (0.1 = smoother, 0.3 = snappier)
 
 export function useInterpolatedPlayers(
   serverPlayers: Player[],
