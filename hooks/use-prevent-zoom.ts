@@ -4,38 +4,84 @@ import { useEffect } from "react";
 
 export function usePreventZoom() {
   useEffect(() => {
-    // Add viewport meta tag to disable pinch/double-tap zoom on mobile
-    const viewportMeta = document.createElement("meta");
-    viewportMeta.name = "viewport";
-    viewportMeta.content =
+    // Ensure viewport disallows browser zoom where supported.
+    const viewportContent =
       "width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no";
-    document.head.appendChild(viewportMeta);
+    const existingViewportMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="viewport"]',
+    );
+
+    let viewportMeta = existingViewportMeta;
+    const previousViewportContent = existingViewportMeta
+      ? existingViewportMeta.getAttribute("content")
+      : null;
+
+    if (viewportMeta) {
+      viewportMeta.setAttribute("content", viewportContent);
+    } else {
+      viewportMeta = document.createElement("meta");
+      viewportMeta.name = "viewport";
+      viewportMeta.content = viewportContent;
+      document.head.appendChild(viewportMeta);
+    }
 
     // Prevent Ctrl+wheel zoom
     const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) {
+      if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
       }
     };
 
     // Prevent Ctrl/Cmd + +/-/= or 0 keyboard zoom
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        (e.key === "+" || e.key === "-" || e.key === "=" || e.key === "0")
-      ) {
+      const isZoomKey =
+        e.key === "+" ||
+        e.key === "=" ||
+        e.key === "-" ||
+        e.key === "_" ||
+        e.key === "0" ||
+        e.key === "Add" ||
+        e.key === "Subtract" ||
+        e.code === "NumpadAdd" ||
+        e.code === "NumpadSubtract" ||
+        e.code === "Numpad0";
+
+      if ((e.ctrlKey || e.metaKey) && isZoomKey) {
         e.preventDefault();
       }
     };
 
-    // { passive: false } is required for preventDefault() to work on wheel
-    document.addEventListener("wheel", handleWheel, { passive: false });
-    document.addEventListener("keydown", handleKeyDown);
+    // Prevent trackpad pinch zoom (notably Safari gesture events)
+    const handleGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
+    // Capture phase + passive:false ensures preventDefault works before browser zoom handlers.
+    const nonPassiveCapture: AddEventListenerOptions = {
+      passive: false,
+      capture: true,
+    };
+
+    window.addEventListener("wheel", handleWheel, nonPassiveCapture);
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("gesturestart", handleGesture, nonPassiveCapture);
+    window.addEventListener("gesturechange", handleGesture, nonPassiveCapture);
 
     return () => {
-      document.head.removeChild(viewportMeta);
-      document.removeEventListener("wheel", handleWheel);
-      document.removeEventListener("keydown", handleKeyDown);
+      if (existingViewportMeta) {
+        if (previousViewportContent === null) {
+          existingViewportMeta.removeAttribute("content");
+        } else {
+          existingViewportMeta.setAttribute("content", previousViewportContent);
+        }
+      } else {
+        viewportMeta?.remove();
+      }
+
+      window.removeEventListener("wheel", handleWheel, true);
+      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("gesturestart", handleGesture, true);
+      window.removeEventListener("gesturechange", handleGesture, true);
     };
   }, []);
 }
