@@ -1,0 +1,371 @@
+Now I have a comprehensive understanding of the entire codebase. Here is the full research findings:
+
+---
+
+# Codebase Architecture Research for Lumberjacking Feature
+
+## 1. Map System
+
+### Map Size & Grid
+- **Map**: 4000×4000 pixels — [convex/gameConstants.ts](convex/gameConstants.ts#L2)
+- **Tile size**: 50px — [L3](convex/gameConstants.ts#L3)
+- **Road grid**: Every 250px (`ROAD_SPACING`), roads are 48px wide with 10px sidewalks — [L4-L6](convex/gameConstants.ts#L4-L6)
+- **Road corridor**: 68px total (road + sidewalks), half-corridor = 34px — [L7-L8](convex/gameConstants.ts#L7-L8)
+- **Building pad**: 20px minimum gap from road to building — [L9](convex/gameConstants.ts#L9)
+
+### City Blocks
+`getCityBlocks(mapSize)` at [L42-L62](convex/gameConstants.ts#L42-L62) computes all rectangular gaps between roads. Each block has `{bx, by, x, y, w, h}`.
+
+### Zone System
+Six zones defined in [convex/mapZones.ts](convex/mapZones.ts) as `ZONES: Record<ZoneId, ZoneDefinition>`:
+
+| Zone | Bounds | speedMultiplier | hasRoads | skipChance |
+|------|--------|----------------|----------|------------|
+| `downtown` | ~L76 (1216,1250)→(2750,2750) | 1.0 | true | 0.1 |
+| `suburbs` | entire 4000×4000 (fallback) | 1.0 | true | 0.35 |
+| `industrial` | (0,0)→(1250,1284) | 1.0 | true | 0.25 |
+| `park` | (0,1284)→(1216,2716) | 0.9 | false | 1.0 (no buildings) |
+| **`forest`** | **(2784,0)→(4000,1216)** | **0.7** | **false** | **0.85** |
+| `beach` | (0,3550)→(4000,4000) | 0.8 | false | 0.5 |
+
+Zone resolution uses **priority order** (`ZONE_PRIORITY` at [L165](convex/mapZones.ts#L165)): `downtown → industrial → forest → park → beach → suburbs` (first match wins; suburbs is fallback).
+
+Key functions:
+- `getZoneAt(x, y)` → `ZoneId` — [L169](convex/mapZones.ts#L169)
+- `getBlockZone(blockX, blockY, blockW, blockH)` — [L183](convex/mapZones.ts#L183) — uses center point
+- `getTemplatesForZone(zoneId)` — [L337](convex/mapZones.ts#L337)
+
+### Zone Visual Config
+[L402-L456](convex/mapZones.ts#L402-L456) — `ZONE_VISUALS: Record<ZoneId, ZoneVisualConfig>`:
+
+**Forest**: `treeCount: 12`, `treeSizeMin: 8`, `treeSizeMax: 16`, no street lights.
+
+### Water/Ocean
+- `WATER_LINE_Y = 3750` — [L462](convex/mapZones.ts#L462)
+- Players/buildings cannot go below this line.
+
+### Terrain Rendering
+[drawZoneTerrain.ts](app/(protected)/game/components/viewport/world/drawing/drawZoneTerrain.ts) — Adaptive subdivision fills zone ground colors using `paintZoneRect()` which recursively subdivides at zone boundaries for accurate coloring.
+
+### Tree Rendering
+[drawTrees.ts](app/(protected)/game/components/viewport/world/drawing/drawTrees.ts) — **Decorative only** (not interactive). Trees are generated via `generateTreePlacements()`:
+- Per-block iteration with `ZONE_VISUALS[zoneId].treeCount` target per block
+- Poisson-like placement using deterministic hash + spatial grid for `MIN_TREE_SPACING = 28`
+- Two renderers: `drawCanopyTree()` for forest/park/suburbs, `drawPalmTree()` for beach
+- **Cacheable**: `cachedPlacements` computed once, `invalidateTreeCache()` to reset
+- Trees avoid roads (`isOnRoad`, `isNearRoadEdge`), park features (`isNearParkFeature`), and water
+
+---
+
+## 2. Player Movement & Collision
+
+### Movement System
+[use-movement.ts](app/(protected)/game/hooks/use-movement.ts):
+- **Base speed**: 5px/tick — [L11](app/(protected)/game/hooks/use-movement.ts#L11)
+- **Tick rate**: 16ms (≈60fps) — [L13](app/(protected)/game/hooks/use-movement.ts#L13)
+- **Sync interval**: 100ms to server — [L12](app/(protected)/game/hooks/use-movement.ts#L12)
+- **Player hitbox**: 40×40px (AABB) — [L14](app/(protected)/game/hooks/use-movement.ts#L14)
+- Speed modifiers:
+  - **Hunger**: below `HUNGER_SLOW_THRESHOLD` (25), speed scales from 50%–100% — [L49-L52](app/(protected)/game/hooks/use-movement.ts#L49-L52)
+  - **Zone**: `ZONES[zoneId].speedMultiplier` applied — [L55-L56](app/(protected)/game/hooks/use-movement.ts#L55-L56)
+- Diagonal movement normalized — [L66-L70](app/(protected)/game/hooks/use-movement.ts#L66-L70)
+
+### Collision Detection
+Three barriers at [L72-L91](app/(protected)/game/hooks/use-movement.ts#L72-L91):
+
+1. **Map boundaries**: clamp to `[0, MAP_SIZE]` × `[0, MAP_SIZE]`
+2. **Ocean boundary**: player bottom can't exceed `WATER_LINE_Y`
+3. **Building collision (AABB)**: checks all `properties` array — player rect overlaps property rect → movement **rejected entirely** (no sliding)
+
+```typescript
+const collides = propertiesRef.current.some(
+  (prop) =>
+    pLeft < prop.x + prop.width &&
+    pLeft + PLAYER_HITBOX > prop.x &&
+    pTop < prop.y + prop.height &&
+    pTop + PLAYER_HITBOX > prop.y,
+);
+if (collides) return; // entire movement rejected
+```
+
+**Key insight for lumberjacking**: Trees are currently **decorative only** — they have NO collision. Buildings (properties) are the only collidable objects. To make trees interactable/collidable, a new system would be needed.
+
+### Server-Side Position Update
+[players.ts `updatePosition`](convex/players.ts#L93-L134):
+- Clamps to `[0, MAP_SIZE]` × `[0, WATER_LINE_Y]`
+- Calculates distance moved → applies hunger decay per `HUNGER_WALK_THRESHOLD` (800px)
+- Auto-collects income every 30s
+
+---
+
+## 3. Inventory System
+
+### Schema
+[convex/schema.ts](convex/schema.ts#L33-L37):
+```typescript
+inventory: defineTable({
+  playerId: v.id("players"),
+  item: v.string(),     // e.g. "apple", "red_cap", "supplies"
+  quantity: v.number(),
+}).index("by_player", ["playerId"])
+```
+
+**Key design**: Generic string-based item key. No item type discrimination in schema — any string works. Items are identified by their `item` string matching keys in config files.
+
+### Inventory Operations Pattern
+Standard upsert pattern used in [food.ts](convex/food.ts#L63-L74) and [clothing.ts](convex/clothing.ts#L60-L69):
+```typescript
+// Add to inventory (upsert)
+const existing = await ctx.db
+  .query("inventory")
+  .withIndex("by_player", (q) => q.eq("playerId", player._id))
+  .filter((q) => q.eq(q.field("item"), itemKey))
+  .first();
+
+if (existing) {
+  await ctx.db.patch(existing._id, { quantity: existing.quantity + 1 });
+} else {
+  await ctx.db.insert("inventory", { playerId, item: itemKey, quantity: 1 });
+}
+```
+
+Consumption (decrement or delete) in [food.ts L105-L111](convex/food.ts#L105-L111):
+```typescript
+if (invItem.quantity === 1) {
+  await ctx.db.delete(invItem._id);
+} else {
+  await ctx.db.patch(invItem._id, { quantity: invItem.quantity - 1 });
+}
+```
+
+### Player Inventory Access
+[use-player.ts](app/(protected)/game/hooks/use-player.ts) provides:
+- `inventory` — raw array from `playerInfo.inventory`
+- `getItemQuantity(itemKey: string)` — O(1) lookup via `Map<string, number>`
+
+---
+
+## 4. Existing Resource Systems — Config + Mutation Patterns
+
+### Pattern: Config File (`*Config.ts`)
+Each feature has a config file exporting:
+1. **Item dictionary** as `const` (e.g., `FOOD_ITEMS`, `CLOTHING_ITEMS`)
+2. **Type** derived from keys (e.g., `FoodType`, `ClothingType`)
+3. **List** as `Object.values(...)` for iteration
+4. **Set of keys** for validation (e.g., `FOOD_KEYS`, `CLOTHING_KEYS`)
+5. **Constants** (e.g., `MAX_HUNGER`, `HUNGER_WALK_THRESHOLD`)
+
+**Food Config** — [convex/foodConfig.ts](convex/foodConfig.ts):
+```typescript
+export const FOOD_ITEMS = {
+  apple: { key: "apple", name: "Apple", price: 10, hunger: 15, emoji: "🍎", category: "food" },
+  // ...
+} as const;
+export type FoodType = keyof typeof FOOD_ITEMS;
+export const FOOD_LIST = Object.values(FOOD_ITEMS);
+export const FOOD_KEYS = new Set(Object.keys(FOOD_ITEMS));
+```
+
+**Clothing Config** — [convex/clothingConfig.ts](convex/clothingConfig.ts):
+Similar structure with `slot: ClothingSlot`, `color: number`, plus `CLOTHING_BY_SLOT` grouped view and `SLOT_LABELS`.
+
+### Pattern: Mutation File (`*.ts`)
+Each feature mutation file:
+1. Authenticates user via `getAuthUserId(ctx)`
+2. Looks up player via `by_userId` index
+3. Validates shop proximity (for shop-based purchases):
+   - Checks `shop.category === "shop"` and `shop.subType === "food_shop"`
+   - Distance from player to shop center ≤ `SHOP_INTERACT_RADIUS` (120px)
+4. Checks owner discount (50% if player owns the shop)
+5. Validates cash
+6. Deducts cash, upserts inventory
+7. Returns result for toast notification
+
+### Pattern: Hook File (`use-*.ts`)
+Each frontend hook:
+1. Wraps Convex mutations with error handling + toast notifications
+2. Provides derived state via `useMemo`/`useCallback`
+3. Uses `usePlayer()` for inventory/cash data
+
+---
+
+## 5. Game Constants
+
+[convex/gameConstants.ts](convex/gameConstants.ts):
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `MAP_SIZE` | 4000 | World dimensions in pixels |
+| `TILE_SIZE` | 50 | Grid tile size |
+| `ROAD_SPACING` | 250 | Distance between road centers |
+| `ROAD_WIDTH` | 48 | Road asphalt width |
+| `SIDEWALK_W` | 10 | Sidewalk width each side |
+| `ROAD_CORRIDOR` | 68 | Total road+sidewalk width |
+| `HALF_CORRIDOR` | 34 | Half of corridor |
+| `BUILDING_PAD` | 20 | Min gap from road edge to building |
+| `SELL_RATE` | 0.7 | Property sell price multiplier |
+| `INCOME_COOLDOWN_MS` | 1,200,000 (20min) | Income collection cooldown |
+| `SHOP_INTERACT_RADIUS` | 120 | Max distance to interact with shop |
+
+Spawn point: center of downtown `{x: 2000, y: 2000}` — [L64-L66](convex/gameConstants.ts#L64-L66)
+
+---
+
+## 6. Full Database Schema
+
+[convex/schema.ts](convex/schema.ts):
+
+| Table | Fields | Indexes |
+|-------|--------|---------|
+| `players` | userId, name, x, y, cash, jobTitle, avatar, lastSeen, lastIncomeCheckAt?, hunger?, walkDistance?, equippedClothing? | `by_userId` |
+| `inventory` | playerId, item (string), quantity | `by_player` |
+| `properties` | name, price, income, x, y, width, height, category, subType, zoneId, maxOwners | `by_zone`, `by_category` |
+| `propertyOwnership` | propertyId, playerId, level, purchasedAt, lastCollectedAt, totalEarned? | `by_property`, `by_player`, `by_player_property` |
+| `jobs` | type, status, playerId?, reward, pickupX/Y, dropoffX/Y, pickupName, dropoffName, title, acceptedAt?, pickedUpAt?, completedAt? | `by_status`, `by_player`, `by_player_status` |
+| `worldConfig` | key (string), value (string) | `by_key` |
+
+---
+
+## 7. World System
+
+[convex/world.ts](convex/world.ts):
+
+- `initCity` — mutation that generates all properties using `getCityBlocks()` + zone-based templates
+- `resetWorld` — clears all properties, ownership, jobs, inventories, then re-initializes
+- **Procedural generation**: Uses `seededRandom(42)` for deterministic layout
+- Buildings placed per block: zone → filtered templates → random template → jitter sizing → random position within usable block area
+- Fixed **service buildings** placed at hardcoded positions (Bank, Casino, Police HQ, Ranger Station)
+- All are entries in the `properties` table
+
+---
+
+## 8. Properties System
+
+### Building Templates
+[mapZones.ts](convex/mapZones.ts#L193-L336) — `BUILDING_TEMPLATES: BuildingTemplate[]`:
+- Each has: `name, category, subType, basePrice, baseIncome, sizeFactor, maxOwners, zoneAffinity[]`
+- Categories: residential, commercial, shop
+- Shop subtypes: `food_shop`, `supply_store`, `clothing_store`
+
+### Service Buildings
+[mapZones.ts L356-L399](convex/mapZones.ts#L356-L399) — `SERVICE_BUILDINGS: ServiceBuildingDef[]`:
+- Central Bank (1810,1820), Casino (2060,1560), Police HQ (1310,2310), **Ranger Station (3060,560)**
+- Fixed positions, not ownable (`maxOwners: 0`)
+- The Ranger Station is already in the **forest zone** — relevant for lumberjacking!
+
+### Property Interactions
+[properties.ts](convex/properties.ts) — `buyProperty`, `sellProperty`
+[economy.ts](convex/economy.ts) — `processIncomeCollection`, `collectIncome`, `workJob`
+
+### Rendering
+[PropertyNode.tsx](app/(protected)/game/components/viewport/world/PropertyNode.tsx) — Each property is a clickable `pixiContainer` with:
+- Building base, windows, door+accessories, border drawn via `pixiGraphics`
+- `PropertyLabel` showing name/owners/price
+- `onPointerTap` triggers shop dialog (if close enough) or property purchase dialog
+
+---
+
+## 9. Game Components Architecture
+
+### Rendering Pipeline (PixiJS v8 via `@pixi/react`)
+[GameCanvas.tsx](app/(protected)/game/components/viewport/GameCanvas.tsx):
+```
+Application (PixiJS)
+  └─ pixiContainer (camera offset: vw/2 - playerX, vh/2 - playerY)
+      ├─ WorldGrid          ← terrain, roads, trees, park features, beach/water
+      ├─ PropertyNode[]      ← all buildings (interactive)
+      ├─ DeliveryMarker[]    ← active job markers
+      ├─ PlayerCharacter[]   ← other players (red)
+      ├─ PlayerCharacter     ← current player (green)
+      └─ DayNightOverlay     ← ambient lighting overlay
+```
+
+### WorldGrid Drawing Order
+[WorldGrid.tsx](app/(protected)/game/components/viewport/world/WorldGrid.tsx#L22-L29):
+1. `drawZoneTerrain` — zone ground colors
+2. `drawBeachAndWater` — beach/ocean area
+3. `drawParkFeatures` — park-specific decorations
+4. `drawRoads` — road grid (only in zones with `hasRoads: true`)
+5. `drawTrees` — decorative trees (zone-specific density/sizes)
+6. `drawMapBorder` — edge border
+
+### UI Layer (HTML overlay, `pointer-events-none`)
+[game/layout.tsx](app/(protected)/game/layout.tsx):
+- `GameMenu` (FAB + dialog with sidebar tabs)
+- `Header` (HUD bar: cash, properties, hunger)
+- `FloatingMinimap` + `DeliveryHUD` (top-right)
+- `PropertyDialog` + `ShopDialog` (modal dialogs)
+
+### Menu Tabs
+[GameMenu.tsx](app/(protected)/game/components/ui/menu/GameMenu.tsx) — Sidebar with tabs:
+- Map, Inventory, Wardrobe, Jobs, Properties, Rankings, Profile, Chat, Controls
+
+### Hooks
+| Hook | File | Purpose |
+|------|------|---------|
+| `usePlayer` | [use-player.ts](app/(protected)/game/hooks/use-player.ts) | Player data, inventory, position sync |
+| `useWorld` | [use-world.ts](app/(protected)/game/hooks/use-world.ts) | Properties, buy/sell, income, zone info |
+| `useMovement` | [use-movement.ts](app/(protected)/game/hooks/use-movement.ts) | Client-side movement with collision |
+| `useFood` | [use-food.ts](app/(protected)/game/hooks/use-food.ts) | Buy/consume food |
+| `useClothing` | [use-clothing.ts](app/(protected)/game/hooks/use-clothing.ts) | Buy/equip/unequip clothing |
+| `useJobs` | [use-jobs.ts](app/(protected)/game/hooks/use-jobs.ts) | Delivery jobs system |
+| `useGameTime` | [use-game-time.ts](app/(protected)/game/hooks/use-game-time.ts) | Day/night cycle sync |
+| `useKeyboard` | [use-keyboard.ts](app/(protected)/game/hooks/use-keyboard.ts) | Centralized key bindings |
+
+---
+
+## 10. Map Expansion Zone Designs (Future)
+
+[overview.md](update/map-expansion-zones/designs/overview.md) — Plans for an expanded island map (8000×15600) with 14 zones. Current 4000×4000 maps to roughly the downtown/suburbs/park area of the expanded map.
+
+**Forest Zone Design** — [zone_01_forest.md](update/map-expansion-zones/designs/zone_01_forest.md):
+- Bounds: 600,600 → 3400,3000 (in expanded map coordinates)
+- 4 Lumber Camps (40×40, resource type), 1 Sawmill (120×80, service), 1 Ranger Station (60×50, service)
+- 16 harvestable tree clusters (~30 trees each), with center/radius, 5 game-day respawn
+- Trail system with paths at 0.65× speed, main trails at 0.8× speed
+
+---
+
+## 11. Time System
+
+[convex/timeConstants.ts](convex/timeConstants.ts):
+- Game day = 20 real minutes
+- 6 phases: DAWN, MORNING, AFTERNOON, EVENING, DUSK, NIGHT
+- Ambient lighting computed from game hour with smooth interpolation
+- Street lights activate when `sunlightIntensity < 0.3`
+
+---
+
+## 12. Cron Jobs
+
+[convex/crons.ts](convex/crons.ts):
+- Cleanup stale jobs every 5 minutes
+- Auto-spawn jobs every 2 minutes
+
+---
+
+## 13. Vercel React Best Practices (Skill)
+
+[SKILL.md](/.github/skills/vercel-react-best-practices/SKILL.md) — 57 rules across 8 categories. Key patterns relevant to lumberjacking UI:
+- `rerender-memo` — memoize expensive rendering
+- `bundle-dynamic-imports` — lazy-load heavy components
+- `rerender-use-ref-transient-values` — refs for frequently-changing values
+- `async-parallel` — `Promise.all` for independent operations
+
+---
+
+## Summary: Key Architectural Patterns for Lumberjacking
+
+| Aspect | Pattern to Follow |
+|--------|------------------|
+| **Item config** | Create `convex/lumberjackConfig.ts` with items dict, types, lists, constants (like `foodConfig.ts`) |
+| **Mutations** | Create `convex/lumberjack.ts` with auth + player lookup + proximity check + inventory upsert (like `food.ts`) |
+| **Hook** | Create `use-lumberjack.ts` wrapping mutations with error handling + toast (like `use-food.ts`) |
+| **Trees** | Currently decorative in `drawTrees.ts`. Need new interactable tree system — either extend `properties` table or add new `trees`/`resources` table |
+| **Collision** | Current system only blocks on `properties`. Trees would need to be added to collision check in `useMovement` if they should block |
+| **Shop interaction** | Uses `SHOP_INTERACT_RADIUS` (120px) distance check — similar pattern for "tree interaction radius" |
+| **Zone** | Forest zone already exists with `speedMultiplier: 0.7`, `treeCount: 12`. Ranger Station already placed at (3060,560) |
+| **Building placement** | Follow `SERVICE_BUILDINGS` pattern for sawmill/lumber camps as fixed service buildings |
+| **Inventory** | Generic `item: string` — can add `"wood"`, `"plank"`, `"axe"` etc. directly |
+| **Respawn** | No existing respawn system — would be new. Could use `worldConfig` table or a new table with timestamps |
+| **UI** | Add tab to `GameMenu`, possibly a new shop dialog variant for lumber/sawmill |
