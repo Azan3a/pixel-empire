@@ -217,6 +217,7 @@ pixel-empire/
 - [x] Clean hook-based architecture (use-movement, use-world, use-jobs, use-food, use-player)
 - [x] **Physical Shop Interaction** — Removed global shop from the game menu. Players walk to in-world Food Shops, Supply Stores, and Clothing Stores and click them to purchase items. Shop dialog is type-specific with server-side proximity validation.
 - [x] **Job Cleanup Cron** — Auto-cancel abandoned/stale jobs after timeout via Convex scheduled functions.
+- [x] Clothing Store — Cosmetic items for player avatars (hats, shirts, pants) that provide no gameplay benefits. Purely visual customization.
 
 ### 🔜 Next Up
 
