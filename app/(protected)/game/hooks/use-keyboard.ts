@@ -36,7 +36,6 @@ export const CONTROL_MAP = {
   open_chat: { keys: ["l"], action: "Chat / Log", group: "menu" },
   open_profile: { keys: ["k"], action: "Profile", group: "menu" },
   open_controls: { keys: ["h"], action: "Controls", group: "menu" },
-  open_food: { keys: ["e"], action: "Food Menu", group: "gameplay" },
   open_wardrobe: { keys: ["c"], action: "Wardrobe", group: "menu" },
 } as const;
 
