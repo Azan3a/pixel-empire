@@ -87,11 +87,27 @@ function drawDisplayContent(
   bf: number,
   subType: PropertySubType,
 ): void {
-  if (subType === "food_shop") {
+  if (
+    subType === "bakery" ||
+    subType === "coffee_shop" ||
+    subType === "food_court" ||
+    subType === "park_cafe" ||
+    subType === "farmhouse_kitchen" ||
+    subType === "fish_market" ||
+    subType === "ice_cream_stand" ||
+    subType === "grocery_store" ||
+    subType === "inn" ||
+    subType === "tavern"
+  ) {
     drawFoodDisplay(g, dx, dy, dw, dh, bf);
-  } else if (subType === "clothing_store") {
+  } else if (subType === "clothing_store" || subType === "tailor") {
     drawClothingDisplay(g, dx, dy, dw, dh, bf);
-  } else if (subType === "supply_store") {
+  } else if (
+    subType === "hardware_store" ||
+    subType === "ship_supply" ||
+    subType === "seed_store" ||
+    subType === "bait_shop"
+  ) {
     drawSupplyDisplay(g, dx, dy, dw, dh, bf);
   } else {
     drawGenericDisplay(g, dx, dy, dw, dh, bf);

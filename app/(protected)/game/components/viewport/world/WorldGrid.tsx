@@ -4,7 +4,10 @@
 import { Graphics } from "pixi.js";
 import { useCallback, memo } from "react";
 import { createTintFn } from "./utils/tintFactory";
-import { drawOceanAndCoast } from "./drawing/drawOceanAndCoast";
+import {
+  drawOceanAndCoast,
+  drawWaterFeatures,
+} from "./drawing/drawOceanAndCoast";
 import { drawZoneTerrain } from "./drawing/drawZoneTerrain";
 import { drawParkFeatures } from "./drawing/drawParkFeatures";
 import { drawRoads } from "./drawing/drawRoads";
@@ -25,6 +28,7 @@ function WorldGridInner({ tintR = 1, tintG = 1, tintB = 1 }: WorldGridProps) {
 
       drawOceanAndCoast(g, t);
       drawZoneTerrain(g, t);
+      drawWaterFeatures(g, t);
       drawParkFeatures(g, t);
       drawRoads(g, t);
       drawTrees(g, t);

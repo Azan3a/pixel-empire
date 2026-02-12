@@ -167,16 +167,12 @@ function drawBridges(g: Graphics, t: TintFn): void {
   }
 }
 
-// ── Main export ──
+// ── Main exports ──
 
 /**
- * Draw ocean, coastline shore effects, beach sand, boardwalk, lake,
- * river, and bridges. Should be called AFTER drawZoneTerrain so
- * water features render on top of terrain, but the ocean base
- * is drawn first (drawZoneTerrain paints island terrain over it).
- *
- * Call order in WorldGrid: drawOceanAndCoast → drawZoneTerrain → ...
- * This way ocean is the background, zone terrain overlays land areas.
+ * Draw ocean background and coastline shore foam.
+ * Called BEFORE drawZoneTerrain so ocean is the background layer
+ * that zone terrain paints over for land areas.
  */
 export function drawOceanAndCoast(g: Graphics, t: TintFn): void {
   drawOcean(g, t);
@@ -184,6 +180,13 @@ export function drawOceanAndCoast(g: Graphics, t: TintFn): void {
   drawShore(g, t, SMALL_ISLAND_POLYGON);
   drawBeachSand(g, t);
   drawBoardwalk(g, t);
+}
+
+/**
+ * Draw inland water features: lake, river, and bridges.
+ * Called AFTER drawZoneTerrain so water renders on top of terrain.
+ */
+export function drawWaterFeatures(g: Graphics, t: TintFn): void {
   drawLake(g, t);
   drawRiver(g, t);
   drawBridges(g, t);

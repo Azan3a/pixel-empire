@@ -79,23 +79,21 @@ export const COASTLINE_POLYGON: Point[] = [
 
 /**
  * Small island coastline polygon (separate land mass).
- * Boat required to reach. Located at roughly (8200,6000)→(9000,7200).
+ * Boat required to reach. Located just off the southeast coast.
  */
 export const SMALL_ISLAND_POLYGON: Point[] = [
-  { x: 8500, y: 6100 },
-  { x: 8700, y: 6200 },
-  { x: 8850, y: 6400 },
-  { x: 8900, y: 6600 },
-  { x: 8900, y: 6800 },
-  { x: 8850, y: 7000 },
-  { x: 8700, y: 7100 },
-  { x: 8500, y: 7150 },
-  { x: 8350, y: 7100 },
-  { x: 8250, y: 6900 },
-  { x: 8250, y: 6700 },
-  { x: 8250, y: 6500 },
-  { x: 8300, y: 6300 },
-  { x: 8400, y: 6150 },
+  { x: 7600, y: 7120 },
+  { x: 7700, y: 7100 },
+  { x: 7800, y: 7120 },
+  { x: 7870, y: 7200 },
+  { x: 7880, y: 7300 },
+  { x: 7860, y: 7400 },
+  { x: 7800, y: 7460 },
+  { x: 7700, y: 7480 },
+  { x: 7600, y: 7460 },
+  { x: 7540, y: 7380 },
+  { x: 7530, y: 7280 },
+  { x: 7540, y: 7200 },
 ];
 
 // ── Point-in-Polygon (ray casting) ──

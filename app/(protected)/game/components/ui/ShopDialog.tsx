@@ -285,17 +285,28 @@ export function ShopDialog({
         {/* Shop inventory — type-specific content */}
         <div className="mt-2">
           <div className="no-scrollbar -mx-4 max-h-[48vh] overflow-y-auto px-4">
-            {property.subType === "food_shop" && (
+            {(property.subType === "bakery" ||
+              property.subType === "coffee_shop" ||
+              property.subType === "food_court" ||
+              property.subType === "park_cafe" ||
+              property.subType === "farmhouse_kitchen" ||
+              property.subType === "fish_market" ||
+              property.subType === "ice_cream_stand" ||
+              property.subType === "grocery_store") && (
               <FoodShopContent
                 playerCash={playerCash}
                 shopPropertyId={property._id}
                 isOwned={!!property.isOwned}
               />
             )}
-            {property.subType === "supply_store" && (
+            {(property.subType === "hardware_store" ||
+              property.subType === "ship_supply" ||
+              property.subType === "seed_store" ||
+              property.subType === "bait_shop") && (
               <ComingSoonContent label="Supply Store" emoji="🔧" />
             )}
-            {property.subType === "clothing_store" && (
+            {(property.subType === "clothing_store" ||
+              property.subType === "tailor") && (
               <ComingSoonContent label="Clothing Store" emoji="👕" />
             )}
           </div>

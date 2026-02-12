@@ -24,66 +24,68 @@ export interface Bridge {
 }
 
 // ─── The River ───────────────────────────────────────────────────
-// A ~40-60 px wide river flowing south from the mountains through the forest
-// and old town, emptying into the harbor.
+// A ~40-60 px wide river flowing south from the mountains through the park
+// and suburbs area, emptying near the boardwalk coast.
+// Design docs specify x≈3400–3800, y:1600→6800.
 
 export const RIVER: WaterSegment = {
   name: "Central River",
   type: "river",
   width: 50,
   points: [
-    // Origin high in the mountains
-    { x: 1600, y: 1200 },
-    // Flow SE through lower mountains
-    { x: 1700, y: 1800 },
-    // Curve SW into forest
-    { x: 1500, y: 2600 },
-    // Through forest southward
-    { x: 1400, y: 3200 },
-    // Past Zone 1 bridge
-    { x: 1200, y: 3800 },
-    // Approach the lake
-    { x: 1800, y: 4000 },
-    // Exit lake south, into Old Town area
-    { x: 2600, y: 4300 },
-    // Past Zone 3 bridge
-    { x: 3200, y: 4700 },
-    // Enter harbor
-    { x: 3600, y: 5000 },
-    // Empty into ocean
-    { x: 3800, y: 5400 },
+    // Origin in the mountains
+    { x: 3600, y: 1000 },
+    // Flow south through mountains
+    { x: 3550, y: 1600 },
+    // Mountain/forest boundary
+    { x: 3500, y: 2200 },
+    // Into park area
+    { x: 3450, y: 2800 },
+    // Approach lake (north)
+    { x: 3400, y: 3300 },
+    // Through lake — covered by lake fill
+    { x: 3400, y: 3700 },
+    // South of park
+    { x: 3500, y: 4200 },
+    // Suburbs/commercial boundary
+    { x: 3500, y: 4800 },
+    // Through commercial strip
+    { x: 3600, y: 5400 },
+    // Farmland
+    { x: 3700, y: 6000 },
+    // Reaches coast at boardwalk
+    { x: 3800, y: 6800 },
   ],
 };
 
 // ─── The Great Lake ──────────────────────────────────────────────
-// A ~600×400 freshwater lake at the Forest / Old Town boundary.
+// A freshwater lake inside the park zone, centered within the Lake Loop trails.
+// Park zone: (2000,2600)→(4200,4400). Lake Loop trails: (3100-3700, 3250-3750).
 
 export const LAKE: WaterSegment = {
   name: "Great Lake",
   type: "lake",
-  width: 600, // represents horizontal extent; height is in the polygon
+  width: 500, // represents horizontal extent
   points: [
-    // Approximate elliptical outline, centered ~(2200, 4000)
-    { x: 1900, y: 3800 },
-    { x: 2050, y: 3750 },
-    { x: 2200, y: 3730 },
-    { x: 2350, y: 3750 },
-    { x: 2500, y: 3800 },
-    { x: 2550, y: 3900 },
-    { x: 2550, y: 4100 },
-    { x: 2500, y: 4200 },
-    { x: 2350, y: 4250 },
-    { x: 2200, y: 4270 },
-    { x: 2050, y: 4250 },
-    { x: 1900, y: 4200 },
-    { x: 1850, y: 4100 },
-    { x: 1850, y: 3900 },
+    // Approximate elliptical outline, centered ~(3400, 3500)
+    { x: 3150, y: 3400 },
+    { x: 3250, y: 3320 },
+    { x: 3400, y: 3300 },
+    { x: 3550, y: 3320 },
+    { x: 3650, y: 3400 },
+    { x: 3680, y: 3500 },
+    { x: 3650, y: 3600 },
+    { x: 3550, y: 3680 },
+    { x: 3400, y: 3700 },
+    { x: 3250, y: 3680 },
+    { x: 3150, y: 3600 },
+    { x: 3120, y: 3500 },
   ],
 };
 
-export const LAKE_CENTER = { x: 2200, y: 4000 };
-export const LAKE_RADIUS_X = 350;
-export const LAKE_RADIUS_Y = 270;
+export const LAKE_CENTER = { x: 3400, y: 3500 };
+export const LAKE_RADIUS_X = 280;
+export const LAKE_RADIUS_Y = 200;
 
 /** Quick ellipse hit-test for the lake */
 export function isInLake(x: number, y: number): boolean {
@@ -97,16 +99,16 @@ export function isInLake(x: number, y: number): boolean {
 export const BRIDGES: Bridge[] = [
   {
     name: "Forest Bridge",
-    x: 1200,
-    y: 3800, // Old wooden bridge in Zone 1 (forest)
+    x: 3450,
+    y: 2800, // Wooden bridge at forest/park boundary
     width: 70,
     height: 30,
     style: "wood",
   },
   {
-    name: "Old Town Bridge",
-    x: 3200,
-    y: 4700, // Main stone bridge in Zone 3 (old town)
+    name: "Commercial Bridge",
+    x: 3500,
+    y: 4800, // Stone bridge at suburbs/commercial boundary
     width: 80,
     height: 30,
     style: "stone",

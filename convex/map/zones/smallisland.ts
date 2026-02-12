@@ -1,6 +1,6 @@
 // convex/map/zones/smallisland.ts
-// Zone 14: Small Island (6800,6800 → 7600,7600)
-// 800×800 — Tiny offshore island. Lighthouse, dock, rare fishing, secret cave.
+// Zone 14: Small Island (7500,7100 → 7900,7500)
+// 400×400 — Tiny offshore island SE of the main coast. Lighthouse, dock, rare fishing.
 
 import type { ZoneData } from "./types";
 
@@ -11,8 +11,8 @@ const smallisland: ZoneData = {
       name: "Lighthouse",
       category: "service",
       subType: "lighthouse",
-      x: 7200,
-      y: 7150,
+      x: 7700,
+      y: 7300,
       width: 60,
       height: 60,
       maxOwners: 0,
@@ -24,8 +24,8 @@ const smallisland: ZoneData = {
       name: "Island Dock",
       category: "service",
       subType: "island_dock",
-      x: 7100,
-      y: 6850,
+      x: 7600,
+      y: 7150,
       width: 40,
       height: 20,
       maxOwners: 0,
@@ -37,10 +37,10 @@ const smallisland: ZoneData = {
   roads: [
     {
       name: "Dock Path",
-      x1: 7100,
-      y1: 6870,
-      x2: 7200,
-      y2: 7150,
+      x1: 7620,
+      y1: 7170,
+      x2: 7700,
+      y2: 7300,
       style: "stone",
     },
   ],
@@ -48,8 +48,8 @@ const smallisland: ZoneData = {
     {
       name: "Secret Cave",
       type: "cave_entrance",
-      x: 7350,
-      y: 7300,
+      x: 7820,
+      y: 7380,
       width: 30,
       height: 30,
     },

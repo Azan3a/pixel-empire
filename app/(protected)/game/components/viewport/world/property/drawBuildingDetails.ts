@@ -20,7 +20,7 @@ export function drawBuildingDetails(
   isNight: boolean,
   px: number,
 ): void {
-  if (subType === "bank" && width > 40) {
+  if (subType === "bank_tower" && width > 40) {
     drawBankColumns(g, width, height, bf);
   }
 
@@ -28,7 +28,7 @@ export function drawBuildingDetails(
     drawCasinoNeon(g, width, height, px);
   }
 
-  if (subType === "police_station") {
+  if (subType === "police_hq") {
     drawPoliceLight(g, width, isNight);
   }
 }

@@ -182,7 +182,7 @@ export const ZONES: Record<ZoneId, ZoneDefinition> = {
   smallisland: {
     id: "smallisland",
     name: "Small Island",
-    bounds: { x1: 8200, y1: 6000, x2: 9000, y2: 7200 },
+    bounds: { x1: 7500, y1: 7100, x2: 7900, y2: 7500 },
     speedMultiplier: 0.8,
     hasRoads: false,
     roadStyle: "stone",

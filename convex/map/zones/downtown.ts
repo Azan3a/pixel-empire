@@ -295,22 +295,7 @@ const downtown: ZoneData = {
       y2: 4650,
       style: "boulevard",
     },
-    {
-      name: "West Boulevard",
-      x1: 4000,
-      y1: 2800,
-      x2: 4000,
-      y2: 4800,
-      style: "boulevard",
-    },
-    {
-      name: "East Boulevard",
-      x1: 6400,
-      y1: 2800,
-      x2: 6400,
-      y2: 4800,
-      style: "boulevard",
-    },
+
     {
       name: "Central N-S",
       x1: 5200,

@@ -98,19 +98,19 @@ export const SUBTYPE_OVERRIDES: Partial<
     window: 0x99bbdd,
     trim: 0x7a7a7a,
   },
-  corner_store: {
+  general_store: {
     wall: 0xd4c090,
     awning: 0xcc4444,
     accent: 0xcc4444,
   },
-  office: {
+  office_tower: {
     wall: 0x5a7a9a,
     wallLight: 0x6a8aaa,
     window: 0x99ddff,
     roof: 0x3a5a7a,
     trim: 0x4a6a8a,
   },
-  mall: {
+  mega_mall: {
     wall: 0xe4d4c4,
     wallLight: 0xf4e4d4,
     roof: 0x8a7a6a,
@@ -125,7 +125,7 @@ export const SUBTYPE_OVERRIDES: Partial<
     roofAccent: 0x4a4a3a,
     trim: 0x6a6a5a,
   },
-  factory: {
+  sawmill_factory: {
     wall: 0x6a6a5a,
     wallLight: 0x7a7a6a,
     roof: 0x4a4a3a,
@@ -133,13 +133,26 @@ export const SUBTYPE_OVERRIDES: Partial<
     accent: 0xaa6622,
     trim: 0x5a5a4a,
   },
-  food_shop: {
+  smelter: {
+    wall: 0x5a5a5a,
+    wallLight: 0x6a6a6a,
+    roof: 0x3a3a3a,
+    accent: 0xff6622,
+    trim: 0x4a4a4a,
+  },
+  bakery: {
     wall: 0xf0e0c0,
     awning: 0xe67e22,
     accent: 0xe67e22,
     door: 0x7a5a3a,
   },
-  supply_store: {
+  coffee_shop: {
+    wall: 0xf0e0c0,
+    awning: 0x8b5a2b,
+    accent: 0x8b5a2b,
+    door: 0x6a4a2a,
+  },
+  hardware_store: {
     wall: 0xd4d0c0,
     awning: 0x27ae60,
     accent: 0x27ae60,
@@ -152,7 +165,7 @@ export const SUBTYPE_OVERRIDES: Partial<
     accent: 0xe91e63,
     door: 0x6a4a5a,
   },
-  bank: {
+  bank_tower: {
     wall: 0xd4d0c4,
     wallLight: 0xe4e0d4,
     roof: 0x8a8a7a,
@@ -169,7 +182,7 @@ export const SUBTYPE_OVERRIDES: Partial<
     window: 0xff88aa,
     windowLit: 0xff4488,
   },
-  police_station: {
+  police_hq: {
     wall: 0x5a6a7a,
     wallLight: 0x6a7a8a,
     roof: 0x3a4a5a,

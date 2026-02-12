@@ -50,41 +50,85 @@ export function drawBuildingBase(
   // Dispatch to sub-type renderer
   switch (subType) {
     case "house":
+    case "farmhouse":
       drawHouseBase(g, width, height, palette, bf);
       break;
     case "duplex":
       drawDuplexBase(g, width, height, palette, bf);
       break;
     case "apartment":
+    case "luxury_apartment":
+    case "condo_tower":
       drawApartmentBase(g, width, height, palette, bf);
       break;
-    case "office":
+    case "office_tower":
+    case "tech_hub":
+    case "investment_firm":
+    case "law_office":
+    case "insurance":
+    case "news_tower":
       drawOfficeBase(g, width, height, palette, bf);
       break;
-    case "mall":
+    case "mega_mall":
+    case "mega_mart":
       drawMallBase(g, width, height, palette, bf);
       break;
-    case "corner_store":
+    case "general_store":
+    case "bookstore":
+    case "antique_shop":
+    case "pet_shop":
+    case "sports_store":
+    case "pharmacy":
+    case "electronics_store":
+    case "furniture_outlet":
+    case "auto_parts":
       drawCornerStoreBase(g, width, height, palette, bf);
       break;
     case "warehouse":
+    case "wholesale":
       drawWarehouseBase(g, width, height, palette, bf);
       break;
-    case "factory":
+    case "sawmill_factory":
+    case "smelter":
+    case "food_processing":
+    case "chemical_plant":
+    case "textile_mill":
+    case "electronics_factory":
       drawFactoryBase(g, width, height, palette, bf);
       break;
-    case "food_shop":
-    case "supply_store":
+    case "bakery":
+    case "coffee_shop":
+    case "food_court":
+    case "park_cafe":
+    case "farmhouse_kitchen":
+    case "fish_market":
+    case "ice_cream_stand":
+    case "grocery_store":
+    case "inn":
+    case "tavern":
+    case "bait_shop":
+    case "seed_store":
+    case "ship_supply":
+    case "hardware_store":
     case "clothing_store":
+    case "tailor":
+    case "blacksmith":
+    case "herbalist":
+    case "surf_shop":
+    case "beach_rental":
+    case "yacht_club_shop":
+    case "gym":
+    case "farmers_market":
+    case "sawmill":
       drawShopBase(g, width, height, palette, bf, subType);
       break;
-    case "bank":
+    case "bank_tower":
       drawBankBase(g, width, height, palette, bf);
       break;
     case "casino":
       drawCasinoBase(g, width, height, palette, bf, isNight);
       break;
-    case "police_station":
+    case "police_hq":
       drawPoliceBase(g, width, height, palette, bf, isNight);
       break;
     case "ranger_station":
