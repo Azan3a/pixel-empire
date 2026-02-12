@@ -3,7 +3,12 @@
 
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { FoodType, FOOD_ITEMS } from "@/convex/foodConfig";
+import {
+  FoodType,
+  FOOD_ITEMS,
+  FOOD_KEYS,
+  MAX_FOOD_INVENTORY,
+} from "@/convex/foodConfig";
 import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";
@@ -84,11 +89,28 @@ export function useFood() {
     }));
   }, [getItemQuantity]);
 
+  const totalFoodCount = useMemo(() => {
+    const inventory = playerInfo?.inventory ?? [];
+    return inventory.reduce(
+      (sum, item) => (FOOD_KEYS.has(item.item) ? sum + item.quantity : sum),
+      0,
+    );
+  }, [playerInfo?.inventory]);
+
+  const remainingFoodCapacity = Math.max(
+    0,
+    MAX_FOOD_INVENTORY - totalFoodCount,
+  );
+  const canBuyMoreFood = remainingFoodCapacity > 0;
+
   return {
     buyFood,
     consumeFood,
     canAfford,
     foodCount,
     foodInventory,
+    totalFoodCount,
+    remainingFoodCapacity,
+    canBuyMoreFood,
   };
 }

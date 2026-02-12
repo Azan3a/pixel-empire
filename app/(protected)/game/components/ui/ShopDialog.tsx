@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Property } from "@game/types/property";
 import { useFood } from "@game/hooks/use-food";
-import { FOOD_LIST } from "@/convex/foodConfig";
+import { FOOD_LIST, MAX_FOOD_INVENTORY } from "@/convex/foodConfig";
 import { ClothingShopContent } from "./ClothingShopContent";
 import { Id } from "@/convex/_generated/dataModel";
 import { SELL_RATE } from "@/convex/gameConstants";
@@ -77,22 +77,28 @@ function FoodShopContent({
   shopPropertyId: Id<"properties">;
   isOwned: boolean;
 }) {
-  const { buyFood } = useFood();
+  const { buyFood, canBuyMoreFood, totalFoodCount } = useFood();
 
   return (
     <div className="grid grid-cols-1 gap-3">
+      <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+        <span>Food Capacity</span>
+        <span className="font-semibold">
+          {totalFoodCount}/{MAX_FOOD_INVENTORY}
+        </span>
+      </div>
+
       {FOOD_LIST.map((food) => {
         const price = isOwned ? Math.floor(food.price * 0.5) : food.price;
         const canAfford = playerCash >= price;
+        const canBuy = canAfford && canBuyMoreFood;
 
         return (
           <div
             key={food.key}
             className={cn(
               "flex items-center justify-between p-4 rounded-xl border transition-colors",
-              canAfford
-                ? "bg-card/50 hover:bg-card/80"
-                : "bg-muted/20 opacity-60",
+              canBuy ? "bg-card/50 hover:bg-card/80" : "bg-muted/20 opacity-60",
             )}
           >
             <div className="flex items-center gap-3">
@@ -107,17 +113,23 @@ function FoodShopContent({
 
             <Button
               onClick={() => buyFood(food.key, shopPropertyId)}
-              disabled={!canAfford}
+              disabled={!canBuy}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold transition-colors",
-                canAfford
+                canBuy
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "bg-muted text-muted-foreground cursor-not-allowed",
               )}
             >
               <ShoppingCart className="size-3.5" />
               <div className="flex flex-col items-end">
-                <span className="font-mono">${price}</span>
+                <span className="font-mono">
+                  {!canBuyMoreFood
+                    ? "Full"
+                    : canAfford
+                      ? `$${price}`
+                      : "No Cash"}
+                </span>
               </div>
             </Button>
           </div>

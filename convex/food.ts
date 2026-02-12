@@ -2,7 +2,13 @@
 import { ConvexError, v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { FOOD_ITEMS, FoodType, MAX_HUNGER } from "./foodConfig";
+import {
+  FOOD_ITEMS,
+  FOOD_KEYS,
+  FoodType,
+  MAX_FOOD_INVENTORY,
+  MAX_HUNGER,
+} from "./foodConfig";
 import { SHOP_INTERACT_RADIUS } from "./gameConstants";
 
 export const buyFood = mutation({
@@ -51,6 +57,22 @@ export const buyFood = mutation({
 
     if (player.cash < price) {
       throw new ConvexError(`Not enough cash. Need $${price}`);
+    }
+
+    // Enforce max food inventory capacity
+    const inventory = await ctx.db
+      .query("inventory")
+      .withIndex("by_player", (q) => q.eq("playerId", player._id))
+      .collect();
+
+    const currentFoodCount = inventory.reduce((sum, item) => {
+      return FOOD_KEYS.has(item.item) ? sum + item.quantity : sum;
+    }, 0);
+
+    if (currentFoodCount >= MAX_FOOD_INVENTORY) {
+      throw new ConvexError(
+        `Food inventory full (${MAX_FOOD_INVENTORY}). Eat something first!`,
+      );
     }
 
     // Deduct cash

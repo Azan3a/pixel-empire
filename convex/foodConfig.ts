@@ -40,6 +40,7 @@ export const FOOD_LIST = Object.values(FOOD_ITEMS);
 
 // All consumable item keys (for checking if an inventory item is food)
 export const FOOD_KEYS = new Set(Object.keys(FOOD_ITEMS));
+export const MAX_FOOD_INVENTORY = 10;
 
 export const MAX_HUNGER = 100;
 export const HUNGER_WALK_THRESHOLD = 800;
