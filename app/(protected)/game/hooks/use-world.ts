@@ -11,16 +11,16 @@ import { useMemo } from "react";
 import { getZoneAt, ZONES, type ZoneId } from "@/convex/mapZones";
 
 export function useWorld() {
-  const queryProperties = useQuery(api.world.getProperties);
+  const queryProperties = useQuery(api.properties.getProperties);
   const properties = useMemo(
     () => (queryProperties as Property[]) || [],
     [queryProperties],
   );
 
-  const buyPropertyMutation = useMutation(api.world.buyProperty);
-  const sellPropertyMutation = useMutation(api.world.sellProperty);
-  const collectIncomeMutation = useMutation(api.world.collectIncome);
-  const workJobMutation = useMutation(api.world.workJob);
+  const buyPropertyMutation = useMutation(api.properties.buyProperty);
+  const sellPropertyMutation = useMutation(api.properties.sellProperty);
+  const collectIncomeMutation = useMutation(api.economy.collectIncome);
+  const workJobMutation = useMutation(api.economy.workJob);
   const initCityMutation = useMutation(api.world.initCity);
 
   const buyProperty = async (propertyId: Id<"properties">) => {

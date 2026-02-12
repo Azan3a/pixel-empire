@@ -5,7 +5,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "./foodConfig";
 import { getSpawnPoint, MAP_SIZE } from "./gameConstants";
 import { WATER_LINE_Y } from "./mapZones";
-import { processIncomeCollection } from "./world";
+import { processIncomeCollection } from "./economy";
 
 export const getOrCreatePlayer = mutation({
   args: {},

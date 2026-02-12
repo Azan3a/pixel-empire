@@ -11,6 +11,7 @@
 import type * as CustomPassword from "../CustomPassword.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
+import type * as economy from "../economy.js";
 import type * as food from "../food.js";
 import type * as foodConfig from "../foodConfig.js";
 import type * as gameConstants from "../gameConstants.js";
@@ -18,9 +19,11 @@ import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
 import type * as mapZones from "../mapZones.js";
 import type * as players from "../players.js";
+import type * as properties from "../properties.js";
 import type * as time from "../time.js";
 import type * as timeConstants from "../timeConstants.js";
 import type * as users from "../users.js";
+import type * as utils from "../utils.js";
 import type * as world from "../world.js";
 
 import type {
@@ -33,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   CustomPassword: typeof CustomPassword;
   auth: typeof auth;
   crons: typeof crons;
+  economy: typeof economy;
   food: typeof food;
   foodConfig: typeof foodConfig;
   gameConstants: typeof gameConstants;
@@ -40,9 +44,11 @@ declare const fullApi: ApiFromModules<{
   jobs: typeof jobs;
   mapZones: typeof mapZones;
   players: typeof players;
+  properties: typeof properties;
   time: typeof time;
   timeConstants: typeof timeConstants;
   users: typeof users;
+  utils: typeof utils;
   world: typeof world;
 }>;
 
