@@ -12,6 +12,7 @@ import {
   Menu,
   Building2,
   User,
+  Shirt,
 } from "lucide-react";
 
 import {
@@ -48,6 +49,7 @@ import { PropertiesTab } from "./PropertiesTab";
 import { MapTab } from "./MapTab";
 import { RankingsTab } from "./RankingsTab";
 import { ChatTab } from "./ChatTab";
+import { WardrobeTab } from "./WardrobeTab";
 import { ProfileTab } from "./ProfileTab";
 import { ControlsTab } from "./ControlsTabs";
 import { useKeyboard } from "@game/hooks/use-keyboard";
@@ -65,6 +67,13 @@ const NAV_ITEMS = [
     name: "Inventory",
     icon: Package,
     shortcut: "I",
+    group: "gameplay",
+  },
+  {
+    id: "wardrobe",
+    name: "Wardrobe",
+    icon: Shirt,
+    shortcut: "C",
     group: "gameplay",
   },
   {
@@ -137,6 +146,13 @@ export function GameMenu() {
         onKeyDown: () => {
           setOpen(true);
           setActiveNav("inventory");
+        },
+      },
+      {
+        controlId: "open_wardrobe",
+        onKeyDown: () => {
+          setOpen(true);
+          setActiveNav("wardrobe");
         },
       },
       {
@@ -377,6 +393,7 @@ export function GameMenu() {
                 {activeNav === "inventory" && (
                   <InventoryTab inventory={playerInfo.inventory} />
                 )}
+                {activeNav === "wardrobe" && <WardrobeTab />}
                 {activeNav === "map" && (
                   <MapTab
                     playerX={playerInfo.x}

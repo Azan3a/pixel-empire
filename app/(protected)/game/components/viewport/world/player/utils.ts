@@ -3,6 +3,7 @@
 
 import { Graphics } from "pixi.js";
 import { PX, WalkCycleOffsets, PlayerAppearance } from "./types";
+import { CLOTHING_ITEMS, ClothingType } from "@/convex/clothingConfig";
 
 export function darken(color: number, factor: number): number {
   const r = Math.floor(((color >> 16) & 0xff) * (1 - factor));
@@ -81,12 +82,19 @@ export function getWalkCycleOffsets(
 }
 
 /**
- * Build a PlayerAppearance from a base color (the player's identifying color).
- * This is the default "starter outfit". Later, this can be replaced with
- * per-player customization data from the database.
+ * Build a PlayerAppearance from a base color and optional equipped clothing.
+ * Falls back to default values if no clothing is equipped.
  */
-export function buildDefaultAppearance(color: number): PlayerAppearance {
-  return {
+export function buildAppearance(
+  color: number,
+  equippedClothing?: {
+    hat?: string;
+    shirt?: string;
+    pants?: string;
+    shoes?: string;
+  },
+): PlayerAppearance {
+  const appearance: PlayerAppearance = {
     skinColor: 0xffcc99,
     skinShadow: 0xddaa77,
     hairColor: 0x3a2a1a,
@@ -95,4 +103,25 @@ export function buildDefaultAppearance(color: number): PlayerAppearance {
     shoeColor: 0x333333,
     beltColor: 0x555555,
   };
+
+  if (equippedClothing) {
+    if (equippedClothing.shirt) {
+      const item = CLOTHING_ITEMS[equippedClothing.shirt as ClothingType];
+      if (item) appearance.shirtColor = item.color;
+    }
+    if (equippedClothing.pants) {
+      const item = CLOTHING_ITEMS[equippedClothing.pants as ClothingType];
+      if (item) appearance.pantsColor = item.color;
+    }
+    if (equippedClothing.shoes) {
+      const item = CLOTHING_ITEMS[equippedClothing.shoes as ClothingType];
+      if (item) appearance.shoeColor = item.color;
+    }
+    if (equippedClothing.hat) {
+      const item = CLOTHING_ITEMS[equippedClothing.hat as ClothingType];
+      if (item) appearance.hatColor = item.color;
+    }
+  }
+
+  return appearance;
 }

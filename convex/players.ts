@@ -194,6 +194,7 @@ export const getPlayerInfo = query({
       ...player,
       hunger: player.hunger ?? MAX_HUNGER,
       walkDistance: player.walkDistance ?? 0,
+      equippedClothing: player.equippedClothing ?? {},
       inventory,
       rank,
       total,

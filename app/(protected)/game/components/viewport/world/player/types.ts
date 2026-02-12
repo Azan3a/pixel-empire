@@ -31,7 +31,7 @@ export interface PlayerAppearance {
   pantsColor: number;
   shoeColor: number;
   beltColor: number;
-  // Future: hatType, particleEffect, accessory, etc.
+  hatColor?: number;
 }
 
 export interface DrawContext {

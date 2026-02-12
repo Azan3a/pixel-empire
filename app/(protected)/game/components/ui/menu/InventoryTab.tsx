@@ -9,8 +9,13 @@ import {
   FoodType,
   MAX_HUNGER,
 } from "@/convex/foodConfig";
+import {
+  CLOTHING_KEYS,
+  CLOTHING_ITEMS,
+  ClothingType,
+} from "@/convex/clothingConfig";
 import { cn } from "@/lib/utils";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, Shirt } from "lucide-react";
 
 interface InventoryItem {
   item: string;
@@ -29,9 +34,11 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
   const isFull = hunger >= MAX_HUNGER;
 
   const getItemIcon = (name: string) => {
-    // Check if it's a food item
     if (FOOD_KEYS.has(name)) {
       return FOOD_ITEMS[name as FoodType].emoji;
+    }
+    if (CLOTHING_KEYS.has(name)) {
+      return CLOTHING_ITEMS[name as ClothingType].emoji;
     }
     switch (name) {
       case "supplies":
@@ -49,12 +56,19 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
     if (FOOD_KEYS.has(name)) {
       return FOOD_ITEMS[name as FoodType].name;
     }
+    if (CLOTHING_KEYS.has(name)) {
+      return CLOTHING_ITEMS[name as ClothingType].name;
+    }
     return name;
   };
 
-  // Split inventory into food and other items
   const foodItems = inventory?.filter((i) => FOOD_KEYS.has(i.item)) ?? [];
-  const otherItems = inventory?.filter((i) => !FOOD_KEYS.has(i.item)) ?? [];
+  const clothingItems =
+    inventory?.filter((i) => CLOTHING_KEYS.has(i.item)) ?? [];
+  const otherItems =
+    inventory?.filter(
+      (i) => !FOOD_KEYS.has(i.item) && !CLOTHING_KEYS.has(i.item),
+    ) ?? [];
 
   return (
     <div className="h-full">
@@ -107,6 +121,36 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Clothing items */}
+      {clothingItems.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Shirt className="size-3.5 text-purple-500" />
+            <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Clothing
+            </h4>
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              Equip in Wardrobe tab
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {clothingItems.map((item) => (
+              <div
+                key={item.item}
+                className="flex flex-col items-center justify-center p-4 rounded-xl border bg-card/50 hover:bg-card/80 transition-colors"
+              >
+                <span className="text-3xl mb-1">{getItemIcon(item.item)}</span>
+                <span className="text-xs font-bold">
+                  {getItemLabel(item.item)}
+                </span>
+                <span className="text-lg font-black">x{item.quantity}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

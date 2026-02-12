@@ -18,6 +18,14 @@ export default defineSchema({
     lastIncomeCheckAt: v.optional(v.number()),
     hunger: v.optional(v.number()),
     walkDistance: v.optional(v.number()),
+    equippedClothing: v.optional(
+      v.object({
+        hat: v.optional(v.string()),
+        shirt: v.optional(v.string()),
+        pants: v.optional(v.string()),
+        shoes: v.optional(v.string()),
+      }),
+    ),
   }).index("by_userId", ["userId"]),
 
   inventory: defineTable({

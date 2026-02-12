@@ -10,6 +10,8 @@
 
 import type * as CustomPassword from "../CustomPassword.js";
 import type * as auth from "../auth.js";
+import type * as clothing from "../clothing.js";
+import type * as clothingConfig from "../clothingConfig.js";
 import type * as crons from "../crons.js";
 import type * as economy from "../economy.js";
 import type * as food from "../food.js";
@@ -35,6 +37,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   CustomPassword: typeof CustomPassword;
   auth: typeof auth;
+  clothing: typeof clothing;
+  clothingConfig: typeof clothingConfig;
   crons: typeof crons;
   economy: typeof economy;
   food: typeof food;

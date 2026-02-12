@@ -3,7 +3,7 @@
 
 import { memo, useRef, useEffect, useState, useMemo } from "react";
 import { Direction, AnimState } from "./types";
-import { getWalkCycleOffsets, buildDefaultAppearance } from "./utils";
+import { getWalkCycleOffsets, buildAppearance } from "./utils";
 import {
   PlayerHead,
   PlayerTorso,
@@ -12,6 +12,7 @@ import {
   PlayerShadow,
   PlayerBadge,
 } from "./parts";
+import { PlayerHat } from "./parts/PlayerHat";
 
 interface PlayerCharacterProps {
   x: number;
@@ -20,6 +21,12 @@ interface PlayerCharacterProps {
   color: number;
   isMe: boolean;
   sunlightIntensity?: number;
+  equippedClothing?: {
+    hat?: string;
+    shirt?: string;
+    pants?: string;
+    shoes?: string;
+  };
 }
 
 function PlayerCharacterInner({
@@ -29,6 +36,7 @@ function PlayerCharacterInner({
   color,
   isMe,
   sunlightIntensity = 1,
+  equippedClothing,
 }: PlayerCharacterProps) {
   const prevPosRef = useRef({ x, y });
   const [animState, setAnimState] = useState<AnimState>({
@@ -106,7 +114,10 @@ function PlayerCharacterInner({
     () => getWalkCycleOffsets(isMoving, frame),
     [isMoving, frame],
   );
-  const appearance = useMemo(() => buildDefaultAppearance(color), [color]);
+  const appearance = useMemo(
+    () => buildAppearance(color, equippedClothing),
+    [color, equippedClothing],
+  );
   const isNight = sunlightIntensity < 0.3;
 
   // Layout constants
@@ -148,6 +159,14 @@ function PlayerCharacterInner({
         direction={direction}
         appearance={appearance}
       />
+      {appearance.hatColor !== undefined && (
+        <PlayerHat
+          cx={cx}
+          topY={topY}
+          direction={direction}
+          appearance={appearance}
+        />
+      )}
 
       {/* Name text */}
       <pixiText

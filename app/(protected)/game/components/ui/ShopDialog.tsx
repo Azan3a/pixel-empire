@@ -10,6 +10,7 @@ import {
 import { Property } from "@game/types/property";
 import { useFood } from "@game/hooks/use-food";
 import { FOOD_LIST } from "@/convex/foodConfig";
+import { ClothingShopContent } from "./ClothingShopContent";
 import { Id } from "@/convex/_generated/dataModel";
 import { SELL_RATE } from "@/convex/gameConstants";
 import { ZONES } from "@/convex/mapZones";
@@ -294,7 +295,11 @@ export function ShopDialog({
               <ComingSoonContent label="Supply Store" emoji="🔧" />
             )}
             {property.subType === "clothing_store" && (
-              <ComingSoonContent label="Clothing Store" emoji="👕" />
+              <ClothingShopContent
+                playerCash={playerCash}
+                shopPropertyId={property._id}
+                isOwned={!!property.isOwned}
+              />
             )}
           </div>
         </div>

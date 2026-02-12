@@ -295,6 +295,7 @@ export function GameCanvas() {
                 color={0xef4444}
                 isMe={false}
                 sunlightIntensity={sunlightIntensity}
+                equippedClothing={p.equippedClothing}
               />
             ))}
 
@@ -305,6 +306,7 @@ export function GameCanvas() {
             color={0x10b981}
             isMe={true}
             sunlightIntensity={sunlightIntensity}
+            equippedClothing={playerInfo?.equippedClothing}
           />
 
           <DayNightOverlay
