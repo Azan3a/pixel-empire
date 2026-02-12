@@ -156,16 +156,18 @@ function PropertySection({
   const sellPrice = Math.round(property.price * SELL_RATE);
 
   return (
-    <div className="border-t pt-4 mt-4">
+    <div className="border-t pt-4">
       <div className="flex items-center gap-2 mb-3">
         <Building2 className="size-4 text-muted-foreground" />
         <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
           Property
         </h4>
-        <Badge className="ml-auto bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-          <BadgeCheck data-icon="inline-start" />
-          Owned
-        </Badge>
+        {isOwned && (
+          <Badge className="ml-auto bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+            <BadgeCheck data-icon="inline-start" />
+            Owned
+          </Badge>
+        )}
       </div>
 
       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
@@ -246,7 +248,7 @@ export function ShopDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-lg max-h-[80vh] overflow-y-auto"
+        className="sm:max-w-lg overflow-y-auto"
         showCloseButton={false}
       >
         <DialogHeader>
@@ -261,16 +263,9 @@ export function ShopDialog({
             </div>
             {property.name}
             {property.isOwned && (
-              <div className="ml-auto">
-                <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                  <BadgeCheck data-icon="inline-start" />
-                  Owned
-                </Badge>
-                {/* 50% off Badge */}
-                <Badge className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 ml-1">
-                  50% Off
-                </Badge>
-              </div>
+              <Badge className="ml-auto bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+                50% Off
+              </Badge>
             )}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
