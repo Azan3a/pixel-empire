@@ -62,7 +62,7 @@ export const WOOD_ITEM = {
   name: "Wood",
   emoji: "🪵",
   category: "resource",
-  sellPrice: 15,
+  sellPrice: 5,
 } as const;
 
 export const TREE_INTERACT_RADIUS = 80;
