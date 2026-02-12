@@ -9,6 +9,38 @@ import { useEffect, useRef, useMemo } from "react";
 import { Job } from "@game/types/job";
 import { getZoneAt, ZONES } from "@/convex/mapZones";
 
+function getUserFacingErrorMessage(error: unknown, fallback: string): string {
+  const raw =
+    typeof error === "string"
+      ? error
+      : error instanceof Error
+        ? error.message
+        : fallback;
+
+  if (!raw) return fallback;
+
+  const uncaughtMatch = raw.match(
+    /Uncaught\s+(?:Error|ConvexError):\s*([^\n]+)/i,
+  );
+  if (uncaughtMatch?.[1]) {
+    return uncaughtMatch[1].trim();
+  }
+
+  let cleaned = raw
+    .replace(/\[CONVEX[^\]]*\]/gi, "")
+    .replace(/\[Request ID:[^\]]*\]/gi, "")
+    .replace(/^Server Error\s*/i, "")
+    .trim();
+
+  cleaned = cleaned
+    .split("\nCalled by client")[0]
+    .split("\nat handler")[0]
+    .trim();
+
+  if (!cleaned) return fallback;
+  return cleaned;
+}
+
 export function useJobs() {
   const rawAvailableJobs = useQuery(api.jobs.getAvailableJobs);
   const availableJobs = useMemo(
@@ -44,7 +76,7 @@ export function useJobs() {
       toast.success("Job accepted! Head to the pickup location.");
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to accept job";
+      const msg = getUserFacingErrorMessage(e, "Failed to accept job");
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -56,7 +88,7 @@ export function useJobs() {
       toast.success("Parcel picked up! Now deliver it.");
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to pick up parcel";
+      const msg = getUserFacingErrorMessage(e, "Failed to pick up parcel");
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -70,7 +102,7 @@ export function useJobs() {
       }
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to deliver parcel";
+      const msg = getUserFacingErrorMessage(e, "Failed to deliver parcel");
       toast.error(msg);
       return { success: false, error: msg };
     }
@@ -82,7 +114,7 @@ export function useJobs() {
       toast.info("Job cancelled.");
       return { success: true };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to cancel job";
+      const msg = getUserFacingErrorMessage(e, "Failed to cancel job");
       toast.error(msg);
       return { success: false, error: msg };
     }
