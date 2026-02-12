@@ -168,19 +168,20 @@ Players encounter trees as physical, server-persisted objects in the **forest zo
 ## Verification Checklist
 
 - [ ] `npx convex dev` compiles without errors after schema change
+- [ ] `npx convex codegen` completes (ensures `api.trees.*` bindings exist)
 - [ ] `initForestTrees` spawns trees — none overlap with buildings (check bounds + margin)
 - [ ] Trees render in forest zone, decorative trees removed from forest only
-- [ ] Trees block player movement (sapling+ sizes)
-- [ ] Seedlings don't block movement
+- [ ] Trees block player movement (all growth stages)
+- [ ] Ranger Station opens the lumber UI when in range (Buy Axe / Sell All Wood)
 - [ ] Buy axe at Ranger Station → appears in inventory
-- [ ] Click tree within range → TreeDialog opens
-- [ ] Chop tree (3s progress bar) → tree disappears → wood in inventory
-- [ ] Cancel chopping (move/Escape) → progress resets
+- [ ] Click a tree within range starts chopping (3s progress bar)
+- [ ] Chopping completes → tree disappears → wood is added to inventory
+- [ ] Walking out of range cancels chopping → progress resets
 - [ ] Sell wood at Ranger Station → cash increases
-- [ ] Cron: trees grow stages over time (seedling → sapling visible)
+- [ ] Cron: trees grow stages over time (seedling → sapling → young → mature)
 - [ ] Cron: new seedlings spawn to replace chopped trees
 - [ ] Trees never spawn on/near buildings
-- [ ] Minimap shows tree dots in forest
+- [ ] Minimap shows tree dots in forest (when implemented)
 
 ---
 

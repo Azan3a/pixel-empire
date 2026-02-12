@@ -9,6 +9,7 @@ import { useWorld } from "@game/hooks/use-world";
 import { useJobs } from "@game/hooks/use-jobs";
 import { useMovement } from "@game/hooks/use-movement";
 import { useGameTime } from "@game/hooks/use-game-time";
+import { useTrees } from "@game/hooks/use-trees";
 import { getSpawnPoint, SHOP_INTERACT_RADIUS } from "@/convex/gameConstants";
 import { MAX_HUNGER } from "@/convex/foodConfig";
 import { Property } from "@game/types/property";
@@ -16,6 +17,8 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { WorldGrid } from "./world/WorldGrid";
 import { PropertyNode } from "./world/PropertyNode";
+import { TreeNode } from "./world/TreeNode";
+import { ChopProgressBar } from "./world/ChopProgressBar";
 import { PlayerCharacter } from "./world/player/PlayerCharacter";
 import { DeliveryMarker } from "./world/DeliveryMarker";
 import { DayNightOverlay } from "./world/daynight/DayNightOverlay";
@@ -25,6 +28,7 @@ import { FloatingMinimap } from "../ui/FloatingMinimap";
 import { DeliveryHUD } from "../ui/DeliveryHUD";
 import { PropertyDialog } from "../ui/PropertyDialog";
 import { ShopDialog } from "../ui/ShopDialog";
+import { RangerStationDialog } from "../ui/RangerStationDialog";
 import Loading from "../ui/Loading";
 
 extend({ Container, Graphics, Sprite, Text });
@@ -41,6 +45,8 @@ export function GameCanvas() {
   const [selectedShop, setSelectedShop] = useState<Property | null>(null);
   const [shopDialogOpen, setShopDialogOpen] = useState(false);
 
+  const [rangerDialogOpen, setRangerDialogOpen] = useState(false);
+
   const { alivePlayers, initPlayer, updatePosition, playerInfo } = usePlayer();
   const {
     properties,
@@ -55,24 +61,46 @@ export function GameCanvas() {
   const { activeJob } = useJobs();
   const gameTime = useGameTime();
 
+  const spawn = getSpawnPoint();
+
+  // Ref to track current position without re-creating click callbacks every frame
+  const renderPosRef = useRef(spawn);
+
   const hunger = playerInfo?.hunger ?? MAX_HUNGER;
   const playerCash = playerInfo?.cash ?? 0;
+  const axeQty =
+    playerInfo?.inventory
+      ?.filter((i) => i.item === "axe")
+      .reduce((sum, i) => sum + i.quantity, 0) ?? 0;
+  const woodQty =
+    playerInfo?.inventory
+      ?.filter((i) => i.item === "wood")
+      .reduce((sum, i) => sum + i.quantity, 0) ?? 0;
+  const hasAxe = axeQty >= 1;
+
+  const {
+    trees,
+    initForestTrees,
+    startChopping,
+    cancelChopping,
+    choppingTreeId,
+    chopProgress,
+    buyAxe,
+    sellWood,
+  } = useTrees({ playerPosRef: renderPosRef, hasAxe });
 
   const onSync = useCallback(
     (pos: { x: number; y: number }) => updatePosition(pos),
     [updatePosition],
   );
 
-  const spawn = getSpawnPoint();
   const { renderPos, resetPosition } = useMovement({
     initialPos: spawn,
     properties,
+    trees,
     onSync,
     hunger,
   });
-
-  // Ref to track current position without re-creating click callbacks every frame
-  const renderPosRef = useRef(renderPos);
   useEffect(() => {
     renderPosRef.current = renderPos;
   }, [renderPos]);
@@ -95,10 +123,42 @@ export function GameCanvas() {
     }
   }, [properties, initCity]);
 
+  useEffect(() => {
+    // Backfill for existing worlds: if city exists but trees haven't been initialized yet.
+    if (properties.length > 0 && trees.length === 0) {
+      void initForestTrees();
+    }
+  }, [properties.length, trees.length, initForestTrees]);
+
+  const choppingTree = useMemo(
+    () => (choppingTreeId ? trees.find((t) => t._id === choppingTreeId) : null),
+    [choppingTreeId, trees],
+  );
+
   const handlePropertyClick = useCallback(
     (propertyId: Id<"properties">) => {
       const prop = properties.find((p) => p._id === propertyId);
       if (!prop) return;
+
+      // Ranger Station (service building) acts like a shop for lumberjacking.
+      if (prop.subType === "ranger_station") {
+        const centerX = prop.x + prop.width / 2;
+        const centerY = prop.y + prop.height / 2;
+        const pos = renderPosRef.current;
+        const distance = Math.sqrt(
+          (centerX - pos.x) ** 2 + (centerY - pos.y) ** 2,
+        );
+
+        if (distance <= SHOP_INTERACT_RADIUS) {
+          setRangerDialogOpen(true);
+        } else {
+          toast("Walk closer to enter the Ranger Station", {
+            description:
+              "You need to be near the building to use its services.",
+          });
+        }
+        return;
+      }
 
       if (prop.category === "shop") {
         // Compute distance from player to building center
@@ -253,9 +313,41 @@ export function GameCanvas() {
         onSellProperty={handleShopSellProperty}
       />
 
+      <RangerStationDialog
+        open={rangerDialogOpen}
+        onOpenChange={setRangerDialogOpen}
+        playerCash={playerCash}
+        axeQty={axeQty}
+        woodQty={woodQty}
+        onBuyAxe={buyAxe}
+        onSellWood={sellWood}
+      />
+
       <Application background={bgColor} resizeTo={containerRef}>
         <pixiContainer x={camX} y={camY}>
           <WorldGrid tintR={tintR} tintG={tintG} tintB={tintB} />
+
+          {trees.map((t) => (
+            <TreeNode
+              key={t._id}
+              tree={t}
+              onInteract={() => {
+                // Clicking elsewhere cancels.
+                if (choppingTreeId && choppingTreeId !== t._id) {
+                  cancelChopping();
+                }
+                startChopping(t._id);
+              }}
+            />
+          ))}
+
+          {choppingTree && (
+            <ChopProgressBar
+              x={choppingTree.x}
+              y={choppingTree.y}
+              progress={chopProgress}
+            />
+          )}
 
           {properties.map((p) => (
             <PropertyNode

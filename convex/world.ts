@@ -9,6 +9,7 @@ import {
   WATER_LINE_Y,
 } from "./mapZones";
 import { seededRandom } from "./utils";
+import { clearTreesInternal, initForestTreesInternal } from "./trees";
 
 // ── City Initialization ──
 
@@ -111,6 +112,9 @@ async function initCityInternal(ctx: MutationCtx) {
 
     buildingIndex++;
   }
+
+  // ── Place interactive forest trees ──
+  await initForestTreesInternal(ctx);
 }
 
 export const initCity = mutation({
@@ -148,6 +152,9 @@ export const resetWorld = mutation({
     for (const item of inventories) {
       await ctx.db.delete(item._id);
     }
+
+    // 4.5 Clear trees
+    await clearTreesInternal(ctx);
 
     // 5. Re-initialize the map
     await initCityInternal(ctx);

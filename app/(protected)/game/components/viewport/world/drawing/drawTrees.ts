@@ -105,6 +105,10 @@ function generateTreePlacements(): TreePlacement[] {
       const centerX = bx + ROAD_SPACING / 2;
       const centerY = by + ROAD_SPACING / 2;
       const zoneId = getZoneAt(centerX, centerY);
+
+      // Forest trees are now server-driven interactive objects.
+      if (zoneId === "forest") continue;
+
       const vis = ZONE_VISUALS[zoneId];
 
       if (vis.treeCount === 0) continue;

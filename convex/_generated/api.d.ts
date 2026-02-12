@@ -24,6 +24,8 @@ import type * as players from "../players.js";
 import type * as properties from "../properties.js";
 import type * as time from "../time.js";
 import type * as timeConstants from "../timeConstants.js";
+import type * as treeConfig from "../treeConfig.js";
+import type * as trees from "../trees.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
 import type * as world from "../world.js";
@@ -51,6 +53,8 @@ declare const fullApi: ApiFromModules<{
   properties: typeof properties;
   time: typeof time;
   timeConstants: typeof timeConstants;
+  treeConfig: typeof treeConfig;
+  trees: typeof trees;
   users: typeof users;
   utils: typeof utils;
   world: typeof world;

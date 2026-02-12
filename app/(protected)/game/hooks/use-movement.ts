@@ -5,6 +5,8 @@ import { MAP_SIZE } from "@/convex/gameConstants";
 import { HUNGER_SLOW_THRESHOLD } from "@/convex/foodConfig";
 import { getZoneAt, ZONES, WATER_LINE_Y } from "@/convex/mapZones";
 import { useKeysPressed, isControlPressed } from "@game/hooks/use-keyboard";
+import type { Tree } from "@game/types/tree";
+import { TREE_GROWTH_STAGES, type TreeGrowthStage } from "@/convex/treeConfig";
 
 const BASE_SPEED = 5;
 const SYNC_INTERVAL = 100;
@@ -14,6 +16,7 @@ const PLAYER_HITBOX = 40;
 interface UseMovementOptions {
   initialPos: { x: number; y: number };
   properties: Property[];
+  trees?: Tree[];
   onSync: (pos: { x: number; y: number }) => void;
   hunger?: number;
 }
@@ -21,6 +24,7 @@ interface UseMovementOptions {
 export function useMovement({
   initialPos,
   properties,
+  trees = [],
   onSync,
   hunger = 100,
 }: UseMovementOptions) {
@@ -29,11 +33,16 @@ export function useMovement({
   const keys = useKeysPressed();
   const lastSync = useRef(0);
   const propertiesRef = useRef<Property[]>([]);
+  const treesRef = useRef<Tree[]>([]);
   const hungerRef = useRef(hunger);
 
   useEffect(() => {
     propertiesRef.current = properties;
   }, [properties]);
+
+  useEffect(() => {
+    treesRef.current = trees;
+  }, [trees]);
 
   useEffect(() => {
     hungerRef.current = hunger;
@@ -107,6 +116,29 @@ export function useMovement({
       );
 
       if (collides) return;
+
+      // ── Tree collision (circle vs player AABB) ──
+      const treeCollides = treesRef.current.some((tree) => {
+        const stage =
+          TREE_GROWTH_STAGES[tree.growthStage as TreeGrowthStage] ??
+          TREE_GROWTH_STAGES.seedling;
+        const radius = stage.size / 2;
+
+        // Closest point on player rect to tree center
+        const rx1 = pLeft;
+        const ry1 = pTop;
+        const rx2 = pLeft + PLAYER_HITBOX;
+        const ry2 = pTop + PLAYER_HITBOX;
+
+        const cx = Math.max(rx1, Math.min(tree.x, rx2));
+        const cy = Math.max(ry1, Math.min(tree.y, ry2));
+
+        const dx = tree.x - cx;
+        const dy = tree.y - cy;
+        return dx * dx + dy * dy <= radius * radius;
+      });
+
+      if (treeCollides) return;
 
       localPos.current.x = newX;
       localPos.current.y = newY;

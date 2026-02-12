@@ -45,6 +45,8 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
     switch (name) {
       case "supplies":
         return "📦";
+      case "axe":
+        return "🪓";
       case "wood":
         return "🪵";
       case "stone":
@@ -61,6 +63,8 @@ export function InventoryTab({ inventory }: InventoryTabProps) {
     if (CLOTHING_KEYS.has(name)) {
       return CLOTHING_ITEMS[name as ClothingType].name;
     }
+    if (name === "axe") return "Axe";
+    if (name === "wood") return "Wood";
     return name;
   };
 

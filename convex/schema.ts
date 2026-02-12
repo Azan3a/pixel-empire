@@ -82,6 +82,14 @@ export default defineSchema({
     .index("by_player", ["playerId"])
     .index("by_player_status", ["playerId", "status"]),
 
+  trees: defineTable({
+    x: v.number(),
+    y: v.number(),
+    growthStage: v.string(),
+    plantedAt: v.number(),
+    zoneId: v.string(),
+  }).index("by_zone", ["zoneId"]),
+
   worldConfig: defineTable({
     key: v.string(),
     value: v.string(),
