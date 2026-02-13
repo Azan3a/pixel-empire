@@ -18,7 +18,7 @@ interface MapTabProps {
 }
 
 interface TooltipInfo {
-  type: "property" | "player" | "self";
+  type: "property" | "player" | "self" | "job";
   label: string;
   details: { key: string; value: string }[];
   x: number;
@@ -26,7 +26,7 @@ interface TooltipInfo {
 }
 
 interface SelectedEntity {
-  type: "property" | "player" | "self";
+  type: "property" | "player" | "self" | "job";
   id: string;
   label: string;
   details: { key: string; value: string }[];
@@ -266,6 +266,33 @@ export function MapTab({
 
       const adjustedRadius = HIT_RADIUS / zoomRef.current;
       const hitRadiusSq = adjustedRadius * adjustedRadius;
+
+      // Active Job Marker
+      if (activeJob) {
+        const isPickup = activeJob.status === "accepted";
+        const jX = isPickup ? activeJob.pickupX : activeJob.dropoffX;
+        const jY = isPickup ? activeJob.pickupY : activeJob.dropoffY;
+
+        if (dist2(worldX, worldY, jX, jY) <= hitRadiusSq) {
+          return {
+            type: "job",
+            entityId: `job-${activeJob._id}`,
+            label: isPickup
+              ? `Pickup: ${activeJob.pickupName}`
+              : `Delivery: ${activeJob.dropoffName}`,
+            worldX: jX,
+            worldY: jY,
+            details: [
+              { key: "Job", value: activeJob.title },
+              { key: "Reward", value: `$${activeJob.reward.toLocaleString()}` },
+              {
+                key: "Status",
+                value: isPickup ? "Ready for Pickup" : "In Progress",
+              },
+            ],
+          };
+        }
+      }
 
       if (dist2(worldX, worldY, playerX, playerY) <= hitRadiusSq) {
         return {
@@ -1016,6 +1043,15 @@ export function MapTab({
             {tooltip.type === "player" && (
               <span className="inline-block size-2 rounded-full bg-teal-300 shadow-[0_0_6px_rgba(45,212,191,0.8)]" />
             )}
+            {tooltip.type === "job" && (
+              <span
+                className={`inline-block size-2 rounded-full shadow-[0_0_6px_rgba(0,0,0,0.5)] ${
+                  tooltip.label.startsWith("Pickup")
+                    ? "bg-blue-500"
+                    : "bg-orange-500"
+                }`}
+              />
+            )}
           </div>
           <div className="text-sm font-semibold text-white">
             {tooltip.label}
@@ -1047,7 +1083,11 @@ export function MapTab({
                     ? "bg-white shadow-[0_0_6px_white]"
                     : selectedEntity.type === "player"
                       ? "bg-teal-300 shadow-[0_0_6px_rgba(45,212,191,0.8)]"
-                      : "bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]"
+                      : selectedEntity.type === "job"
+                        ? selectedEntity.label.startsWith("Pickup")
+                          ? "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]"
+                          : "bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.8)]"
+                        : "bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]"
                 }`}
               />
               <span className="text-xs font-semibold text-white/80">
