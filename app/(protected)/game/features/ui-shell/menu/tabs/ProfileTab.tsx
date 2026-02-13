@@ -9,7 +9,10 @@ import {
   Camera,
   Phone,
   Mail,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePlayer } from "@game/features/player/hooks/use-player";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -47,6 +51,7 @@ export function ProfileTab() {
   const [isUploading, setIsUploading] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isDark, setIsDark] = useLocalStorage<boolean>("game:dark", false);
 
   React.useEffect(() => {
     if (user) {
@@ -267,6 +272,35 @@ export function ProfileTab() {
                 )}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card className="h-fit">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sun className="size-5 text-primary" />
+              Appearance
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Toggle theme for the game UI.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Moon className="size-3.5" />
+                <div>
+                  <p className="text-sm font-medium">Dark Mode</p>
+                </div>
+              </div>
+              <Switch
+                checked={isDark}
+                onCheckedChange={(checked) => {
+                  setIsDark(checked);
+                  document.documentElement.classList.toggle("dark", checked);
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
