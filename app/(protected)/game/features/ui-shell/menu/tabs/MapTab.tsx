@@ -9,7 +9,6 @@ import {
 } from "react";
 import { Property } from "@game/types/property";
 import { Job } from "@game/types/job";
-import { MAP_SIZE } from "@game/shared/contracts/game-config";
 import {
   MAP_SIZE,
   ROAD_SPACING,
@@ -57,11 +56,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   service: "Service",
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  residential: "#f97316",
-  commercial: "#3b82f6",
-  shop: "#a855f7",
-  service: "#eab308",
+const CATEGORY_BADGE_COLORS: Record<string, string> = {
+  residential: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  commercial: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  shop: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  service: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
 };
 
 type HoveredItem =
@@ -88,16 +87,7 @@ export function MapTab({
   const hoveredIdRef = useRef<string | null>(null);
   const lastHitCheckRef = useRef(0);
 
-  const filteredProperties = useMemo(
-    () => properties.filter((p) => activeCategories.has(p.category)),
-    [properties, activeCategories],
-  );
-
-  // ---- Sizing (full container) ----
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
     const updateSize = () => {
       if (containerRef.current) {
         const { width, height } = containerRef.current.getBoundingClientRect();
@@ -117,198 +107,6 @@ export function MapTab({
     };
   }, []);
 
-  // Use the full container dimensions
-  const displayWidth = canvasSize.width;
-  const displayHeight = canvasSize.height;
-  // The map is logically square; we use the larger dimension so it covers the whole screen
-  const size = Math.min(displayWidth, displayHeight);
-
-  // Clamp pan so the map edges don't reveal empty space
-  const clampPan = useCallback(
-    (pan: { x: number; y: number }, zoom: number) => {
-      const mapW = size * zoom;
-      const mapH = size * zoom;
-
-      const maxPanX = Math.max((mapW - displayWidth) / 2, 0);
-      const maxPanY = Math.max((mapH - displayHeight) / 2, 0);
-
-      return {
-        x: clamp(pan.x, -maxPanX, maxPanX),
-        y: clamp(pan.y, -maxPanY, maxPanY),
-      };
-    },
-    [size, displayWidth, displayHeight],
-  );
-
-  // ---- Coordinate helpers ----
-  const screenToBase = useCallback(
-    (screenX: number, screenY: number): [number, number] => {
-      const cx = displayWidth / 2;
-      const cy = displayHeight / 2;
-      const z = zoomRef.current;
-      const p = panRef.current;
-      const mapC = size / 2;
-      return [(screenX - cx - p.x) / z + mapC, (screenY - cy - p.y) / z + mapC];
-    },
-    [size, displayWidth, displayHeight],
-  );
-
-  const baseToWorld = useCallback(
-    (baseX: number, baseY: number): [number, number] => {
-      if (size <= 0) return [0, 0];
-      const scale = size / MAP_SIZE;
-      return [baseX / scale, baseY / scale];
-    },
-    [size],
-  );
-
-  const worldToBase = useCallback(
-    (worldX: number, worldY: number): [number, number] => {
-      if (size <= 0) return [0, 0];
-      const scale = size / MAP_SIZE;
-      return [worldX * scale, worldY * scale];
-    },
-    [size],
-  );
-
-  // ---- Hit-testing ----
-  const hitTest = useCallback(
-    (
-      screenX: number,
-      screenY: number,
-    ):
-      | (Omit<TooltipInfo, "x" | "y"> & {
-          entityId: string;
-          worldX: number;
-          worldY: number;
-        })
-      | null => {
-      if (size <= 0) return null;
-
-      const [baseX, baseY] = screenToBase(screenX, screenY);
-      const [worldX, worldY] = baseToWorld(baseX, baseY);
-
-      for (let i = filteredProperties.length - 1; i >= 0; i -= 1) {
-        const p = filteredProperties[i];
-        const inX = worldX >= p.x && worldX <= p.x + p.width;
-        const inY = worldY >= p.y && worldY <= p.y + p.height;
-        if (inX && inY) {
-          return {
-            type: "property",
-            entityId: p._id ?? `prop-${i}`,
-            label: p.name,
-            worldX: p.x + p.width / 2,
-            worldY: p.y + p.height / 2,
-            details: [
-              {
-                key: "Type",
-                value: CATEGORY_LABELS[p.category] ?? p.category,
-              },
-              { key: "Zone", value: p.zoneId },
-              { key: "Size", value: `${p.width}×${p.height}` },
-              { key: "Price", value: `$${p.price.toLocaleString()}` },
-              { key: "Income", value: `$${p.income.toLocaleString()}/hr` },
-              {
-                key: "Ownership",
-                value: p.isOwned
-                  ? `Owned (${p.ownerCount}/${p.maxOwners})`
-                  : `Available (${p.ownerCount}/${p.maxOwners})`,
-              },
-            ],
-          };
-        }
-      }
-
-      const dist2 = (ax: number, ay: number, bx: number, by: number) => {
-        const dx = ax - bx;
-        const dy = ay - by;
-        return dx * dx + dy * dy;
-      };
-
-      const adjustedRadius = HIT_RADIUS / zoomRef.current;
-      const hitRadiusSq = adjustedRadius * adjustedRadius;
-
-      // Active Job Marker
-      if (activeJob) {
-        const isPickup = activeJob.status === "accepted";
-        const jX = isPickup ? activeJob.pickupX : activeJob.dropoffX;
-        const jY = isPickup ? activeJob.pickupY : activeJob.dropoffY;
-
-        if (dist2(worldX, worldY, jX, jY) <= hitRadiusSq) {
-          return {
-            type: "job",
-            entityId: `job-${activeJob._id}`,
-            label: isPickup
-              ? `Pickup: ${activeJob.pickupName}`
-              : `Delivery: ${activeJob.dropoffName}`,
-            worldX: jX,
-            worldY: jY,
-            details: [
-              { key: "Job", value: activeJob.title },
-              { key: "Reward", value: `$${activeJob.reward.toLocaleString()}` },
-              {
-                key: "Status",
-                value: isPickup ? "Ready for Pickup" : "In Progress",
-              },
-            ],
-          };
-        }
-      }
-
-      if (dist2(worldX, worldY, playerX, playerY) <= hitRadiusSq) {
-        return {
-          type: "self",
-          entityId: "self",
-          label: "You",
-          worldX: playerX,
-          worldY: playerY,
-          details: [
-            {
-              key: "Position",
-              value: `${Math.round(playerX)}, ${Math.round(playerY)}`,
-            },
-            ...(activeJob
-              ? [{ key: "Job", value: activeJob.title ?? "Active" }]
-              : []),
-          ],
-        };
-      }
-
-      for (let i = 0; i < otherPlayers.length; i += 1) {
-        const p = otherPlayers[i];
-        if (dist2(worldX, worldY, p.x, p.y) <= hitRadiusSq) {
-          return {
-            type: "player",
-            entityId: p._id,
-            label: p.name?.trim() || "Player",
-            worldX: p.x,
-            worldY: p.y,
-            details: [
-              { key: "ID", value: p._id },
-              {
-                key: "Position",
-                value: `${Math.round(p.x)}, ${Math.round(p.y)}`,
-              },
-            ],
-          };
-        }
-      }
-
-      return null;
-    },
-    [
-      size,
-      screenToBase,
-      baseToWorld,
-      filteredProperties,
-      otherPlayers,
-      playerX,
-      playerY,
-      activeJob,
-    ],
-  );
-
-  // ---- Drawing ----
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || size <= 0) return;
@@ -811,94 +609,6 @@ export function MapTab({
     if (canvasRef.current) canvasRef.current.style.cursor = "default";
   }, []);
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, pxW, pxH);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const cx = displayWidth / 2;
-    const cy = displayHeight / 2;
-    const mapC = size / 2;
-    const z = zoomRef.current;
-    const p = panRef.current;
-
-    // Background
-    ctx.fillStyle = "#070b14";
-    ctx.fillRect(0, 0, displayWidth, displayHeight);
-
-    // Draw the map centered in the viewport with zoom/pan
-    ctx.save();
-    ctx.translate(cx + p.x, cy + p.y);
-    ctx.scale(z, z);
-    ctx.translate(-mapC, -mapC);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(offscreen, 0, 0, size, size);
-
-    // Hover highlight
-    if (hoveredEntityId) {
-      const scale = size / MAP_SIZE;
-      for (const prop of filteredProperties) {
-        const propId = prop._id ?? `prop-${filteredProperties.indexOf(prop)}`;
-        if (propId === hoveredEntityId) {
-          const px0 = prop.x * scale;
-          const py0 = prop.y * scale;
-          const pw = prop.width * scale;
-          const ph = prop.height * scale;
-
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-          ctx.lineWidth = 2 / z;
-          ctx.setLineDash([4 / z, 4 / z]);
-          ctx.strokeRect(px0, py0, pw, ph);
-          ctx.setLineDash([]);
-
-          ctx.shadowColor = CATEGORY_COLORS[prop.category] ?? "#fff";
-          ctx.shadowBlur = 8 / z;
-          ctx.strokeStyle = (CATEGORY_COLORS[prop.category] ?? "#fff") + "66";
-          ctx.lineWidth = 1 / z;
-          ctx.strokeRect(px0, py0, pw, ph);
-          ctx.shadowBlur = 0;
-          break;
-        }
-      }
-    }
-
-    // Selection ring
-    if (selectedEntity) {
-      const [bx, by] = worldToBase(
-        selectedEntity.worldX,
-        selectedEntity.worldY,
-      );
-      const pulse = Math.sin(pulseRef.current * 0.05) * 0.3 + 0.7;
-
-      ctx.beginPath();
-      ctx.arc(bx, by, (14 + pulse * 4) / z, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(96, 165, 250, ${pulse})`;
-      ctx.lineWidth = 2 / z;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(bx, by, (18 + pulse * 6) / z, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(96, 165, 250, ${pulse * 0.4})`;
-      ctx.lineWidth = 1 / z;
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }, [
-    size,
-    displayWidth,
-    displayHeight,
-    playerX,
-    playerY,
-    filteredProperties,
-    otherPlayers,
-    activeJob,
-    hoveredEntityId,
-    selectedEntity,
-    worldToBase,
-  ]);
-
-  // ---- Animation loop ----
   useEffect(() => {
     let running = true;
     const tick = () => {
@@ -1092,76 +802,6 @@ function HoverTooltip({
               {prop.ownerCount}/{prop.maxOwners}
             </span>
           </div>
-          <div className="px-3 py-2 space-y-1">
-            {selectedEntity.details.map((row) => (
-              <div
-                key={`sel-${row.key}`}
-                className="text-[11px] text-white/70 flex justify-between"
-              >
-                <span className="text-white/40">{row.key}</span>
-                <span className="font-medium">{row.value}</span>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={goToSelected}
-              className="mt-2 w-full rounded-lg bg-white/5 px-2 py-1.5 text-[11px] font-medium text-white/60 hover:bg-white/10 hover:text-white/80 transition-all border border-white/10"
-            >
-              Center on Map
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Minimalistic controls — bottom-right */}
-      <div className="absolute right-3 bottom-3 z-20 flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={goToPlayer}
-          className="h-8 w-8 rounded-lg bg-black/50 border border-white/10 text-white/60 hover:text-white hover:bg-black/70 transition-all backdrop-blur-sm flex items-center justify-center"
-          aria-label="Center on player"
-          title="Find me"
-        >
-          <svg
-            className="size-3.5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx={12} cy={12} r={3} />
-            <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-          </svg>
-        </button>
-
-        <div className="flex items-center rounded-lg bg-black/50 border border-white/10 backdrop-blur-sm overflow-hidden">
-          <button
-            type="button"
-            onClick={zoomOut}
-            className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center text-sm font-bold"
-            aria-label="Zoom out"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            onClick={resetView}
-            className="h-8 px-2 text-[10px] font-mono text-white/50 hover:text-white/80 hover:bg-white/5 transition-all tabular-nums border-x border-white/10"
-            aria-label="Reset zoom"
-            title="Reset view"
-          >
-            {Math.round(zoomLevel * 100)}%
-          </button>
-          <button
-            type="button"
-            onClick={zoomIn}
-            className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center text-sm font-bold"
-            aria-label="Zoom in"
-          >
-            +
-          </button>
         </div>
       </div>
     </div>
