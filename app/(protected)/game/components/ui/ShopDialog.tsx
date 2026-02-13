@@ -9,11 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Property } from "@game/types/property";
 import { useFood } from "@game/hooks/use-food";
-import { FOOD_LIST, MAX_FOOD_INVENTORY } from "@/convex/foodConfig";
+import {
+  FOOD_LIST,
+  MAX_FOOD_INVENTORY,
+} from "@game/shared/contracts/game-config";
 import { ClothingShopContent } from "./ClothingShopContent";
 import { Id } from "@/convex/_generated/dataModel";
-import { SELL_RATE } from "@/convex/gameConstants";
-import { ZONES } from "@/convex/mapZones";
+import { SELL_RATE, ZONES } from "@game/shared/contracts/game-config";
 import { cn } from "@/lib/utils";
 import {
   ShoppingCart,

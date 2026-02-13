@@ -1,8 +1,8 @@
 // components/game/ui/ClothingPreview.tsx
 "use client";
 
-import { ClothingSlot } from "@/convex/clothingConfig";
-import { darken, lighten } from "@game/components/viewport/world/player/utils";
+import { ClothingSlot } from "@game/shared/contracts/game-config";
+import { darken, lighten } from "@game/features/world/renderers/player/utils";
 
 interface ClothingPreviewProps {
   slot: ClothingSlot;

@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AXE_ITEM, WOOD_ITEM } from "@/convex/treeConfig";
+import { AXE_ITEM, WOOD_ITEM } from "@game/shared/contracts/game-config";
 import { cn } from "@/lib/utils";
 
 interface RangerStationDialogProps {

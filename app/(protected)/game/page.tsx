@@ -1,6 +1,6 @@
 "use client";
 
-import { GameCanvas } from "./components/viewport/GameCanvas";
+import { GameCanvas } from "@game/features/world/canvas/GameCanvas";
 import { usePreventZoom } from "@/hooks/use-prevent-zoom";
 
 export default function GamePage() {

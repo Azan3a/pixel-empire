@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { MAX_HUNGER } from "@/convex/foodConfig";
+import { MAX_HUNGER } from "@game/shared/contracts/game-config";
 
 export function Header() {
   const { playerInfo: player } = usePlayer();

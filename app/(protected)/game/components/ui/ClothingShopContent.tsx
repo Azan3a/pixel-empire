@@ -7,7 +7,7 @@ import {
   SLOT_LABELS,
   ClothingSlot,
   ClothingType,
-} from "@/convex/clothingConfig";
+} from "@game/shared/contracts/game-config";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { ShoppingCart } from "lucide-react";

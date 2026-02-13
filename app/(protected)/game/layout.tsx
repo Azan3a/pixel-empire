@@ -1,5 +1,5 @@
 import { Header } from "@/app/(protected)/game/components/ui/Header";
-import { GameMenu } from "@/app/(protected)/game/components/ui/menu/GameMenu";
+import { GameMenu } from "@/app/(protected)/game/features/ui-shell/menu/GameMenu";
 
 export default function Layout({
   children,

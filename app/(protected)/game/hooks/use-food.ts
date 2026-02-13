@@ -8,7 +8,7 @@ import {
   FOOD_ITEMS,
   FOOD_KEYS,
   MAX_FOOD_INVENTORY,
-} from "@/convex/foodConfig";
+} from "@game/shared/contracts/game-config";
 import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";

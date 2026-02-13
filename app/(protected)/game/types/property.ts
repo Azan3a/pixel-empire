@@ -4,7 +4,7 @@ import type {
   PropertyCategory,
   PropertySubType,
   ZoneId,
-} from "@/convex/mapZones";
+} from "@game/shared/contracts/game-config";
 
 export interface Property {
   _id: Id<"properties">;

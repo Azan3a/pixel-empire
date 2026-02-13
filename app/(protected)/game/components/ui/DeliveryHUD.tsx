@@ -5,7 +5,7 @@ import { useJobs } from "@game/hooks/use-jobs";
 import { useCallback, useMemo } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getZoneAt, ZONES } from "@/convex/mapZones";
+import { getZoneAt, ZONES } from "@game/shared/contracts/game-config";
 import { useKeyboard } from "@game/hooks/use-keyboard";
 
 interface DeliveryHUDProps {

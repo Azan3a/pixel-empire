@@ -8,7 +8,7 @@ import {
   CLOTHING_ITEMS,
   CLOTHING_KEYS,
   ClothingSlot,
-} from "@/convex/clothingConfig";
+} from "@game/shared/contracts/game-config";
 import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 import { useCallback, useMemo } from "react";
