@@ -16,6 +16,7 @@ import Loading from "@game/components/ui/Loading";
 import { useViewport } from "@game/features/world/canvas/use-viewport";
 import { useInteractionOverlay } from "@game/features/world/interactions/use-interaction-overlay";
 import { WorldLayer } from "@game/features/world/canvas/WorldLayer";
+import { WorldOverlay } from "@game/features/world/canvas/WorldOverlay";
 
 import { FloatingMinimap } from "@game/components/ui/FloatingMinimap";
 import { DeliveryHUD } from "@game/components/ui/DeliveryHUD";
@@ -257,6 +258,13 @@ export function GameCanvas() {
         woodQty={woodQty}
         onBuyAxe={buyAxe}
         onSellWood={sellWood}
+      />
+
+      <WorldOverlay
+        width={width}
+        height={height}
+        renderPos={renderPos}
+        properties={properties}
       />
 
       <Application background={bgColor} resizeTo={containerRef}>

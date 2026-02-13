@@ -10,7 +10,6 @@ import { drawBuildingBase } from "@game/features/world/renderers/properties/draw
 import { drawWindows } from "@game/features/world/renderers/properties/drawing/windows/drawWindows";
 import { drawDoorAndAccessories } from "@game/features/world/renderers/properties/drawing/doors/drawDoorAndAccessories";
 import { drawBuildingBorder } from "@game/features/world/renderers/properties/drawing/drawBuildingBorder";
-import { PropertyLabel } from "@game/features/world/renderers/properties/components/PropertyLabel";
 import { getSpecializedRenderer } from "@game/features/world/renderers/properties/PropertyRendererRegistry";
 
 interface PropertyNodeProps {
@@ -101,8 +100,6 @@ function PropertyNodeInner({
     [property, sunlightIntensity],
   );
 
-  const { category, isOwned, ownerCount, maxOwners, price } = property;
-
   return (
     <pixiContainer
       x={property.x}
@@ -112,16 +109,6 @@ function PropertyNodeInner({
       onPointerTap={() => onInteract(property._id)}
     >
       <pixiGraphics draw={drawProperty} />
-      <PropertyLabel
-        name={property.name}
-        category={category}
-        isOwned={isOwned}
-        ownerCount={ownerCount}
-        maxOwners={maxOwners}
-        price={price}
-        containerWidth={property.width}
-        containerHeight={property.height}
-      />
     </pixiContainer>
   );
 }
