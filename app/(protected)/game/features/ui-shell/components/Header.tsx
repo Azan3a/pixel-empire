@@ -2,8 +2,8 @@
 "use client";
 
 import { DollarSign, AlertTriangle, Building2, TrendingUp } from "lucide-react";
-import { usePlayer } from "@game/hooks/use-player";
-import { useWorld } from "@game/hooks/use-world";
+import { usePlayer } from "@game/features/player/hooks/use-player";
+import { useWorld } from "@game/features/world/hooks/use-world";
 import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";

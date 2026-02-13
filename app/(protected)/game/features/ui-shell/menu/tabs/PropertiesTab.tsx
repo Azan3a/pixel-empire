@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorld } from "@game/features/world/state/use-world";
+import { useWorld } from "@game/features/world/hooks/use-world";
 import { usePlayer } from "@game/features/player/hooks/use-player";
 import {
   Building2,

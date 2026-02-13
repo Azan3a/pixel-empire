@@ -14,13 +14,16 @@ export function usePlayer() {
   const initPlayer = useMutation(api.players.getOrCreatePlayer);
   const updatePosition = useMutation(api.players.updatePosition);
 
+  /** Number of properties the current player owns */
   const ownedPropertyCount = useMemo(
     () => playerInfo?.ownedPropertyCount ?? 0,
     [playerInfo],
   );
 
+  /** Inventory items grouped by item key */
   const inventory = useMemo(() => playerInfo?.inventory ?? [], [playerInfo]);
 
+  /** Get quantity of a specific item in inventory */
   const getItemQuantity = useMemo(() => {
     const map = new Map<string, number>();
     for (const item of inventory) {

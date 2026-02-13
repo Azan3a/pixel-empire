@@ -2,8 +2,13 @@ import { ConvexError } from "convex/values";
 import type { Id } from "../../_generated/dataModel";
 import type { MutationCtx } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { SHOP_INTERACT_RADIUS } from "../../gameConstants";
-import { getZoneAt, ZONES, type ZoneId, WATER_LINE_Y } from "../../mapZones";
+import { SHOP_INTERACT_RADIUS } from "../../config/gameConstants";
+import {
+  getZoneAt,
+  ZONES,
+  type ZoneId,
+  WATER_LINE_Y,
+} from "../../config/mapZones";
 import { seededRandom } from "../../utils";
 import {
   MAX_FOREST_TREES,
@@ -12,7 +17,7 @@ import {
   TREE_SPAWN_BUILDING_MARGIN,
   TREE_SPAWN_SPACING,
   TreeGrowthStage,
-} from "../../treeConfig";
+} from "../../config/treeConfig";
 
 type Point = { x: number; y: number };
 

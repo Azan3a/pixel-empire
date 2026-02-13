@@ -1,12 +1,16 @@
 import { mutation, type MutationCtx } from "../../_generated/server";
-import { MAP_SIZE, BUILDING_PAD, getCityBlocks } from "../../gameConstants";
+import {
+  MAP_SIZE,
+  BUILDING_PAD,
+  getCityBlocks,
+} from "../../config/gameConstants";
 import {
   getBlockZone,
   getTemplatesForZone,
   SERVICE_BUILDINGS,
   ZONES,
   WATER_LINE_Y,
-} from "../../mapZones";
+} from "../../config/mapZones";
 import { seededRandom } from "../../utils";
 import { clearTreesInternal, initForestTreesInternal } from "../trees/helpers";
 

@@ -9,7 +9,7 @@ import {
   TREE_GROWTH_STAGES,
   type TreeGrowthStage,
 } from "@game/shared/contracts/game-config";
-import { useKeysPressed, isControlPressed } from "@game/hooks/use-keyboard";
+import { useKeysPressed, isControlPressed } from "./use-keyboard";
 import type { Tree } from "@game/types/tree";
 
 const BASE_SPEED = 5;

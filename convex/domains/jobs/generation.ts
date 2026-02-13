@@ -1,8 +1,12 @@
 // convex/domains/jobs/generation.ts
 
 import { type MutationCtx } from "../../_generated/server";
-import { ROAD_SPACING, MAP_SIZE, HALF_CORRIDOR } from "../../gameConstants";
-import { getZoneAt, WATER_LINE_Y } from "../../mapZones";
+import {
+  ROAD_SPACING,
+  MAP_SIZE,
+  HALF_CORRIDOR,
+} from "../../config/gameConstants";
+import { getZoneAt, WATER_LINE_Y } from "../../config/mapZones";
 import { dist } from "../../shared/math";
 import { getLandmarkName, getJobTitle, hashCoord } from "./naming";
 

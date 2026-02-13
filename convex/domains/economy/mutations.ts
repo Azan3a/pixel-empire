@@ -1,7 +1,7 @@
 import { ConvexError } from "convex/values";
 import { mutation } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { HUNGER_PER_WORK } from "../../foodConfig";
+import { HUNGER_PER_WORK } from "../../config/foodConfig";
 import { processIncomeCollection } from "./helpers";
 
 export const collectIncome = mutation({

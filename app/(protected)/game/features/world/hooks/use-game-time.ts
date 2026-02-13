@@ -13,7 +13,7 @@ import {
   GAME_DAY_DURATION_MS,
   TIME_EPOCH,
   type TimePhase,
-} from "@/convex/timeConstants";
+} from "@/convex/config/timeConstants";
 
 export interface GameTimeState {
   gameHour: number;

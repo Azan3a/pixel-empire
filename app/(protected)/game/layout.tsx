@@ -1,4 +1,4 @@
-import { Header } from "@/app/(protected)/game/components/ui/Header";
+import { Header } from "@game/features/ui-shell/components/Header";
 import { GameMenu } from "@/app/(protected)/game/features/ui-shell/menu/GameMenu";
 
 export default function Layout({

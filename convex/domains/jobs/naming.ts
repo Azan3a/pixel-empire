@@ -1,6 +1,6 @@
 // convex/domains/jobs/naming.ts
 
-import { getZoneAt, type ZoneId } from "../../mapZones";
+import { getZoneAt, type ZoneId } from "../../config/mapZones";
 
 /** Simple hash for deterministic naming */
 export function hashCoord(x: number, y: number, seed: number): number {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useClothing } from "@game/hooks/use-clothing";
+import { useClothing } from "@game/features/player/hooks/use-clothing";
 import {
   CLOTHING_ITEMS,
   SLOT_LABELS,
@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ClothingPreview } from "@game/components/ui/ClothingPreview";
+import { ClothingPreview } from "@game/features/player/components/ClothingPreview";
 
 const SLOTS: ClothingSlot[] = ["hat", "shirt", "pants", "shoes"];
 

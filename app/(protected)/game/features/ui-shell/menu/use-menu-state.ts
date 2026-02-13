@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useKeyboard } from "@game/hooks/use-keyboard";
+import { useKeyboard } from "@game/features/player/hooks/use-keyboard";
 
 export type NavId =
   | "map"

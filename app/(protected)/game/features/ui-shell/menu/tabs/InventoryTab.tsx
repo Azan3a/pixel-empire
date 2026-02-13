@@ -1,6 +1,6 @@
 "use client";
 
-import { useFood } from "@game/hooks/use-food";
+import { useFood } from "@game/features/player/hooks/use-food";
 import { usePlayer } from "@game/features/player/hooks/use-player";
 import {
   FOOD_ITEMS,

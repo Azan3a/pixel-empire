@@ -8,12 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Property } from "@game/types/property";
-import { useFood } from "@game/hooks/use-food";
+import { useFood } from "@game/features/player/hooks/use-food";
 import {
   FOOD_LIST,
   MAX_FOOD_INVENTORY,
 } from "@game/shared/contracts/game-config";
-import { ClothingShopContent } from "./ClothingShopContent";
+import { ClothingShopContent } from "@game/features/player/components/ClothingShopContent";
 import { Id } from "@/convex/_generated/dataModel";
 import { SELL_RATE, ZONES } from "@game/shared/contracts/game-config";
 import { cn } from "@/lib/utils";

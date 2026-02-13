@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { SELL_RATE } from "../../gameConstants";
+import { SELL_RATE } from "../../config/gameConstants";
 
 export const buyProperty = mutation({
   args: { propertyId: v.id("properties") },

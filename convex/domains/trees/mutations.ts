@@ -7,7 +7,7 @@ import {
   TREE_INTERACT_RADIUS,
   TreeGrowthStage,
   WOOD_ITEM,
-} from "../../treeConfig";
+} from "../../config/treeConfig";
 import {
   assertNear,
   decrementInventory,

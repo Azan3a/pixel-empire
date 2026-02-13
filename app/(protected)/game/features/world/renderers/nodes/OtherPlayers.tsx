@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { useInterpolatedPlayers } from "@game/hooks/use-interpolated-players";
+import { useInterpolatedPlayers } from "@game/features/player/hooks/use-interpolated-players";
 import { PlayerCharacter } from "@game/features/world/renderers/player/PlayerCharacter";
 import { Player } from "@game/types/player";
 import { getAvatarColor } from "@game/features/world/renderers/player/utils";

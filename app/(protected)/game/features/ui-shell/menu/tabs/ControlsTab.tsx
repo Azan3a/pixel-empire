@@ -1,4 +1,4 @@
-import { getControlsList } from "@game/hooks/use-keyboard";
+import { getControlsList } from "@game/features/player/hooks/use-keyboard";
 
 export function ControlsTab() {
   const controls = getControlsList();

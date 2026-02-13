@@ -3,7 +3,7 @@ import {
   MAX_FOREST_TREES,
   TREE_GROWTH_STAGES,
   TreeGrowthStage,
-} from "../../treeConfig";
+} from "../../config/treeConfig";
 import { getNextStage, placeTrees } from "./helpers";
 
 export const growTrees = internalMutation({

@@ -5,24 +5,24 @@ import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Player } from "@game/types/player";
 import { usePlayer } from "@game/features/player/hooks/use-player";
-import { useWorld } from "@game/features/world/state/use-world";
-import { useJobs } from "@game/hooks/use-jobs";
-import { useMovement } from "@game/features/world/state/use-movement";
-import { useGameTime } from "@game/hooks/use-game-time";
-import { useTrees } from "@game/features/world/state/use-trees";
+import { useWorld } from "@game/features/world/hooks/use-world";
+import { useJobs } from "@game/features/jobs/hooks/use-jobs";
+import { useMovement } from "@game/features/player/hooks/use-movement";
+import { useGameTime } from "@game/features/world/hooks/use-game-time";
+import { useTrees } from "@game/features/world/hooks/use-trees";
 import { getSpawnPoint, MAX_HUNGER } from "@game/shared/contracts/game-config";
-import Loading from "@game/components/ui/Loading";
+import Loading from "@game/features/ui-shell/components/Loading";
 
 import { useViewport } from "@game/features/world/canvas/use-viewport";
 import { useInteractionOverlay } from "@game/features/world/interactions/use-interaction-overlay";
 import { WorldLayer } from "@game/features/world/canvas/WorldLayer";
 import { WorldOverlay } from "@game/features/world/canvas/WorldOverlay";
 
-import { FloatingMinimap } from "@game/components/ui/FloatingMinimap";
-import { DeliveryHUD } from "@game/components/ui/DeliveryHUD";
-import { PropertyDialog } from "@game/components/ui/PropertyDialog";
-import { ShopDialog } from "@game/components/ui/ShopDialog";
-import { RangerStationDialog } from "@game/components/ui/RangerStationDialog";
+import { FloatingMinimap } from "@game/features/world/components/FloatingMinimap";
+import { DeliveryHUD } from "@game/features/jobs/components/DeliveryHUD";
+import { PropertyDialog } from "@game/features/world/components/PropertyDialog";
+import { ShopDialog } from "@game/features/shops/ui/ShopDialog";
+import { RangerStationDialog } from "@game/features/jobs/components/RangerStationDialog";
 
 extend({ Container, Graphics, Sprite, Text });
 

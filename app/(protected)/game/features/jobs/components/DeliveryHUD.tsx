@@ -1,12 +1,12 @@
 // components/game/ui/DeliveryHUD.tsx
 "use client";
 
-import { useJobs } from "@game/hooks/use-jobs";
+import { useJobs } from "@game/features/jobs/hooks/use-jobs";
 import { useCallback, useMemo } from "react";
 import { Package, Navigation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getZoneAt, ZONES } from "@game/shared/contracts/game-config";
-import { useKeyboard } from "@game/hooks/use-keyboard";
+import { useKeyboard } from "@game/features/player/hooks/use-keyboard";
 
 interface DeliveryHUDProps {
   playerX: number;

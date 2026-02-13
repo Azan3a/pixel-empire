@@ -6,6 +6,5 @@ export type {
   MapPlayerPoint,
   MapRendererOptions,
 } from "./renderers/minimap/map-renderer";
-export { useWorld } from "./state/use-world";
-export { useMovement } from "./state/use-movement";
-export { useTrees } from "./state/use-trees";
+export { useWorld } from "./hooks/use-world";
+export { useTrees } from "./hooks/use-trees";

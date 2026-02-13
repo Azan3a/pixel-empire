@@ -13,7 +13,7 @@ import {
   INCOME_COOLDOWN_MS,
   SHOP_INTERACT_RADIUS,
   getSpawnPoint,
-} from "@/convex/gameConstants";
+} from "@/convex/config/gameConstants";
 
 import {
   ZONES,
@@ -25,7 +25,7 @@ import {
   type ZoneId,
   type PropertyCategory,
   type PropertySubType,
-} from "@/convex/mapZones";
+} from "@/convex/config/mapZones";
 
 import {
   TREE_GROWTH_STAGES,
@@ -34,7 +34,7 @@ import {
   WOOD_ITEM,
   TREE_INTERACT_RADIUS,
   type TreeGrowthStage,
-} from "@/convex/treeConfig";
+} from "@/convex/config/treeConfig";
 
 import {
   FOOD_ITEMS,
@@ -47,7 +47,7 @@ import {
   HUNGER_PER_WORK,
   HUNGER_SLOW_THRESHOLD,
   type FoodType,
-} from "@/convex/foodConfig";
+} from "@/convex/config/foodConfig";
 
 import {
   CLOTHING_ITEMS,
@@ -57,7 +57,7 @@ import {
   SLOT_LABELS,
   type ClothingType,
   type ClothingSlot,
-} from "@/convex/clothingConfig";
+} from "@/convex/config/clothingConfig";
 
 // Re-exporting these as the official "Contract" for the game UI
 // This allows us to change the backend implementation without breaking the UI imports,

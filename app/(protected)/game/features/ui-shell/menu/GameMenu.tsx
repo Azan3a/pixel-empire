@@ -10,8 +10,8 @@ import {
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@game/features/player/hooks/use-player";
-import { useWorld } from "@game/features/world/state/use-world";
-import { useJobs } from "@game/hooks/use-jobs";
+import { useWorld } from "@game/features/world/hooks/use-world";
+import { useJobs } from "@game/features/jobs/hooks/use-jobs";
 import { MAX_HUNGER } from "@game/shared/contracts/game-config";
 
 import { useMenuState } from "@game/features/ui-shell/menu/use-menu-state";

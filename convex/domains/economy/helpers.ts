@@ -1,6 +1,6 @@
 import type { Doc } from "../../_generated/dataModel";
 import type { MutationCtx } from "../../_generated/server";
-import { INCOME_COOLDOWN_MS } from "../../gameConstants";
+import { INCOME_COOLDOWN_MS } from "../../config/gameConstants";
 
 export async function processIncomeCollection(
   ctx: MutationCtx,

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import type { GameTimeState } from "@game/hooks/use-game-time";
+import type { GameTimeState } from "@game/features/world/hooks/use-game-time";
 
 function getSafeDimension(value: number, fallback: number) {
   if (Number.isFinite(value) && value > 0) return Math.round(value);

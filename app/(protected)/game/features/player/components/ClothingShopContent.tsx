@@ -1,7 +1,7 @@
 // components/game/ui/ClothingShopContent.tsx
 "use client";
 
-import { useClothing } from "@game/hooks/use-clothing";
+import { useClothing } from "@game/features/player/hooks/use-clothing";
 import {
   CLOTHING_BY_SLOT,
   SLOT_LABELS,

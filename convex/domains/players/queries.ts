@@ -1,6 +1,6 @@
 import { query } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { MAX_HUNGER } from "../../foodConfig";
+import { MAX_HUNGER } from "../../config/foodConfig";
 
 export const getLeaderboard = query({
   args: {},

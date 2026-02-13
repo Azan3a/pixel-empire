@@ -3,7 +3,7 @@
 import { v } from "convex/values";
 import { mutation } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { HUNGER_PER_DELIVERY } from "../../foodConfig";
+import { HUNGER_PER_DELIVERY } from "../../config/foodConfig";
 import { dist } from "../../shared/math";
 import { PICKUP_RADIUS } from "./constants";
 

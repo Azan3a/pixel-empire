@@ -1,9 +1,9 @@
 import { v } from "convex/values";
 import { mutation } from "../../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "../../foodConfig";
-import { getSpawnPoint, MAP_SIZE } from "../../gameConstants";
-import { WATER_LINE_Y } from "../../mapZones";
+import { MAX_HUNGER, HUNGER_WALK_THRESHOLD } from "../../config/foodConfig";
+import { getSpawnPoint, MAP_SIZE } from "../../config/gameConstants";
+import { WATER_LINE_Y } from "../../config/mapZones";
 import { processIncomeCollection } from "../economy/helpers";
 
 const MIN_POSITION_UPDATE_INTERVAL_MS = 40;
