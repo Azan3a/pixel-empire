@@ -201,12 +201,13 @@ export class MapRenderer {
 
   private drawMarker(x: number, y: number, color: string, pulse: number) {
     const { ctx, scale } = this;
+    const radius = Math.max(5, 12 * scale) * pulse;
     ctx.beginPath();
-    ctx.arc(x, y, 6 * scale * pulse, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   }
 

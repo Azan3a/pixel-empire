@@ -3,7 +3,7 @@
 
 import { useJobs } from "@game/features/jobs/hooks/use-jobs";
 import { useCallback, useMemo } from "react";
-import { Package, Navigation, MapPin } from "lucide-react";
+import { Navigation2, DollarSign, LocateFixed } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getZoneAt, ZONES } from "@game/shared/contracts/game-config";
 import { useKeyboard } from "@game/features/player/hooks/use-keyboard";
@@ -82,92 +82,117 @@ export function DeliveryHUD({ playerX, playerY }: DeliveryHUDProps) {
 
   return (
     <>
-      {/* ── Objective banner — fixed top center ── */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-4 w-full max-w-md">
+        {/* Main HUD Card */}
         <div
           className={cn(
-            "pointer-events-auto flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 shadow-lg backdrop-blur-md",
+            "pointer-events-auto flex items-center w-full gap-4 px-5 py-3 rounded-2xl border-b-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-300",
             isPickup
-              ? "bg-blue-950/80 border-blue-500/50"
-              : "bg-orange-950/80 border-orange-500/50",
+              ? "bg-slate-900/90 border-blue-500/60 ring-1 ring-blue-500/20"
+              : "bg-slate-900/90 border-orange-500/60 ring-1 ring-orange-500/20",
           )}
         >
-          {/* Compass arrow */}
-          <div
-            className="flex items-center justify-center size-9 rounded-full bg-black/30"
-            style={{ transform: `rotate(${angle + Math.PI / 2}rad)` }}
-          >
-            <Navigation
+          {/* Status Icon & Navigation */}
+          <div className="relative group">
+            <div
               className={cn(
-                "size-5",
-                isPickup ? "text-blue-400" : "text-orange-400",
+                "flex items-center justify-center size-12 rounded-xl transition-transform duration-500 group-hover:scale-110 shadow-inner",
+                isPickup ? "bg-blue-500/20" : "bg-orange-500/20",
               )}
-            />
+            >
+              <div
+                className="transition-transform duration-200 ease-out"
+                style={{ transform: `rotate(${angle + Math.PI / 2}rad)` }}
+              >
+                <Navigation2
+                  className={cn(
+                    "size-6 drop-shadow-[0_0_8px_currentColor]",
+                    isPickup ? "text-blue-400" : "text-orange-400",
+                  )}
+                  fill="currentColor"
+                />
+              </div>
+            </div>
+            {/* Distance Badge */}
+            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-black/80 border border-white/10 text-[10px] font-mono font-bold text-white shadow-lg">
+              {formatDistance(distance)}m
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              {isPickup ? (
-                <MapPin className="size-3.5 text-blue-400" />
-              ) : (
-                <Package className="size-3.5 text-orange-400" />
+          {/* Info Section */}
+          <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "text-[10px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-full",
+                  isPickup
+                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                    : "bg-orange-500/10 text-orange-400 border border-orange-500/20",
+                )}
+              >
+                {isPickup ? "Collect" : "Deliver"}
+              </span>
+              {isNear && (
+                <span className="flex size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
               )}
-              <span className="text-xs font-bold uppercase tracking-wider text-white/70">
-                {isPickup ? "Pick Up Parcel" : "Deliver Parcel"}
+            </div>
+
+            <h3 className="text-base font-bold text-white leading-tight truncate">
+              {targetName}
+            </h3>
+
+            <div className="flex items-center gap-3">
+              {targetZone && (
+                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                  <LocateFixed className="size-3 text-white/40 shrink-0" />
+                  <span className="text-xs font-medium text-white/50 truncate">
+                    {targetZone.name}
+                  </span>
+                </div>
+              )}
+              {isCrossZone && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="size-1 rounded-full bg-white/20" />
+                  <span className="text-[10px] font-bold text-amber-400/80">
+                    LONG HAUL
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Reward Section */}
+          <div className="flex flex-col items-end gap-1 pl-4 border-l border-white/10 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="size-4 text-emerald-400" />
+              <span className="text-xl font-black font-mono text-emerald-400 tabular-nums">
+                {activeJob.reward}
               </span>
             </div>
-            <span className="text-sm font-bold text-white">{targetName}</span>
-            {/* Zone tag */}
-            {targetZone && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[10px] text-white/40">
-                  📍 {targetZone.name}
-                </span>
-                {isCrossZone && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    CROSS-ZONE
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Distance */}
-          <div className="flex flex-col items-end ml-4">
-            <span className="text-lg font-mono font-black text-white">
-              {formatDistance(distance)}
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+              Payout
             </span>
-            <span className="text-[10px] text-white/50 uppercase">
-              {distance >= 1000 ? "k units" : "units"}
-            </span>
-          </div>
-
-          {/* Reward */}
-          <div className="flex flex-col items-end ml-2 pl-3 border-l border-white/10">
-            <span className="text-sm font-mono font-bold text-emerald-400">
-              +${activeJob.reward}
-            </span>
-            <span className="text-[10px] text-white/40">reward</span>
           </div>
         </div>
 
-        {/* Interaction prompt */}
+        {/* Interaction Prompt */}
         {isNear && (
-          <div
-            className={cn(
-              "pointer-events-auto px-4 py-2 rounded-lg border animate-pulse shadow-lg",
-              isPickup
-                ? "bg-blue-600/90 border-blue-400 text-white"
-                : "bg-orange-600/90 border-orange-400 text-white",
-            )}
-          >
-            <span className="text-sm font-bold">
-              Press{" "}
-              <kbd className="px-1.5 py-0.5 bg-white/20 rounded text-xs font-mono">
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <div
+              className={cn(
+                "flex items-center gap-2.5 px-6 py-2 rounded-full border-2 shadow-2xl backdrop-blur-md",
+                isPickup
+                  ? "bg-blue-600/90 border-blue-400 shadow-blue-500/20"
+                  : "bg-orange-600/90 border-orange-400 shadow-orange-500/20",
+              )}
+            >
+              <div className="flex items-center justify-center size-6 rounded bg-black/20 text-xs font-black text-white px-2">
                 F
-              </kbd>{" "}
-              to {isPickup ? "pick up parcel" : "deliver parcel"}
-            </span>
+              </div>
+              <span className="text-sm font-black text-white uppercase tracking-wide">
+                {isPickup ? "Pickup Parcel" : "Dropoff Parcel"}
+              </span>
+            </div>
           </div>
         )}
       </div>
