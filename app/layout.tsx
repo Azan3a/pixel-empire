@@ -39,7 +39,15 @@ export default function RootLayout({
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className="bg-[#0d0d1a] text-white">
+      <html lang="en" className="bg-[#0d0d1a] text-white" suppressHydrationWarning>
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html:
+                "document.documentElement.classList.toggle('dark',localStorage.getItem('game:dark')==='true')",
+            }}
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
         >
