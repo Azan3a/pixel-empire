@@ -10,6 +10,7 @@
 
 import type * as CustomPassword from "../CustomPassword.js";
 import type * as auth from "../auth.js";
+import type * as chat from "../chat.js";
 import type * as clothing from "../clothing.js";
 import type * as config_clothingConfig from "../config/clothingConfig.js";
 import type * as config_foodConfig from "../config/foodConfig.js";
@@ -18,6 +19,8 @@ import type * as config_mapZones from "../config/mapZones.js";
 import type * as config_timeConstants from "../config/timeConstants.js";
 import type * as config_treeConfig from "../config/treeConfig.js";
 import type * as crons from "../crons.js";
+import type * as domains_chat_mutations from "../domains/chat/mutations.js";
+import type * as domains_chat_queries from "../domains/chat/queries.js";
 import type * as domains_economy_helpers from "../domains/economy/helpers.js";
 import type * as domains_economy_mutations from "../domains/economy/mutations.js";
 import type * as domains_jobs_constants from "../domains/jobs/constants.js";
@@ -61,6 +64,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   CustomPassword: typeof CustomPassword;
   auth: typeof auth;
+  chat: typeof chat;
   clothing: typeof clothing;
   "config/clothingConfig": typeof config_clothingConfig;
   "config/foodConfig": typeof config_foodConfig;
@@ -69,6 +73,8 @@ declare const fullApi: ApiFromModules<{
   "config/timeConstants": typeof config_timeConstants;
   "config/treeConfig": typeof config_treeConfig;
   crons: typeof crons;
+  "domains/chat/mutations": typeof domains_chat_mutations;
+  "domains/chat/queries": typeof domains_chat_queries;
   "domains/economy/helpers": typeof domains_economy_helpers;
   "domains/economy/mutations": typeof domains_economy_mutations;
   "domains/jobs/constants": typeof domains_jobs_constants;

@@ -94,4 +94,19 @@ export default defineSchema({
     key: v.string(),
     value: v.string(),
   }).index("by_key", ["key"]),
+
+  // ── Chat Messages ──────────────────────────────────────────────
+  chatMessages: defineTable({
+    playerId: v.id("players"),
+    playerName: v.string(),
+    message: v.string(),
+    type: v.union(
+      v.literal("chat"), // player chat message
+      v.literal("system"), // system announcement
+      v.literal("activity"), // game activity (purchase, job complete, etc.)
+    ),
+    sentAt: v.number(), // Date.now() timestamp
+  })
+    .index("by_sentAt", ["sentAt"])
+    .index("by_player", ["playerId"]),
 });

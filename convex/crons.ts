@@ -20,4 +20,11 @@ crons.interval("grow trees", { minutes: 2 }, internal.trees.growTrees);
 // Respawn new seedlings every 5 minutes (keeps forest populated)
 crons.interval("spawn trees", { minutes: 5 }, internal.trees.spawnNewTrees);
 
+// ── Chat cleanup: every 15 minutes, delete messages older than 1 hour ──
+crons.interval(
+  "cleanup old chat messages",
+  { minutes: 15 },
+  internal.domains.chat.mutations.cleanupOldMessages,
+);
+
 export default crons;
