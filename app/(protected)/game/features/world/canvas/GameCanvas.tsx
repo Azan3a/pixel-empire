@@ -23,6 +23,7 @@ import { DeliveryHUD } from "@game/features/jobs/components/DeliveryHUD";
 import { PropertyDialog } from "@game/features/world/components/PropertyDialog";
 import { ShopDialog } from "@game/features/shops/ui/ShopDialog";
 import { RangerStationDialog } from "@game/features/jobs/components/RangerStationDialog";
+import { FloatingChatLog } from "@game/features/ui-shell/components/FloatingChatLog";
 
 extend({ Container, Graphics, Sprite, Text });
 
@@ -119,7 +120,6 @@ export function GameCanvas() {
   }, [properties, initCity]);
 
   useEffect(() => {
-    // Backfill for existing worlds: if city exists but trees haven't been initialized yet.
     if (properties.length > 0 && trees.length === 0) {
       void initForestTrees();
     }
@@ -222,6 +222,8 @@ export function GameCanvas() {
         />
         <DeliveryHUD playerX={renderPos.x} playerY={renderPos.y} />
       </div>
+
+      <FloatingChatLog />
 
       <PropertyDialog
         property={selectedProperty}
